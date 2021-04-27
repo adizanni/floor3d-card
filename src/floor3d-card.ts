@@ -113,6 +113,7 @@ export class Floor3dCard extends LitElement {
     this._box = this.shadowRoot.getElementById('3d_canvas')
     this._box.appendChild(this._renderer.domElement)
     this._box.addEventListener("resize", this._resizeCanvas.bind(this));
+    this._box.addEventListener("dblclick", this._showObjectName.bind(this) );
     this._controls = new OrbitControls(this._camera, this._renderer.domElement);
     this._controls.maxPolarAngle = 0.9 * Math.PI / 2;
     this._controls.addEventListener( 'change', this._render.bind(this) );
@@ -125,6 +126,19 @@ export class Floor3dCard extends LitElement {
   private _render(): void {
     this._resizeCanvas();
     this._renderer.render(this._scene, this._camera);
+  }
+
+  private _showObjectName(e: any): void {
+
+    const mouse: THREE.Vector2 = new THREE.Vector2();
+    mouse.x = ( e.offsetX / this._box.clientWidth ) * 2 - 1;
+    mouse.y = - ( e.offsetY  / this._box.clientHeight ) * 2 + 1;
+    const raycaster: THREE.Raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera( mouse, this._camera );
+    const intersects: THREE.Intersection[] = raycaster.intersectObjects( this._scene.children,true );
+    if(intersects.length > 0 && intersects[0].object.name != ''){
+      window.prompt("Object:",intersects[0].object.name);
+    }
   }
 
   public set hass(hass: HomeAssistant) {
