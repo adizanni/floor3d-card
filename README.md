@@ -1,119 +1,140 @@
-# Floor3d Card by [@iantrich](https://www.github.com/iantrich)
+# visualization-card-3dfloor
+Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. Be advised it is still an alfa version; it requires a bit of manual installation actions and related troubleshooting. I'm working at a more official and easy to setup version using card templates projects.
 
-A community driven floor3d of best practices for Home Assistant Lovelace custom cards
+[![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)
 
-[![GitHub Release][releases-shield]][releases]
-[![License][license-shield]](LICENSE.md)
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+## Installation
+Requires three.js to be installed in the www directory. Download the master branch from here https://github.com/mrdoob/three.js/archive/master.zip
+and unzip it somewhere, then copy the **build** and **examples** of the unzipped subfolders into the /config/www/modules/three/ directory in your Home Assistant config file system. Your directory structure should look like this:
 
-![Project Maintenance][maintenance-shield]
-[![GitHub Activity][commits-shield]][commits]
+```
++-- config/www
+|   +-- three
+|       +-- build
+|           +-- (....)
+|       +-- examples
+|           +-- (....)   
+....
+```
 
-[![Discord][discord-shield]][discord]
-[![Community Forum][forum-shield]][forum]
+Copy visualization-card-3dfloor.js to /config/www and register it as a Lovelace resource (/local/visalization-card-3dfloor.js)
 
-## Support
-
-Hey dude! Help me out for a couple of :beers: or a :coffee:!
-
-[![coffee](https://www.buymeacoffee.com/assets/img/custom_images/black_img.png)](https://www.buymeacoffee.com/zJtVxUAgH)
+## Model Design and Installation
+Use a 3D modeling software. As you have to model your home I would suggest this software (the one I tested): http://www.sweethome3d.com/.
+Model your home with all needed objects and furniture (I will post here some hints on how to better design your home for best results with the custom card).
+For further instruction I assume you will use SweetHome3D.
+At the end of your modeling, you need to export the files in obj format using '3D View \ Export to OBJ format ...', specify the folder where you want to store the output (be careful there are multiple files)
+Copy the full set of files (minimum is the .obj file and .mtl file) to a sub folder of /config/www in Home assistant.
+Then configure a new panel card with the following options:
 
 ## Options
 
-| Name              | Type    | Requirement  | Description                                 | Default             |
-| ----------------- | ------- | ------------ | ------------------------------------------- | ------------------- |
-| type              | string  | **Required** | `custom:floor3d-card`                       |
-| name              | string  | **Optional** | Card name                                   | `Floor3d`           |
-| show_error        | boolean | **Optional** | Show what an error looks like for the card  | `false`             |
-| show_warning      | boolean | **Optional** | Show what a warning looks like for the card | `false`             |
-| entity            | string  | **Optional** | Home Assistant entity ID.                   | `none`              |
-| tap_action        | object  | **Optional** | Action to take on tap                       | `action: more-info` |
-| hold_action       | object  | **Optional** | Action to take on hold                      | `none`              |
-| double_tap_action | object  | **Optional** | Action to take on double tap                | `none`              |
+| Name | Type | Default | Description
+| ---- | ---- | ------- | -----------
+| type | string | **Required** | `custom:visualization-card-3dfloor`.
+| entities | array | none | list of enitities to bind to 3D model objects.
+| path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
+| objfile | string | **Required** | object file name (.obj) Waterfront format.
+| mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
+| backgroundColor | string | '#aaaaaa' | canvas background color
+| globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene
 
-## Action Options
+For each enity in the entities list you need to specify the following options:
 
-| Name            | Type   | Requirement  | Description                                                                                                                            | Default     |
-| --------------- | ------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| action          | string | **Required** | Action to perform (more-info, toggle, call-service, navigate url, none)                                                                | `more-info` |
-| navigation_path | string | **Optional** | Path to navigate to (e.g. /lovelace/0/) when action defined as navigate                                                                | `none`      |
-| url             | string | **Optional** | URL to open on click when action is url. The URL will open in a new tab                                                                | `none`      |
-| service         | string | **Optional** | Service to call (e.g. media_player.media_play_pause) when action defined as call-service                                               | `none`      |
-| service_data    | object | **Optional** | Service data to include (e.g. entity_id: media_player.bedroom) when action defined as call-service                                     | `none`      |
-| haptic          | string | **Optional** | Haptic feedback for the [Beta IOS App](http://home-assistant.io/ios/beta) _success, warning, failure, light, medium, heavy, selection_ | `none`      |
-| repeat          | number | **Optional** | How often to repeat the `hold_action` in milliseconds.                                                                                 | `non`       |
+| Name | Type | Default | Description
+| ---- | ---- | ------- | -----------
+| entity | string | **Required** | your entity id.
+| object_id | string | **Required** | the name of the object in the model to biind to your entity.
+| type3d | string | **Required** | the type of object binding. Values are: light, hide, color
 
-## Starting a new card from floor3d-card
+**Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
 
-### Step 1
+## Lights
 
-Clone this repository
+For **light** example config:
+```yaml
+entities:
+  - entity: <a light entity id>
+    type3d: light
+    lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
+    object_id: <an object id in the 3D model you want to postion the light on>
+    light_name: <give an object id to the light in the model>
+```
 
-### Step 2
+light_name is the name of the light object that will be created in the model to do the actual illumination.
 
-Install necessary modules (verified to work in node 8.x)
-`yarn install` or `npm install`
+Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa 
 
-### Step 3
+## Hide
 
-Do a test lint & build on the project. You can see available scripts in the package.json
-`npm run build`
+For **hide** example config:
+```yaml
+entities
+  - entity: <a binary sensor entity id>
+    type3d: hide
+    object_id: <an object_id in the model you want to hide if condition is true>
+    state: <the state of the entity triggering the hiding of the object: ex 'off'>
+```
 
-### Step 4
+Hide behavour: the object_id will be hidden when the state of the bound entity will be equal to the **state** value
 
-Search the repository for all instances of "TODO" and handle the changes/suggestions
+## Color
 
-### Step 5
+For **color** example config:
+```yaml
+entities:
+  - entity: <a discrete sensor entity id>
+    type3d: color
+    object_id: <the object id in the 3D model that has to change color based on the state of the entity>
+    conditions:
+      - condition: <id of the condition, any value ex: "id_1">
+        state: <state of the entity>
+        color: <color to paint if condition for the entity id in the stat to be true ex:'#00ff00'>
+      .......
+```
 
-Customize to suit your needs and contribute it back to the community
+Color behavour: the object_id will be painted in the color when the state of the bound entity will be equal to the **state** value
 
-## Starting a new card from floor3d-card with [devcontainer][devcontainer]
 
-Note: this is available only in vscode ensure you have the [Remote Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension installed.
+### Example
 
-1. Fork and clone the repository.
-2. Open a [devcontainer][devcontainer] terminal and run `npm start` when it's ready.
-3. The compiled `.js` file will be accessible on
-   `http://127.0.0.1:5000/floor3d-card.js`.
-4. On a running Home Assistant installation add this to your Lovelace
-   `resources:`
+To give it a try please, load the example folder files in a folder within /config/www of your Home Assistant.
+Create a new Panel View add a Manual Card and cut and paste the following config:
 
 ```yaml
-- url: 'http://127.0.0.1:5000/floor3d-card.js'
-  type: module
+type: 'custom:visualization-card-3dfloor'
+entities:
+  - entity: <your light entity id>
+    type3d: light
+    object_id: sweethome3d_opening_on_hinge_2_LampSide_31
+    light_name: sweethome3d_opening_on_hinge_2_LampSide_31_light
+  - entity: <your binary sensor entity id (example a magnet sensor for a window)>
+    type3d: color
+    object_id: sweethome3d_window_pane_on_hinge_1_50
+    conditions:
+      - condition: id_1
+        state: 'on'
+        color: '#00ff00'
+      - condition: id_2
+        state: 'off'
+        color: '#ff0000'
+path: /local/home2/
+objfile: MyExampleHome2.obj
+mtlfile: MyExampleHome2.mtl
+backgroundColor: '#000001'
+globalLightPower: 0.4
 ```
 
-_Change "127.0.0.1" to the IP of your development machine._
+<img width="300" alt="Example Light On" src="https://github.com/adizanni/visualization-card-3d-floor/blob/main/images/ExampleOn.png?raw=true">
+<img width="300" alt="Example Light Off" src="https://github.com/adizanni/visualization-card-3d-floor/blob/main/images/ExampleOff.png?raw=true">
 
-### Bonus
+### To Do
+List of feature I will develop in the next releases:
+- Set-up automation / improvement
+- Edit mode: initially to facilitate the configuration you can load the model without entity bindings and you will be able to show the name of the object you want to bind to by double clicking on the object
+- Condition 3D Type add templating and or support complex conditions
 
-If you need a fresh test instance you can install a fresh Home Assistant instance inside the devcontainer as well.
 
-1. Run the command `container start`.
-2. Home Assistant will install and will eventually be running on port `9123`
 
-## [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
 
-NB This will not work with node 9.x if you see the following errors try installing node 8.10.0
 
-```yarn install
-yarn install v1.3.2
-[1/4] 🔍  Resolving packages...
-warning rollup-plugin-commonjs@10.1.0: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-commonjs.
-[2/4] 🚚  Fetching packages...
-error @typescript-eslint/eslint-plugin@2.6.0: The engine "node" is incompatible with this module. Expected version "^8.10.0 || ^10.13.0 || >=11.10.1".
-error Found incompatible module
-info Visit https://yarnpkg.com/en/docs/cli/install for documentation about this command.
-```
-
-[commits-shield]: https://img.shields.io/github/commit-activity/y/custom-cards/floor3d-card.svg?style=for-the-badge
-[commits]: https://github.com/custom-cards/floor3d-card/commits/master
-[devcontainer]: https://code.visualstudio.com/docs/remote/containers
-[discord]: https://discord.gg/5e9yvq
-[discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
-[forum-shield]: https://img.shields.io/badge/community-forum-brightgreen.svg?style=for-the-badge
-[forum]: https://community.home-assistant.io/c/projects/frontend
-[license-shield]: https://img.shields.io/github/license/custom-cards/floor3d-card.svg?style=for-the-badge
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2020.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/custom-cards/floor3d-card.svg?style=for-the-badge
-[releases]: https://github.com/custom-cards/floor3d-card/releases
