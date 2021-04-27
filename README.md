@@ -1,23 +1,21 @@
-# visualization-card-3dfloor
+# floor3d-card
 Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. Be advised it is still an alfa version; it requires a bit of manual installation actions and related troubleshooting. I'm working at a more official and easy to setup version using card templates projects.
 
 [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)
 
+
 ## Installation
-Requires three.js to be installed in the www directory. Download the master branch from here https://github.com/mrdoob/three.js/archive/master.zip
-and unzip it somewhere, then copy the **build** and **examples** of the unzipped subfolders into the /config/www/modules/three/ directory in your Home Assistant config file system. Your directory structure should look like this:
 
-```
-+-- config/www
-|   +-- three
-|       +-- build
-|           +-- (....)
-|       +-- examples
-|           +-- (....)   
-....
-```
+I'm not yet integrated into HACS,  [Home Assistant Community Store](https://github.com/hacs/integration).
 
-Copy visualization-card-3dfloor.js to /config/www and register it as a Lovelace resource (/local/visalization-card-3dfloor.js)
+In the meantime, please download the compiled js file from here and upload it to your www home assistant folder
+
+It's **required** to load this card as `module`.
+
+```yaml
+- url: /local/pathtofile/floor3d-card.js
+  type: module
+```
 
 ## Model Design and Installation
 Use a 3D modeling software. As you have to model your home I would suggest this software (the one I tested): http://www.sweethome3d.com/.
