@@ -1,7 +1,7 @@
 {
-  "name": "boilerplate-card",
-  "version": "1.3.2",
-  "description": "Lovelace boilerplate-card",
+  "name": "floor3d-card",
+  "version": "0.1.2",
+  "description": "Lovelace floor3d-card",
   "keywords": [
     "home-assistant",
     "homeassistant",
@@ -10,21 +10,23 @@
     "lovelace",
     "custom-cards"
   ],
-  "module": "boilerplate-card.js",
-  "repository": "git@github.com:custom_cards/boilerplate-card.git",
-  "author": "Ian Richardson <iantrich@gmail.com>",
+  "module": "floor3d-card.js",
+  "repository": "git@github.com:custom_cards/floor3d-card.git",
+  "author": "Andrea Di Zanni <adizanni@msn.com>",
   "license": "MIT",
   "dependencies": {
     "custom-card-helpers": "^1.6.6",
     "home-assistant-js-websocket": "^4.5.0",
     "lit-element": "^2.4.0",
-    "lit-html": "^1.3.0"
+    "lit-html": "^1.3.0",
+    "three": "^0.128.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-decorators": "^7.12.1",
     "@rollup/plugin-json": "^4.1.0",
+    "@types/three": "^0.127.1",
     "@typescript-eslint/eslint-plugin": "^2.34.0",
     "@typescript-eslint/parser": "^2.34.0",
     "eslint": "^6.8.0",

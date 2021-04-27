@@ -1,9 +1,9 @@
 resources:
-  - url: http://127.0.0.1:5000/boilerplate-card.js
+  - url: http://127.0.0.1:5000/floor3d-card.js
     type: module
 views:
   - cards:
-      - type: custom:boilerplate-card
-        name: Boilerplate Card Development
+      - type: custom:floor3d-card
+        name: Floor3d Card Development
         entity: sun.sun
         test_gui: true

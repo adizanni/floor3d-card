@@ -13,9 +13,12 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "strict": true,
+    "strictPropertyInitialization": false,
     "noImplicitAny": false,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "noUnusedLocals": false,
+    "strictNullChecks":false
   }
 }
