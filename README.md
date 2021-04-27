@@ -30,6 +30,7 @@ Then configure a new panel card with the following options:
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | type | string | **Required** | `custom:visualization-card-3dfloor`.
+| name | string | Floor 3d | the name of the card.
 | entities | array | none | list of enitities to bind to 3D model objects.
 | style | string | none | the style that will be applied to the card.
 | path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
