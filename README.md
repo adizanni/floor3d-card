@@ -31,6 +31,7 @@ Then configure a new panel card with the following options:
 | ---- | ---- | ------- | -----------
 | type | string | **Required** | `custom:visualization-card-3dfloor`.
 | entities | array | none | list of enitities to bind to 3D model objects.
+| style | string | none | the style that will be applied to the card.
 | path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
 | objfile | string | **Required** | object file name (.obj) Waterfront format.
 | mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
