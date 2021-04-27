@@ -8,7 +8,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 I'm not yet integrated into HACS,  [Home Assistant Community Store](https://github.com/hacs/integration).
 
-In the meantime, please download the compiled js file from here and upload it to your www home assistant folder
+In the meantime, please download the compiled js file from here (https://raw.githubusercontent.com/adizanni/floor3d-card/master/dist/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
