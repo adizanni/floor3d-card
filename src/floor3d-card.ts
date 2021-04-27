@@ -209,7 +209,7 @@ export class Floor3dCard extends LitElement {
     } else {
       this._scene.background = new THREE.Color(0x999999);
     }
-    this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999);
+    this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999,);
     this._scene.add(this._camera);
 
     let hemiLight: THREE.HemisphereLight;
