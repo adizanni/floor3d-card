@@ -289,11 +289,11 @@ export class Floor3dCard extends LitElement {
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
     console.log('Object loaded start');
-    const bBox: THREE.Box3 = new THREE.Box3().setFromObject(object);
-    this._camera.position.set(bBox.max.x * 1.3, bBox.max.y * 1.3, bBox.max.z * 1.3);
-    this._modelX = object.position.x = -(bBox.max.x - bBox.min.x) / 2;
-    this._modelY = object.position.y = - bBox.min.y;
-    this._modelZ = object.position.z = -(bBox.max.z - bBox.min.z) / 2;
+    const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
+    this._camera.position.set(box.max.x * 1.3, box.max.y * 1.3, box.max.z * 1.3);
+    this._modelX = object.position.x = -(box.max.x - box.min.x) / 2;
+    this._modelY = object.position.y = - box.min.y;
+    this._modelZ = object.position.z = -(box.max.z - box.min.z) / 2;
     this._scene.add(object);
     this._camera.lookAt(object.position);
     this._add3dObjects();
