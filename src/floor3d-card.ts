@@ -120,6 +120,13 @@ export class Floor3dCard extends LitElement {
 
     console.log('First updated start');
 
+    if (!this._card) {
+
+      this._card = this.shadowRoot.getElementById('ha-card-1');
+      console.log(this._card.id);
+
+    }
+
     if (!this._content) {
       console.log('Div not instanciated');
       this._content = this.shadowRoot.getElementById('3d_canvas');
@@ -277,17 +284,18 @@ export class Floor3dCard extends LitElement {
   }
 
   private _resizeCanvas(): void {
-    // Display canvas
-    console.log('Resize canvas start');
+    // Resize 3D canvas
+    //console.log('Resize canvas start');
     const canvas: Element = this._renderer.domElement;
-    this._camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    this._camera.aspect = this._card.clientWidth / (this._card.clientHeight-this._card.shadowRoot.firstElementChild.clientHeight);
     this._camera.updateProjectionMatrix();
-    this._renderer.setSize(canvas.clientWidth, canvas.clientHeight, true);
+    this._renderer.setSize(this._card.clientWidth, this._card.clientHeight-this._card.shadowRoot.firstElementChild.clientHeight, true);
     this._renderer.render(this._scene, this._camera);
-    console.log('Resize canvas end');
+    //console.log('Resize canvas end');
   }
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
+    // Object Loaded Event: last root object passed to the function
     console.log('Object loaded start');
     const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
     this._camera.position.set(box.max.x * 1.3, box.max.y * 1.3, box.max.z * 1.3);
@@ -302,7 +310,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _onLoaded3DMaterials(materials: MTLLoader.MaterialCreator): void {
-    //materials. .lights = false;
+    // Materials Loaded Event: last root material passed to the function
     console.log('Material loaded start');
     materials.preload();
     const objLoader: OBJLoader = new OBJLoader();
@@ -324,7 +332,7 @@ export class Floor3dCard extends LitElement {
 
   private _add3dObjects(): void {
 
-    console.log('Add 3D Object start');
+    // Add-Modify the objects bound to the entities in the card config
     this.config.entities.forEach((entity, i) => {
 
 
@@ -353,7 +361,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _RGBToHex(r: number, g: number, b: number): string {
-
+    // RGB Color array to hex string converter
     let rs: string = r.toString(16);
     let gs: string = g.toString(16);
     let bs: string = b.toString(16);
@@ -369,7 +377,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updatelight(item: EntityFloor3dCardConfig, state: string, color: number[], brightness: number): void {
-
+    // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
     const light: any = this._scene.getObjectByName(item.light_name);
     if (!light) {
       return
@@ -401,6 +409,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updatecolor(item: EntityFloor3dCardConfig, state: string): void {
+    // Change the color of the object when, for the bound device, the state matches the condition
 
     const _object: any = this._scene.getObjectByName(item.object_id);
 
@@ -453,7 +462,7 @@ export class Floor3dCard extends LitElement {
 
     return html`
       <ha-card .header=${this.config.name} tabindex="0" .label=${`Floor3d: ${this.config.entity || 'No Entity Defined' }`}
-        .style=${`${this.config.style || 'width: auto; height: 100vh' }`} id="ha-card-1">
+        .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
       </ha-card>
