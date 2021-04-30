@@ -29,10 +29,10 @@ Then configure a new panel card with the following options:
 
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
-| type | string | **Required** | `custom:visualization-card-3dfloor`.
+| type | string | **Required** | `custom:floor3d-card`.
 | name | string | Floor 3d | the name of the card.
 | entities | array | none | list of enitities to bind to 3D model objects.
-| style | string | none | the style that will be applied to the card.
+| style | string | none | the style that will be applied to the canvas element of the card.
 | path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
 | objfile | string | **Required** | object file name (.obj) Waterfront format.
 | mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
@@ -130,9 +130,10 @@ globalLightPower: 0.4
 
 ### To Do
 List of feature I will develop in the next releases:
-- Set-up automation / improvement
-- Edit mode: initially to facilitate the configuration you can load the model without entity bindings and you will be able to show the name of the object you want to bind to by double clicking on the object
-- Condition 3D Type add templating and or support complex conditions
+- Integration in HACS
+- Edit mode: initially to facilitate the configuration you can load the model without entity bindings and you will be able to show the name of the object you want to bind to by double clicking on the object (this is a complex feature and may require a while)
+- Condition 3D Type: add templating and or support complex conditions
+- Default values for the config
 
 
 
