@@ -38,7 +38,6 @@ import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
 
 
-
 /* eslint no-console: 0 */
 console.info(
   `%c  FLOOR3D-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
@@ -112,8 +111,38 @@ export class Floor3dCard extends LitElement {
       this.display3dmodel();
 
     }
+  }
 
+  private _ispanel(): boolean {
 
+    let root: any = document.querySelector('home-assistant');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('home-assistant-main');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('app-drawer-layout partial-panel-resolver');
+    root = root && root.shadowRoot || root;
+    root = root && root.querySelector('ha-panel-lovelace');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('hui-root');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('ha-app-layout');
+
+    const panel: [] = root.getElementsByTagName('HUI-PANEL-VIEW');
+
+    if (panel.length == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  getCardSize(): number {
+    if (this._renderer) {
+      return this._renderer.domElement.height/50;
+    }
+    else {
+      return 10;
+    }
   }
 
   private _firstUpdated(): void {
@@ -123,6 +152,11 @@ export class Floor3dCard extends LitElement {
     if (!this._card) {
 
       this._card = this.shadowRoot.getElementById('ha-card-1');
+
+      if (!this._ispanel()) {
+        (this._card as any).header= this.config.name? this.config.name : "Floor 3d";
+      }
+
       console.log(this._card.id);
 
     }
@@ -130,6 +164,8 @@ export class Floor3dCard extends LitElement {
     if (!this._content) {
       console.log('Div not instanciated');
       this._content = this.shadowRoot.getElementById('3d_canvas');
+      this._content.style.width = '100%'
+      this._content.style.height = '100%'
       console.log(this._content.id)
     }
 
@@ -160,6 +196,22 @@ export class Floor3dCard extends LitElement {
     if (intersects.length > 0 && intersects[0].object.name != '') {
       window.prompt("Object:", intersects[0].object.name);
     }
+  }
+
+  private _resizeCanvas(): void {
+    // Resize 3D canvas
+    //console.log('Resize canvas start');
+    console.log('Card: Width ' + this._card.clientWidth + ' Height: ' + this._card.clientHeight);
+    console.log('Div: Width ' + this._content.clientWidth + ' Height: ' + this._content.clientHeight);
+    console.log('Canvas: CWidth ' + this._renderer.domElement.clientWidth + ' CHeight: ' + this._renderer.domElement.clientHeight);
+    console.log('Canvas: Width ' + this._renderer.domElement.width + ' Height: ' + this._renderer.domElement.height);
+    if ((this._renderer.domElement.clientWidth !== this._renderer.domElement.width) || (this._renderer.domElement.clientHeight !== this._renderer.domElement.height)) {
+      this._camera.aspect = this._renderer.domElement.clientWidth / this._renderer.domElement.clientHeight;
+      this._camera.updateProjectionMatrix();
+      this._renderer.setSize(this._renderer.domElement.clientWidth, this._renderer.domElement.clientHeight, true);
+      this._renderer.render(this._scene, this._camera);
+    }
+      //console.log('Resize canvas end');
   }
 
   public set hass(hass: HomeAssistant) {
@@ -281,17 +333,6 @@ export class Floor3dCard extends LitElement {
 
   private _onLoadObjectProgress(_progress: ProgressEvent): void {
     return
-  }
-
-  private _resizeCanvas(): void {
-    // Resize 3D canvas
-    //console.log('Resize canvas start');
-    const canvas: Element = this._renderer.domElement;
-    this._camera.aspect = this._card.clientWidth / (this._card.clientHeight-this._card.shadowRoot.firstElementChild.clientHeight);
-    this._camera.updateProjectionMatrix();
-    this._renderer.setSize(this._card.clientWidth, this._card.clientHeight-this._card.shadowRoot.firstElementChild.clientHeight, true);
-    this._renderer.render(this._scene, this._camera);
-    //console.log('Resize canvas end');
   }
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
@@ -461,8 +502,7 @@ export class Floor3dCard extends LitElement {
     console.log('Render end');
 
     return html`
-      <ha-card .header=${this.config.name} tabindex="0" .label=${`Floor3d: ${this.config.entity || 'No Entity Defined' }`}
-        .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
+      <ha-card tabindex="0" .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
       </ha-card>
@@ -471,6 +511,8 @@ export class Floor3dCard extends LitElement {
 
 
   /*
+  <ha-card .header=${this.config.name} tabindex="0" .label=${`Floor3d: ${this.config.entity || 'No Entity Defined' }`}
+        .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
   @action=${this._handleAction}
         .actionHandler=${actionHandler({
           hasHold: hasAction(this.config.hold_action),
