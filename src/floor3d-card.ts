@@ -22,8 +22,8 @@ import {
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 
 import './editor';
-
-import type { EntityFloor3dCardConfig, Floor3dCardConfig } from './types';
+import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray } from './helpers';
+import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
 //import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
@@ -73,6 +73,8 @@ export class Floor3dCard extends LitElement {
   private _card?: HTMLElement;
   private _content?: HTMLElement;
 
+  private _config!: Floor3dCardConfig;
+  private _configArray: Floor3dCardConfig[] = [];
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('floor3d-card-editor');
@@ -96,14 +98,29 @@ export class Floor3dCard extends LitElement {
       throw new Error(localize('common.invalid_configuration'));
     }
 
-    if (config.test_gui) {
+/*    if (config.test_gui) {
       getLovelace().setEditMode(true);
     }
 
-    this.config = {
-      name: 'Floor 3d',
-      ...config,
-    };
+    this._config = mergeDeep(
+      {
+        appearance: {
+          backgroundColor: '#aaaaaa',
+          globalLightPower: 0.5,
+          style: '',
+        },
+        model: {
+          name: 'Home',
+          path: '/local/',
+          objfile: '',
+          mtlfile: '',
+        }
+      },
+      config,
+    );
+    */
+    this._config = config;
+    this._configArray = createConfigArray(this._config);
 
     if (!this._renderer) {
 
@@ -151,10 +168,12 @@ export class Floor3dCard extends LitElement {
 
     if (!this._card) {
 
+      console.log('Card not instatiated');
+
       this._card = this.shadowRoot.getElementById('ha-card-1');
 
       if (!this._ispanel()) {
-        (this._card as any).header= this.config.name? this.config.name : "Floor 3d";
+        (this._card as any).header= this._config.name? this._config.name : "Floor 3d";
       }
 
       console.log(this._card.id);
@@ -216,13 +235,14 @@ export class Floor3dCard extends LitElement {
 
   public set hass(hass: HomeAssistant) {
 
-    if (this.config.entities) {
+    if (this._config.entities) {
       if (!this._states) {
         console.log('Hass State Change Init')
         this._states = [];
         this._color = [];
         this._brightness = [];
-        this.config.entities.forEach((entity) => {
+        console.log(JSON.stringify(this._config.entities));
+        this._config.entities.forEach((entity) => {
           this._states.push(hass.states[entity.entity].state);
           if (hass.states[entity.entity].attributes['rgb_color']) {
             this._color.push(hass.states[entity.entity].attributes['rgb_color']);
@@ -239,7 +259,7 @@ export class Floor3dCard extends LitElement {
       }
       else {
         let torerender = false;
-        this.config.entities.forEach((entity, i) => {
+        this._config.entities.forEach((entity, i) => {
           if (entity.type3d == 'light') {
             let toupdate = false;
             if (this._states[i] !== hass.states[entity.entity].state) {
@@ -286,8 +306,8 @@ export class Floor3dCard extends LitElement {
 
     console.log('Start Build Renderer');
     this._scene = new THREE.Scene();
-    if (this.config.backgroundColor && this.config.backgroundColor != '#000000') {
-      this._scene.background = new THREE.Color(this.config.backgroundColor);
+    if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
+      this._scene.background = new THREE.Color(this._config.backgroundColor);
     } else {
       this._scene.background = new THREE.Color(0x999999);
     }
@@ -296,8 +316,8 @@ export class Floor3dCard extends LitElement {
 
     let hemiLight: THREE.HemisphereLight;
 
-    if (this.config.globalLightPower) {
-      hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, this.config.globalLightPower);
+    if (this._config.globalLightPower) {
+      hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, this._config.globalLightPower);
     } else {
       hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.3);
     }
@@ -308,17 +328,17 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.display = 'block';
     //this._canvasdiv.appendChild( this._renderer.domElement );
 
-    if (this.config.mtlfile && this.config.mtlfile != '') {
+    if (this._config.mtlfile && this._config.mtlfile != '') {
       const mtlLoader: MTLLoader = new MTLLoader();
-      mtlLoader.setPath(this.config.path);
-      mtlLoader.load(this.config.mtlfile, this._onLoaded3DMaterials.bind(this), this._onLoadMaterialProgress.bind(this)
+      mtlLoader.setPath(this._config.path);
+      mtlLoader.load(this._config.mtlfile, this._onLoaded3DMaterials.bind(this), this._onLoadMaterialProgress.bind(this)
         , function (error: ErrorEvent) {
           throw new Error(error.error);
         });
 
     } else {
       const objLoader: OBJLoader = new OBJLoader();
-      objLoader.load(this.config.path + this.config.objfile, this._onLoaded3DModel.bind(this), this._onLoadObjectProgress.bind(this), function (error: ErrorEvent): void {
+      objLoader.load(this._config.path + this._config.objfile, this._onLoaded3DModel.bind(this), this._onLoadObjectProgress.bind(this), function (error: ErrorEvent): void {
         throw new Error(error.error);
       });
     }
@@ -356,7 +376,7 @@ export class Floor3dCard extends LitElement {
     materials.preload();
     const objLoader: OBJLoader = new OBJLoader();
     objLoader.setMaterials(materials);
-    objLoader.load(this.config.path + this.config.objfile, this._onLoaded3DModel.bind(this), function (_progress: ProgressEvent) {
+    objLoader.load(this._config.path + this._config.objfile, this._onLoaded3DModel.bind(this), function (_progress: ProgressEvent) {
       return
     }, function (error: ErrorEvent): void {
       throw new Error(error.error);
@@ -374,7 +394,7 @@ export class Floor3dCard extends LitElement {
   private _add3dObjects(): void {
 
     // Add-Modify the objects bound to the entities in the card config
-    this.config.entities.forEach((entity, i) => {
+    this._config.entities.forEach((entity, i) => {
 
 
       const _foundobject: any = this._scene.getObjectByName(entity.object_id)
@@ -449,16 +469,16 @@ export class Floor3dCard extends LitElement {
     }
   }
 
-  private _updatecolor(item: EntityFloor3dCardConfig, state: string): void {
+  private _updatecolor(item: any, state: string): void {
     // Change the color of the object when, for the bound device, the state matches the condition
 
     const _object: any = this._scene.getObjectByName(item.object_id);
 
     let i: any;
 
-    for (i in item.conditions) {
-      if (state == item.conditions[i].state) {
-        _object.material.color.set(item.conditions[i].color);
+    for (i in item.colorcondition) {
+      if (state == item.colorcondition[i].state) {
+        _object.material.color.set(item.colorcondition[i].color);
         return;
       }
     }
@@ -480,29 +500,33 @@ export class Floor3dCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config) {
+
+    console.log(JSON.stringify(changedProps))
+
+    if (!this._config) {
       return false;
     }
 
-    return hasConfigOrEntityChanged(this, changedProps, false);
+    return true;
+    //return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
   // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
     console.log('Render start');
-    if (this.config.show_warning) {
+    if (this._config.show_warning) {
       return this._showWarning(localize('common.show_warning'));
     }
 
-    if (this.config.show_error) {
+    if (this._config.show_error) {
       return this._showError(localize('common.show_error'));
     }
 
     console.log('Render end');
 
     return html`
-      <ha-card tabindex="0" .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto' }`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
       </ha-card>
@@ -521,8 +545,8 @@ export class Floor3dCard extends LitElement {
         */
 
   private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this.config && ev.detail.action) {
-      handleAction(this, this.hass, this.config, ev.detail.action);
+    if (this.hass && this._config && ev.detail.action) {
+      handleAction(this, this.hass, this._config, ev.detail.action);
     }
   }
 
@@ -537,7 +561,7 @@ export class Floor3dCard extends LitElement {
     errorCard.setConfig({
       type: 'error',
       error,
-      origConfig: this.config,
+      origConfig: this._config,
     });
 
     return html`
