@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -15,6 +16,7 @@ import {
 import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
 import { createEditorConfigArray, arrayMove, hasConfigOrEntitiesChanged } from './helpers';
 import { Floor3dCardConfig } from './types';
+import { ConeBufferGeometry } from 'three';
 
 @customElement('floor3d-card-editor')
 export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor {
@@ -26,32 +28,21 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _entityOptionsArray: object[] = [];
   private _options: any;
   private _initialized = false;
+  private _visible: any[];
 
   public setConfig(config: Floor3dCardConfig): void {
     this._config = { ...config };
 
-    console.log(JSON.stringify(config));
     if (!config.entities) {
       this._config.entities = [{ entity: '' }];
     }
 
     this._configArray = createEditorConfigArray(this._config);
 
-    /*
     for (const entityConfig of this._configArray) {
-      if (entityConfig.threed) {
-        if (Object.entries(entityConfig.threed).length === 0) {
-          delete entityConfig.threed;
-        }
-      }
       if (entityConfig.light) {
         if (Object.entries(entityConfig.light).length === 0) {
           delete entityConfig.light;
-        }
-      }
-      if (entityConfig.colorcondition) {
-        if (Object.entries(entityConfig.color).length === 0) {
-          delete entityConfig.color;
         }
       }
       if (entityConfig.hide) {
@@ -60,10 +51,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         }
       }
     }
-    */
 
     this._config.entities = this._configArray;
-    fireEvent(this, 'config-changed', { config: this._config });
+    console.log(JSON.stringify(this._config));
 
     const typeOptions = {
       icon: 'book-variant',
@@ -84,6 +74,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       name: 'Color',
       secondary: 'Color condition.',
       show: false,
+      visible: false,
     };
 
     const hideOptions = {
@@ -91,6 +82,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       name: 'Hide',
       secondary: 'Hide options.',
       show: false,
+      visible: false,
     };
 
     const lightOptions = {
@@ -98,6 +90,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       name: 'Light',
       secondary: 'Light options',
       show: false,
+      visible: false,
     };
 
     const actionsOptions = {
@@ -145,7 +138,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         },
       };
     }
-    console.log(JSON.stringify(this._options));
+
+    fireEvent(this, 'config-changed', { config: this._config });
   }
   /* set config from card
   public setConfig(config: Floor3dCardConfig): void {
@@ -299,12 +293,13 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._createEntitiesValues()}
                 <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
                   <ha-fab
-                    icon="mdi:plus"
                     @click=${this._addEntity}
                     .configArray=${this._configArray}
                     .configAddValue=${'entity'}
                     .sourceArray=${this._config.entities}
-                  ></ha-fab>
+                  >
+                    <ha-icon icon="mdi:plus"></ha-icon>
+                  </ha-fab>
                 </div>
               </div>
             `
@@ -514,7 +509,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div>
                   <paper-dropdown-menu
                     label="3D Type"
-                    @selected-item-changed=${this._valueChanged}
+                    @selected-item-changed=${this._typeChanged}
+                    .optionTgt=${this._options.entities.options.entities[index].options}
                     .configObject=${config}
                     .configAttribute=${'type3d'}
                     .ignoreNull=${true}
@@ -548,38 +544,45 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _createColorConditionElement(index): TemplateResult {
     const options = this._options.entities.options.entities[index].options.color;
     const config = this._configArray[index];
-
+    const visible: boolean = config.type3d ? config.type3d === 'color' : false;
     const arrayLength = config.colorcondition ? config.colorcondition.length : 0;
     return html`
-      <div class="category" id="bar">
-        <div
-          class="sub-category"
-          @click=${this._toggleThing}
-          .options=${options}
-          .optionsTarget=${this._options.entities.options.entities[index].options}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
-            <div class="title">${options.name}</div>
-            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
-          </div>
-          <div class="secondary">${options.secondary}</div>
-        </div>
-        ${options.show
-          ? html`
-              <div class="card-background" style="overflow: auto; max-height: 420px;">
-                ${arrayLength > 0
-                  ? html`
-                      ${this._createColorConditionValues(index)}
-                    `
-                  : ''}
-                <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
-                  <ha-fab icon="mdi:plus" @click=${this._addColorCondition} .index=${index}></ha-fab>
+      ${visible
+        ? html`
+            <div class="category" id="bar">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
                 </div>
+                <div class="secondary">${options.secondary}</div>
               </div>
-            `
-          : ''}
-      </div>
+              ${options.show
+                ? html`
+                    <div class="card-background" style="overflow: auto; max-height: 420px;">
+                      ${arrayLength > 0
+                        ? html`
+                            ${this._createColorConditionValues(index)}
+                          `
+                        : ''}
+                      <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <ha-fab icon="mdi:plus" @click=${this._addColorCondition} .index=${index}></ha-fab>
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
     `;
   }
 
@@ -754,52 +757,62 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _createLightElement(index): TemplateResult {
     const options = this._options.entities.options.entities[index].options.light;
     const config = this._configArray[index];
-
+    const visible: boolean = config.type3d ? config.type3d === 'light' : false;
+    if (visible) {
+      config.light = { ...config.light };
+    }
     return html`
-      <div class="category" id="light">
-        <div
-          class="sub-category"
-          @click=${this._toggleThing}
-          .options=${options}
-          .optionsTarget=${this._options.entities.options.entities[index].options}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
-            <div class="title">${options.name}</div>
-            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
-          </div>
-          <div class="secondary">${options.secondary}</div>
-        </div>
-        ${options.show
-          ? html`
-              <div class="value">
-                <div>
-                  ${index !== null
-                    ? html`
-                        <paper-input
-                          label="light_name"
-                          .value="${config.light_name ? config.light_name : ''}"
-                          editable
-                          .configAttribute=${'light_name'}
-                          .configObject=${config}
-                          @value-changed=${this._valueChanged}
-                        ></paper-input>
-                        <paper-input
-                          class="value-number"
-                          type="number"
-                          label="Lumens"
-                          .value=${config.lumens ? config.lumens : ''}
-                          .configObject=${config}
-                          .configAttribute=${'lumens'}
-                          @value-changed=${this._valueChanged}
-                        ></paper-input>
-                      `
-                    : ''}
+      ${visible
+        ? html`
+            <div class="category" id="light">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
                 </div>
+                <div class="secondary">${options.secondary}</div>
               </div>
-            `
-          : ''}
-      </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                label="light_name"
+                                .value="${config.light.light_name ? config.light.light_name : ''}"
+                                editable
+                                .configAttribute=${'light_name'}
+                                .configObject=${config.light}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Lumens"
+                                .value=${config.light.lumens ? config.light.lumens : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'lumens'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
     `;
   }
 
@@ -807,42 +820,54 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     const options = this._options.entities.options.entities[index].options.hide;
     const config = this._configArray[index];
 
+    const visible: boolean = config.type3d ? config.type3d === 'hide' : false;
+
+    if (visible) {
+      config.hide = { ...config.hide };
+    }
     return html`
-      <div class="category" id="hide">
-        <div
-          class="sub-category"
-          @click=${this._toggleThing}
-          .options=${options}
-          .optionsTarget=${this._options.entities.options.entities[index].options}
-        >
-          <div class="row">
-            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
-            <div class="title">${options.name}</div>
-            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
-          </div>
-          <div class="secondary">${options.secondary}</div>
-        </div>
-        ${options.show
-          ? html`
-              <div class="value">
-                <div>
-                  ${index !== null
-                    ? html`
-                        <paper-input
-                          label="state"
-                          .value="${config.state ? config.state : ''}"
-                          editable
-                          .configAttribute=${'state'}
-                          .configObject=${config}
-                          @value-changed=${this._valueChanged}
-                        ></paper-input>
-                      `
-                    : ''}
+      ${visible
+        ? html`
+            <div class="category" id="hide">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
                 </div>
+                <div class="secondary">${options.secondary}</div>
               </div>
-            `
-          : ''}
-      </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                label="state"
+                                .value="${config.hide.state ? config.hide.state : ''}"
+                                editable
+                                .configAttribute=${'state'}
+                                .configObject=${config.hide}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
     `;
   }
 
@@ -865,6 +890,60 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     this._toggleThing(ev);
   }
 
+  private _typeChanged(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    if (target.configObject[target.configAttribute] == target.value) {
+      return;
+    }
+
+    this._valueChanged(ev);
+
+    console.log('Type3D changed start');
+
+    if (target.configObject.colorcondition) {
+      delete target.configObject.colorcondition;
+    }
+    if (ev.target.optionTgt.color) {
+      ev.target.optionTgt.color.visible = false;
+    }
+
+    if (target.configObject.hide) {
+      delete target.configObject.hide;
+    }
+    if (ev.target.optionTgt.hide) {
+      ev.target.optionTgt.hide.visible = false;
+    }
+
+    if (target.configObject.light) {
+      delete target.configObject.light;
+    }
+    if (ev.target.optionTgt.light) {
+      ev.target.optionTgt.light.visible = false;
+    }
+
+    if (target.value == 'color') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.color.visible = true;
+      }
+    }
+
+    if (target.value == 'light') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.light.visible = true;
+      }
+    }
+
+    if (target.value == 'hide') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.hide.visible = true;
+      }
+    }
+    console.log('Type3D changed end');
+  }
+
   private _valueChanged(ev): void {
     if (!this._config || !this.hass) {
       return;
@@ -884,7 +963,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         if (target.ignoreNull == true) return;
         delete target.configObject[target.configAttribute];
       } else {
-        console.log(target.configObject);
         target.configObject[target.configAttribute] = target.value;
       }
     }

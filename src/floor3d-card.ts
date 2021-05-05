@@ -185,7 +185,7 @@ export class Floor3dCard extends LitElement {
       this._content = this.shadowRoot.getElementById('3d_canvas');
       this._content.style.width = '100%'
       this._content.style.height = '100%'
-      console.log(this._content.id)
+      //console.log(this._content.id)
     }
 
     this._content.appendChild(this._renderer.domElement)
@@ -241,7 +241,7 @@ export class Floor3dCard extends LitElement {
         this._states = [];
         this._color = [];
         this._brightness = [];
-        console.log(JSON.stringify(this._config.entities));
+        //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
           this._states.push(hass.states[entity.entity].state);
           if (hass.states[entity.entity].attributes['rgb_color']) {
@@ -407,7 +407,7 @@ export class Floor3dCard extends LitElement {
           const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
           light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
           light.castShadow = true;
-          light.name = entity.light_name;
+          light.name = entity.light.light_name;
           this._scene.add(light);
           this._updatelight(entity, this._states[i], this._color[i], this._brightness[i]);
         } else if (entity.type3d == 'color') {
@@ -437,16 +437,16 @@ export class Floor3dCard extends LitElement {
     return "#" + rs + gs + bs;
   }
 
-  private _updatelight(item: EntityFloor3dCardConfig, state: string, color: number[], brightness: number): void {
+  private _updatelight(item: Floor3dCardConfig, state: string, color: number[], brightness: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
-    const light: any = this._scene.getObjectByName(item.light_name);
+    const light: any = this._scene.getObjectByName(item.light.light_name);
     if (!light) {
       return
     }
     let max: number;
 
-    if (item.lumens) {
-      max = item.lumens;
+    if (item.light.lumens) {
+      max = item.light.lumens;
     } else {
       max = 800;
     }
@@ -485,11 +485,11 @@ export class Floor3dCard extends LitElement {
   }
 
 
-  private _updatehide(item: EntityFloor3dCardConfig, state: string): void {
+  private _updatehide(item: Floor3dCardConfig, state: string): void {
 
     const _object: any = this._scene.getObjectByName(item.object_id);
 
-    if (state == item.state) {
+    if (state == item.hide.state) {
       _object.visible = false;
     } else {
       _object.visible = true;
@@ -499,9 +499,9 @@ export class Floor3dCard extends LitElement {
 
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
+  protected shouldUpdate(_changedProps: PropertyValues): boolean {
 
-    console.log(JSON.stringify(changedProps))
+    //console.log(JSON.stringify(changedProps))
 
     if (!this._config) {
       return false;
