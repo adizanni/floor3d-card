@@ -139,9 +139,11 @@ export class Floor3dCard extends LitElement {
 
   public rerender(): void {
 
+    this._renderer.domElement.remove();
+    this._renderer = null;
     this._card = null;
     this._content = null;
-    this._renderer = null;
+    ;
 
     this._states = null;
     this.display3dmodel();
