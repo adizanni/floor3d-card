@@ -58,9 +58,10 @@ For **light** example config:
 entities:
   - entity: <a light entity id>
     type3d: light
-    lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
     object_id: <an object id in the 3D model you want to postion the light on>
-    light_name: <give an object id to the light in the model>
+    light:
+      light_name: <give an object id to the light in the model>
+      lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
 ```
 
 light_name is the name of the light object that will be created in the model to do the actual illumination.
@@ -75,7 +76,8 @@ entities
   - entity: <a binary sensor entity id>
     type3d: hide
     object_id: <an object_id in the model you want to hide if condition is true>
-    state: <the state of the entity triggering the hiding of the object: ex 'off'>
+    hide:
+      state: <the state of the entity triggering the hiding of the object: ex 'off'>
 ```
 
 Hide behavour: the object_id will be hidden when the state of the bound entity will be equal to the **state** value
@@ -100,24 +102,23 @@ Color behavour: the object_id will be painted in the color when the state of the
 ### Example
 
 To give it a try please, load the example folder files in a folder within /config/www of your Home Assistant.
-Create a new Panel View add a Manual Card and cut and paste the following config:
+Create a new Panel View add Floor3d-card and cut and paste the following config:
 
 ```yaml
-type: 'custom:visualization-card-3dfloor'
+type: 'custom:floor3d-card'
 entities:
   - entity: <your light entity id>
     type3d: light
     object_id: sweethome3d_opening_on_hinge_2_LampSide_31
-    light_name: sweethome3d_opening_on_hinge_2_LampSide_31_light
+    light:
+      light_name: sweethome3d_opening_on_hinge_2_LampSide_31_light
   - entity: <your binary sensor entity id (example a magnet sensor for a window)>
     type3d: color
     object_id: sweethome3d_window_pane_on_hinge_1_50
-    conditions:
-      - condition: id_1
-        state: 'on'
+    colorcondition:
+      - state: 'on'
         color: '#00ff00'
-      - condition: id_2
-        state: 'off'
+      - state: 'off'
         color: '#ff0000'
 path: /local/home2/
 objfile: MyExampleHome2.obj
@@ -132,7 +133,7 @@ globalLightPower: 0.4
 ### To Do
 List of feature I will develop in the next releases:
 - Integration in HACS
-- Edit mode: initially to facilitate the configuration you can load the model without entity bindings and you will be able to show the name of the object you want to bind to by double clicking on the object (this is a complex feature and may require a while)
+- Edit mode: enhance Edit Mode to make it more user friendly
 - Condition 3D Type: add templating and or support complex conditions
 - Default values for the config
 
