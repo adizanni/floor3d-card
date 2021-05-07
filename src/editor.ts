@@ -17,6 +17,7 @@ import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'cust
 import { createEditorConfigArray, arrayMove, hasConfigOrEntitiesChanged } from './helpers';
 import { Floor3dCardConfig } from './types';
 import { ConeBufferGeometry } from 'three';
+import { Floor3dCard } from './floor3d-card';
 
 @customElement('floor3d-card-editor')
 export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor {
@@ -77,6 +78,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    this.hass.resources;
     const hideOptions = {
       icon: 'arrow-expand-horizontal',
       name: 'Hide',
@@ -158,8 +160,35 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
 
   protected render(): TemplateResult | void {
     return html`
+      <div class="sub-category" style="display: flex; flex-direction: row; align-items: left;">
+        <ha-icon @click=${this._config_changed} icon="mdi:refresh" class="ha-icon-large"> </ha-icon>
+      </div>
       ${this._createModelElement()} ${this._createAppearanceElement()} ${this._createEntitiesElement()}
     `;
+  }
+
+  private _preview_card(): Element {
+    let root: any = document.querySelector('home-assistant');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('hui-dialog-edit-card');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('ha-dialog');
+
+    const preview_card: HTMLCollection = root.getElementsByTagName('floor3d-card');
+
+    if (preview_card.length == 0) {
+      return null;
+    } else {
+      return preview_card.item(0);
+    }
+  }
+
+  private _config_changed(): void {
+    let preview_card: Floor3dCard = this._preview_card() as Floor3dCard;
+
+    if (preview_card) {
+      preview_card.rerender();
+    }
   }
 
   private _createActionsElement(): TemplateResult {
@@ -292,14 +321,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="card-background" style="max-height: 400px; overflow: auto;">
                 ${this._createEntitiesValues()}
                 <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
-                  <ha-fab
-                    @click=${this._addEntity}
+                  <ha-icon
+                    class="ha-icon-large"
+                    icon="mdi:plus"
                     .configArray=${this._configArray}
                     .configAddValue=${'entity'}
                     .sourceArray=${this._config.entities}
-                  >
-                    <ha-icon icon="mdi:plus"></ha-icon>
-                  </ha-fab>
+                    @click=${this._addEntity}
+                  ></ha-icon>
                 </div>
               </div>
             `
@@ -575,7 +604,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           `
                         : ''}
                       <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
-                        <ha-fab icon="mdi:plus" @click=${this._addColorCondition} .index=${index}></ha-fab>
+                        <ha-icon
+                          class="ha-icon-large"
+                          icon="mdi:plus"
+                          .index=${index}
+                          @click=${this._addColorCondition}
+                        ></ha-icon>
                       </div>
                     </div>
                   `

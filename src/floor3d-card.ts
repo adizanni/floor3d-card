@@ -76,6 +76,14 @@ export class Floor3dCard extends LitElement {
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
 
+  constructor() {
+
+    super();
+
+    console.log('New Card')
+
+  }
+
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('floor3d-card-editor');
   }
@@ -98,36 +106,46 @@ export class Floor3dCard extends LitElement {
       throw new Error(localize('common.invalid_configuration'));
     }
 
-/*    if (config.test_gui) {
-      getLovelace().setEditMode(true);
-    }
-
-    this._config = mergeDeep(
-      {
-        appearance: {
-          backgroundColor: '#aaaaaa',
-          globalLightPower: 0.5,
-          style: '',
-        },
-        model: {
-          name: 'Home',
-          path: '/local/',
-          objfile: '',
-          mtlfile: '',
+    /*    if (config.test_gui) {
+          getLovelace().setEditMode(true);
         }
-      },
-      config,
-    );
-    */
+
+        this._config = mergeDeep(
+          {
+            appearance: {
+              backgroundColor: '#aaaaaa',
+              globalLightPower: 0.5,
+              style: '',
+            },
+            model: {
+              name: 'Home',
+              path: '/local/',
+              objfile: '',
+              mtlfile: '',
+            }
+          },
+          config,
+        );
+        */
     this._config = config;
     this._configArray = createConfigArray(this._config);
 
-    if (!this._renderer) {
 
+    if (!this._renderer) {
       console.log('Renderer not instanciated');
       this.display3dmodel();
-
     }
+  }
+
+  public rerender(): void {
+
+    this._card = null;
+    this._content = null;
+    this._renderer = null;
+
+    this._states = null;
+    this.display3dmodel();
+
   }
 
   private _ispanel(): boolean {
@@ -155,7 +173,7 @@ export class Floor3dCard extends LitElement {
 
   getCardSize(): number {
     if (this._renderer) {
-      return this._renderer.domElement.height/50;
+      return this._renderer.domElement.height / 50;
     }
     else {
       return 10;
@@ -173,10 +191,8 @@ export class Floor3dCard extends LitElement {
       this._card = this.shadowRoot.getElementById('ha-card-1');
 
       if (!this._ispanel()) {
-        (this._card as any).header= this._config.name? this._config.name : "Floor 3d";
+        (this._card as any).header = this._config.name ? this._config.name : "Floor 3d";
       }
-
-      console.log(this._card.id);
 
     }
 
@@ -230,7 +246,7 @@ export class Floor3dCard extends LitElement {
       this._renderer.setSize(this._renderer.domElement.clientWidth, this._renderer.domElement.clientHeight, true);
       this._renderer.render(this._scene, this._camera);
     }
-      //console.log('Resize canvas end');
+    //console.log('Resize canvas end');
   }
 
   public set hass(hass: HomeAssistant) {
@@ -309,7 +325,7 @@ export class Floor3dCard extends LitElement {
     if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
       this._scene.background = new THREE.Color(this._config.backgroundColor);
     } else {
-      this._scene.background = new THREE.Color(0x999999);
+      this._scene.background = new THREE.Color('#aaaaaa');
     }
     this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999,);
     this._scene.add(this._camera);
@@ -394,30 +410,32 @@ export class Floor3dCard extends LitElement {
   private _add3dObjects(): void {
 
     // Add-Modify the objects bound to the entities in the card config
-    this._config.entities.forEach((entity, i) => {
+    if (this._states && this._config.entities) {
+      this._config.entities.forEach((entity, i) => {
 
 
-      const _foundobject: any = this._scene.getObjectByName(entity.object_id)
+        const _foundobject: any = this._scene.getObjectByName(entity.object_id)
 
-      if (_foundobject) {
-        if (entity.type3d == 'light') {
+        if (_foundobject) {
+          if (entity.type3d == 'light') {
 
-          const box: THREE.Box3 = new THREE.Box3();
-          box.setFromObject(_foundobject);
-          const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
-          light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
-          light.castShadow = true;
-          light.name = entity.light.light_name;
-          this._scene.add(light);
-          this._updatelight(entity, this._states[i], this._color[i], this._brightness[i]);
-        } else if (entity.type3d == 'color') {
-          _foundobject.material = _foundobject.material.clone();
-          this._updatecolor(entity, this._states[i]);
-        } else if (entity.type3d == 'hide') {
-          this._updatehide(entity, this._states[i]);
+            const box: THREE.Box3 = new THREE.Box3();
+            box.setFromObject(_foundobject);
+            const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
+            light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
+            light.castShadow = true;
+            light.name = entity.light.light_name;
+            this._scene.add(light);
+            this._updatelight(entity, this._states[i], this._color[i], this._brightness[i]);
+          } else if (entity.type3d == 'color') {
+            _foundobject.material = _foundobject.material.clone();
+            this._updatecolor(entity, this._states[i]);
+          } else if (entity.type3d == 'hide') {
+            this._updatehide(entity, this._states[i]);
+          }
         }
-      }
-    });
+      });
+    }
     console.log('Add 3D Object End');
   }
 
@@ -452,12 +470,12 @@ export class Floor3dCard extends LitElement {
     }
 
     if (state == 'on') {
-      if (brightness!=-1) {
+      if (brightness != -1) {
         light.intensity = 0.01 * max * brightness / 255;
       } else {
         light.intensity = 0.01 * max;
       }
-      if (color.length==0) {
+      if (color.length == 0) {
         light.color = new THREE.Color('#ffffff');
       }
       else {
@@ -526,23 +544,12 @@ export class Floor3dCard extends LitElement {
     console.log('Render end');
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto' }`} id="ha-card-1">
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto'}`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
       </ha-card>
     `;
   }
-
-
-  /*
-  <ha-card .header=${this.config.name} tabindex="0" .label=${`Floor3d: ${this.config.entity || 'No Entity Defined' }`}
-        .style=${`${this.config.style || 'width: auto; height: auto' }`} id="ha-card-1">
-  @action=${this._handleAction}
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this.config.hold_action),
-          hasDoubleClick: hasAction(this.config.double_tap_action),
-        })}
-        */
 
   private _handleAction(ev: ActionHandlerEvent): void {
     if (this.hass && this._config && ev.detail.action) {
