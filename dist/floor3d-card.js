@@ -309,6 +309,7 @@ found at http://polymer.github.io/PATENTS.txt
         </div>
         ${e.show?H`
               <div class="value-container">
+                <ha-file-upload> </ha-file-upload>
                 <paper-input
                   editable
                   label="Name"
@@ -646,6 +647,7 @@ found at http://polymer.github.io/PATENTS.txt
       <ha-card tabindex="0" .style=${""+(this._config.style||"width: auto; height: auto")} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
+        <ha-dialog id="ha-dialog-progress"></ha-dialog>
       </ha-card>
     `)}_handleAction(t){this.hass&&this._config&&t.detail.action&&function(t,e,n,i){var r;"double_tap"===i&&n.double_tap_action?r=n.double_tap_action:"hold"===i&&n.hold_action?r=n.hold_action:"tap"===i&&n.tap_action&&(r=n.tap_action),At(t,e,n,r)}(this,this.hass,this._config,t.detail.action)}_showWarning(t){return H`
       <hui-warning>${t}</hui-warning>

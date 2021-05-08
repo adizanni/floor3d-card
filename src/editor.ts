@@ -1,8 +1,3 @@
-/* eslint-disable prefer-const */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/camelcase */
 import {
   LitElement,
   html,
@@ -357,6 +352,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.show
           ? html`
               <div class="value-container">
+                <ha-file-upload> </ha-file-upload>
                 <paper-input
                   editable
                   label="Name"

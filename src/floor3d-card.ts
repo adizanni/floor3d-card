@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   LitElement,
   html,
@@ -27,6 +25,7 @@ import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
 //import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
+//import three.js libraries for 3D rendering
 import * as THREE from 'three';
 import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -192,6 +191,7 @@ export class Floor3dCard extends LitElement {
 
       this._card = this.shadowRoot.getElementById('ha-card-1');
 
+
       if (!this._ispanel()) {
         (this._card as any).header = this._config.name ? this._config.name : "Floor 3d";
       }
@@ -331,7 +331,6 @@ export class Floor3dCard extends LitElement {
     }
     this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999,);
     this._scene.add(this._camera);
-
     let hemiLight: THREE.HemisphereLight;
 
     if (this._config.globalLightPower) {
@@ -347,6 +346,7 @@ export class Floor3dCard extends LitElement {
     //this._canvasdiv.appendChild( this._renderer.domElement );
 
     if (this._config.mtlfile && this._config.mtlfile != '') {
+
       const mtlLoader: MTLLoader = new MTLLoader();
       mtlLoader.setPath(this._config.path);
       mtlLoader.load(this._config.mtlfile, this._onLoaded3DMaterials.bind(this), this._onLoadMaterialProgress.bind(this)
@@ -549,6 +549,7 @@ export class Floor3dCard extends LitElement {
       <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto'}`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
+        <ha-dialog id="ha-dialog-progress"></ha-dialog>
       </ha-card>
     `;
   }
