@@ -10,6 +10,10 @@ import {
   internalProperty,
 } from 'lit-element';
 import {
+  render,
+} from 'lit-html';
+
+import {
   HomeAssistant,
   hasConfigOrEntityChanged,
   hasAction,
@@ -67,10 +71,12 @@ export class Floor3dCard extends LitElement {
   private _states?: string[];
   private _color?: number[][];
   private _brightness?: number[];
+  private _loaded?: boolean;
 
   private _firstcall?: boolean;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
+  private _progress?: HTMLElement;
 
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
@@ -79,6 +85,7 @@ export class Floor3dCard extends LitElement {
 
     super();
 
+    this._loaded = false;
     console.log('New Card')
 
   }
@@ -105,29 +112,34 @@ export class Floor3dCard extends LitElement {
       throw new Error(localize('common.invalid_configuration'));
     }
 
-    /*    if (config.test_gui) {
-          getLovelace().setEditMode(true);
-        }
-
-        this._config = mergeDeep(
-          {
-            appearance: {
-              backgroundColor: '#aaaaaa',
-              globalLightPower: 0.5,
-              style: '',
-            },
-            model: {
-              name: 'Home',
-              path: '/local/',
-              objfile: '',
-              mtlfile: '',
-            }
-          },
-          config,
-        );
-        */
     this._config = config;
     this._configArray = createConfigArray(this._config);
+
+    if (!this._card) {
+      console.log('Card not instanciated');
+      this._card = document.createElement('ha-card');
+      if (this._config.style) {
+        this._card.style.cssText = this._config.style;
+      } else {
+        this._card.style.cssText = 'width: auto; height: 90vh'
+      }
+      this._content = document.createElement('div');
+      this._content.style.width = '100%';
+      this._content.style.height = '100%';
+      this._content.style.alignContent = 'center';
+      this._card.appendChild(this._content);
+      this.shadowRoot.appendChild(this._card);
+    }
+
+    if (this._config.show_warning) {
+      render(this._showWarning(localize('common.show_warning')), this._card);
+      return
+    }
+
+    if (this._config.show_error) {
+      render(this._showError(localize('common.show_error')), this._card);
+      return
+    }
 
 
     if (!this._renderer) {
@@ -140,9 +152,6 @@ export class Floor3dCard extends LitElement {
 
     this._renderer.domElement.remove();
     this._renderer = null;
-    this._card = null;
-    this._content = null;
-    ;
 
     this._states = null;
     this.display3dmodel();
@@ -185,27 +194,10 @@ export class Floor3dCard extends LitElement {
 
     console.log('First updated start');
 
-    if (!this._card) {
-
-      console.log('Card not instatiated');
-
-      this._card = this.shadowRoot.getElementById('ha-card-1');
-
-
-      if (!this._ispanel()) {
-        (this._card as any).header = this._config.name ? this._config.name : "Floor 3d";
-      }
-
+    if (!this._ispanel()) {
+      (this._card as any).header = this._config.name ? this._config.name : "Floor 3d";
     }
-
-    if (!this._content) {
-      console.log('Div not instanciated');
-      this._content = this.shadowRoot.getElementById('3d_canvas');
-      this._content.style.width = '100%'
-      this._content.style.height = '100%'
-      //console.log(this._content.id)
-    }
-
+    this._content.innerText = '';
     this._content.appendChild(this._renderer.domElement)
     window.addEventListener("resize", this._resizeCanvas.bind(this));
     this._content.addEventListener("dblclick", this._showObjectName.bind(this));
@@ -343,8 +335,6 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
-    //this._canvasdiv.appendChild( this._renderer.domElement );
-
     if (this._config.mtlfile && this._config.mtlfile != '') {
 
       const mtlLoader: MTLLoader = new MTLLoader();
@@ -366,18 +356,19 @@ export class Floor3dCard extends LitElement {
   }
 
   private _onLoadMaterialProgress(_progress: ProgressEvent): void {
-    return
+    this._content.innerText = '1/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
   }
 
   private _onLoadObjectProgress(_progress: ProgressEvent): void {
-    return
+    this._content.innerText = '2/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
   }
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
     // Object Loaded Event: last root object passed to the function
     console.log('Object loaded start');
+    this._content.innerText = '2/2: 100%';
     const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
-    this._camera.position.set(box.max.x * 1.3, box.max.y * 1.3, box.max.z * 1.3);
+    this._camera.position.set(box.max.x * 1.3, box.max.y * 6, box.max.z * 1.3);
     this._modelX = object.position.x = -(box.max.x - box.min.x) / 2;
     this._modelY = object.position.y = - box.min.y;
     this._modelZ = object.position.z = -(box.max.z - box.min.z) / 2;
@@ -394,20 +385,12 @@ export class Floor3dCard extends LitElement {
     materials.preload();
     const objLoader: OBJLoader = new OBJLoader();
     objLoader.setMaterials(materials);
-    objLoader.load(this._config.path + this._config.objfile, this._onLoaded3DModel.bind(this), function (_progress: ProgressEvent) {
-      return
-    }, function (error: ErrorEvent): void {
+    objLoader.load(this._config.path + this._config.objfile, this._onLoaded3DModel.bind(this), this._onLoadObjectProgress.bind(this), function (error: ErrorEvent): void {
       throw new Error(error.error);
     });
     console.log('Material loaded end');
   }
 
-  /*
-  private _animate(): void {
-    requestAnimationFrame(this._animate.bind(this));
-    this._render();
-    this._controls.update();
-  }*/
 
   private _add3dObjects(): void {
 
@@ -532,6 +515,8 @@ export class Floor3dCard extends LitElement {
   }
 
   // https://lit-element.polymer-project.org/guide/templates
+
+  /*
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
     console.log('Render start');
@@ -545,14 +530,17 @@ export class Floor3dCard extends LitElement {
 
     console.log('Render end');
 
+    return html``;
+
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto'}`} id="ha-card-1">
         <div id='3d_canvas' style='width: 100%; height: 100%'>
         </div>
-        <ha-dialog id="ha-dialog-progress"></ha-dialog>
       </ha-card>
     `;
+
   }
+*/
 
   private _handleAction(ev: ActionHandlerEvent): void {
     if (this.hass && this._config && ev.detail.action) {
