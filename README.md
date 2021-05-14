@@ -25,6 +25,7 @@ Model your home with all needed objects and furniture (I will post here some hin
 For further instruction I assume you will use SweetHome3D.
 At the end of your modeling, you need to export the files in obj format using '3D View \ Export to OBJ format ...', specify the folder where you want to store the output (be careful there are multiple files)
 Copy the full set of files (minimum is the .obj file and .mtl file) to a sub folder of /config/www in Home assistant.
+Be aware that when you remove objects from the model the object ids get reassigned: This meanse that after a modification and re-export of your model it is possible you need to redo the bindings with the new object names. I'm trying to find solutions or workaround, but it is not an easy task.It could be a good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids).
 Then configure a new panel card with the following options:
 
 ## Options
