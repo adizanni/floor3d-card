@@ -1,5 +1,4 @@
 {
     "name": "Floor3d Visualization Card",
-    "render_readme": true,
-    "filename": "floor3d-card.js"
+    "render_readme": true
 }
