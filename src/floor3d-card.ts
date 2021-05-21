@@ -192,6 +192,7 @@ export class Floor3dCard extends LitElement {
 
   private _firstUpdated(): void {
 
+    //called after the model has been loaded into the Renderer and first render
     console.log('First updated start');
 
     if (!this._ispanel()) {
@@ -211,11 +212,12 @@ export class Floor3dCard extends LitElement {
   }
 
   private _render(): void {
+    //render the model
     this._renderer.render(this._scene, this._camera);
   }
 
   private _showObjectName(e: any): void {
-
+    //double click on object to show the name
     const mouse: THREE.Vector2 = new THREE.Vector2();
     mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
     mouse.y = - (e.offsetY / this._content.clientHeight) * 2 + 1;
@@ -228,7 +230,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _resizeCanvas(): void {
-    // Resize 3D canvas
+    // Resize 3D canvas when window resize happen (not working as expected TODO)
     //console.log('Resize canvas start');
     console.log('Card: Width ' + this._card.clientWidth + ' Height: ' + this._card.clientHeight);
     console.log('Div: Width ' + this._content.clientWidth + ' Height: ' + this._content.clientHeight);
@@ -244,7 +246,7 @@ export class Floor3dCard extends LitElement {
   }
 
   public set hass(hass: HomeAssistant) {
-
+    //called by Home Assistant Lovelace when a change of state is detected in entities
     if (this._config.entities) {
       if (!this._states) {
         console.log('Hass State Change Init')
@@ -313,7 +315,7 @@ export class Floor3dCard extends LitElement {
   }
 
   protected display3dmodel(): void {
-
+    //load the model into the GL Renderer
     console.log('Start Build Renderer');
     this._scene = new THREE.Scene();
     if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
@@ -356,10 +358,12 @@ export class Floor3dCard extends LitElement {
   }
 
   private _onLoadMaterialProgress(_progress: ProgressEvent): void {
+    //progress function called at regular intervals during material loading process
     this._content.innerText = '1/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
   }
 
   private _onLoadObjectProgress(_progress: ProgressEvent): void {
+    //progress function called at regular intervals during object loading process
     this._content.innerText = '2/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
   }
 
@@ -489,7 +493,7 @@ export class Floor3dCard extends LitElement {
 
 
   private _updatehide(item: Floor3dCardConfig, state: string): void {
-
+    // hide the object when the state is equal to the configured value
     const _object: any = this._scene.getObjectByName(item.object_id);
 
     if (state == item.hide.state) {
@@ -517,6 +521,7 @@ export class Floor3dCard extends LitElement {
   // https://lit-element.polymer-project.org/guide/templates
 
   /*
+  Removed renderer. The DOM is loaded programmatically to keep better control on the DOM elements
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
     console.log('Render start');
@@ -543,6 +548,7 @@ export class Floor3dCard extends LitElement {
 */
 
   private _handleAction(ev: ActionHandlerEvent): void {
+    //not implemented to not interfere with  the Action handler of the Three.js canvas object
     if (this.hass && this._config && ev.detail.action) {
       handleAction(this, this.hass, this._config, ev.detail.action);
     }
