@@ -5,7 +5,6 @@ import serve from "rollup-plugin-serve";
 import { terser } from "rollup-plugin-terser";
 import json from '@rollup/plugin-json';
 
-//hacs deployment change
 export default {
   input: ["src/floor3d-card.ts"],
   output: {
