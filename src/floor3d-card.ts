@@ -71,6 +71,7 @@ export class Floor3dCard extends LitElement {
   private _states?: string[];
   private _color?: number[][];
   private _brightness?: number[];
+  private _lights?: string[];
   private _loaded?: boolean;
 
   private _firstcall?: boolean;
@@ -253,9 +254,16 @@ export class Floor3dCard extends LitElement {
         this._states = [];
         this._color = [];
         this._brightness = [];
+        this._lights = [];
         //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
           this._states.push(hass.states[entity.entity].state);
+          if (entity.type3d == 'light') {
+            this._lights.push(entity.object_id + '_light');
+          }
+          else {
+            this._lights.push('');
+          }
           if (hass.states[entity.entity].attributes['rgb_color']) {
             this._color.push(hass.states[entity.entity].attributes['rgb_color']);
           } else {
@@ -291,7 +299,7 @@ export class Floor3dCard extends LitElement {
               }
             }
             if (toupdate) {
-              this._updatelight(entity, this._states[i], this._color[i], this._brightness[i]);
+              this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
               torerender = true;
             }
           }
@@ -413,9 +421,9 @@ export class Floor3dCard extends LitElement {
             const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
             light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
             light.castShadow = true;
-            light.name = entity.light.light_name;
+            light.name = this._lights[i];
             this._scene.add(light);
-            this._updatelight(entity, this._states[i], this._color[i], this._brightness[i]);
+            this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
           } else if (entity.type3d == 'color') {
             _foundobject.material = _foundobject.material.clone();
             this._updatecolor(entity, this._states[i]);
@@ -444,9 +452,9 @@ export class Floor3dCard extends LitElement {
     return "#" + rs + gs + bs;
   }
 
-  private _updatelight(item: Floor3dCardConfig, state: string, color: number[], brightness: number): void {
+  private _updatelight(item: Floor3dCardConfig, state: string, light_name: string, color: number[], brightness: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
-    const light: any = this._scene.getObjectByName(item.light.light_name);
+    const light: any = this._scene.getObjectByName(light_name);
     if (!light) {
       return
     }
