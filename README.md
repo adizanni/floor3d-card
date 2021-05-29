@@ -1,16 +1,16 @@
 # floor3d-card
 Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. Be advised it is still an alfa version; it requires a bit of manual installation actions and related troubleshooting. I'm working at a more official and easy to setup version using card templates projects.
 
-[![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)
-
+|Demo [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)   | Tutorial [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)  |
+|---|---|
 
 ## Installation
 
 **Pay attention the old config need some changes. I recommmend to save the card config from a previous version prior to upgrade to the new version. Then apply changes to your saved config in a normal editor and put back the new config in  a brand new card; Apologies for any incovenience**
 
-I'm not yet integrated into HACS,  [Home Assistant Community Store](https://github.com/hacs/integration).
+Waiting for the approval of the card in the HACS default repositories [Home Assistant Community Store](https://github.com/hacs/integration), you can include this repository (https://github.com/adizanni/floor3d-card) into the HACS custom repository and start using it.
 
-In the meantime, please download the compiled js file from here (https://raw.githubusercontent.com/adizanni/floor3d-card/master/dist/floor3d-card.js) and upload it to your www home assistant folder
+You can also  download the compiled js file from here (https://raw.githubusercontent.com/adizanni/floor3d-card/master/dist/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
