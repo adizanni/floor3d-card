@@ -3,6 +3,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)
 
+[![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)
 
 ## Installation
 
