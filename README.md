@@ -61,7 +61,6 @@ entities:
     type3d: light
     object_id: <an object id in the 3D model you want to postion the light on>
     light:
-      light_name: <give an object id to the light in the model>
       lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
 ```
 
