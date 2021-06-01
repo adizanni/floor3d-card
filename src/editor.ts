@@ -818,14 +818,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                         ${index !== null
                           ? html`
                               <paper-input
-                                label="light_name"
-                                .value="${config.light.light_name ? config.light.light_name : ''}"
-                                editable
-                                .configAttribute=${'light_name'}
-                                .configObject=${config.light}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
                                 class="value-number"
                                 type="number"
                                 label="Lumens"

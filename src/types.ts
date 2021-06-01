@@ -24,7 +24,6 @@ export interface Floor3dCardConfig {
   entity: string;
   type3d: string;
   object_id: string;
-  light_name: string;
   lumens: number;
   colorcondition: any;
   light: any;
@@ -41,7 +40,6 @@ export interface EntityFloor3dCardConfig {
   entity: string;
   type3d: 'light' | 'color' | 'hide';
   object_id: string;
-  light_name: string;
   lumens: number;
   conditions: ConditionsFloor3dCardConfig[];
   state: string;

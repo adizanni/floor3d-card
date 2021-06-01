@@ -551,14 +551,6 @@ found at http://polymer.github.io/PATENTS.txt
                       <div>
                         ${null!==t?B`
                               <paper-input
-                                label="light_name"
-                                .value="${n.light.light_name?n.light.light_name:""}"
-                                editable
-                                .configAttribute=${"light_name"}
-                                .configObject=${n.light}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
                                 class="value-number"
                                 type="number"
                                 label="Lumens"
