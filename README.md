@@ -61,7 +61,6 @@ entities:
     type3d: light
     object_id: <an object id in the 3D model you want to postion the light on>
     light:
-      light_name: <give an object id to the light in the model>
       lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
 ```
 
@@ -112,7 +111,7 @@ entities:
     type3d: light
     object_id: sweethome3d_opening_on_hinge_2_LampSide_31
     light:
-      light_name: sweethome3d_opening_on_hinge_2_LampSide_31_light
+      lumens: 500
   - entity: <your binary sensor entity id (example a magnet sensor for a window)>
     type3d: color
     object_id: sweethome3d_window_pane_on_hinge_1_50
@@ -138,7 +137,7 @@ List of feature I will develop in the next releases:
 - Condition 3D Type: add templating and or support complex conditions
 - Default values for the config
 
-
+Project General Availabilit (https://github.com/adizanni/floor3d-card/projects/1)
 
 
 
