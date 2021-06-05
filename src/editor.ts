@@ -90,6 +90,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const textOptions = {
+      icon: 'format-text',
+      name: 'Text',
+      secondary: 'Text options.',
+      show: false,
+      visible: false,
+    };
+
     const actionsOptions = {
       icon: 'gesture-tap',
       name: 'Actions',
@@ -104,6 +112,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         light: { ...lightOptions },
         color: { ...colorOptions },
         hide: { ...hideOptions },
+        text: { ...textOptions },
       },
     };
 
@@ -287,6 +296,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="options">
                 ${this._createTypeElement(index)} ${this._createLightElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
+                ${this._createTextElement(index)}
               </div>
             `
           : ''}
@@ -548,6 +558,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="light">light</paper-item>
                       <paper-item item-name="color">color</paper-item>
                       <paper-item item-name="hide">hide</paper-item>
+                      <paper-item item-name="text">text</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
                   <paper-input
@@ -824,6 +835,75 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .value=${config.light.lumens ? config.light.lumens : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'lumens'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createTextElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.text;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'text' : false;
+    if (visible) {
+      config.text = { ...config.text };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="text">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                editable
+                                label="font"
+                                .value=${config.text.font ? config.text.font : ''}
+                                .configObject=${config.text}
+                                .configAttribute=${'font'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Text Background Color"
+                                .value="${config.text.textbgcolor ? config.text.textbgcolor : ''}"
+                                .configObject=${config.text}
+                                .configAttribute=${'textbgcolor'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Text Foreground Color"
+                                .value="${config.text.textfgcolor ? config.text.textfgcolor : ''}"
+                                .configObject=${config.text}
+                                .configAttribute=${'textfgcolor'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                             `

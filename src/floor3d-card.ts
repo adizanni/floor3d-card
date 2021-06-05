@@ -22,7 +22,7 @@ import {
   LovelaceCardEditor,
   getLovelace,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
-
+import { MeshText2D, textAlign } from 'three-text2d';
 import './editor';
 import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray } from './helpers';
 import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
@@ -35,7 +35,7 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { Material } from 'three';
+import { Material, Mesh } from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -72,6 +72,7 @@ export class Floor3dCard extends LitElement {
   private _color?: number[][];
   private _brightness?: number[];
   private _lights?: string[];
+  private _canvas?: HTMLCanvasElement[];
   private _loaded?: boolean;
 
   private _firstcall?: boolean;
@@ -250,14 +251,15 @@ export class Floor3dCard extends LitElement {
     //called by Home Assistant Lovelace when a change of state is detected in entities
     if (this._config.entities) {
       if (!this._states) {
-        console.log('Hass State Change Init')
         this._states = [];
         this._color = [];
         this._brightness = [];
         this._lights = [];
+        this._canvas = [];
         //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
           this._states.push(hass.states[entity.entity].state);
+          this._canvas.push(null);
           if (entity.type3d == 'light') {
             this._lights.push(entity.object_id + '_light');
           }
@@ -311,6 +313,11 @@ export class Floor3dCard extends LitElement {
             } else if (entity.type3d == 'hide') {
               this._updatehide(entity, this._states[i]);
               torerender = true;
+            } else if (entity.type3d == 'text') {
+              if (this._canvas[i]) {
+                this._updatetext(entity, this._states[i], this._canvas[i]);
+                torerender = true;
+              }
             }
           }
         });
@@ -346,7 +353,6 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
     if (this._config.mtlfile && this._config.mtlfile != '') {
-
       const mtlLoader: MTLLoader = new MTLLoader();
       mtlLoader.setPath(this._config.path);
       mtlLoader.load(this._config.mtlfile, this._onLoaded3DMaterials.bind(this), this._onLoadMaterialProgress.bind(this)
@@ -429,11 +435,70 @@ export class Floor3dCard extends LitElement {
             this._updatecolor(entity, this._states[i]);
           } else if (entity.type3d == 'hide') {
             this._updatehide(entity, this._states[i]);
+          } else if (entity.type3d == 'text') {
+            console.log('is text');
+            this._canvas[i] = this._createTextCanvas(entity, this._states[i]);
           }
+
         }
       });
     }
     console.log('Add 3D Object End');
+  }
+
+  private _createTextCanvas(entity, text: string): HTMLCanvasElement {
+
+    const canvas = document.createElement("canvas");
+
+    this._updateTextCanvas(entity, canvas, text);
+
+    return canvas;
+  }
+
+  private _updateTextCanvas(entity: Floor3dCardConfig, canvas: HTMLCanvasElement, text: string): void {
+
+    const _foundobject: any = this._scene.getObjectByName(entity.object_id)
+
+    const ctx = canvas.getContext("2d");
+
+    // Prepare the font to be able to measure
+    let fontSize = 56;
+    ctx.font = `${fontSize}px ${entity.text.font ? entity.text.font : "monospace"}`;
+
+    const textMetrics = ctx.measureText(text);
+
+    let width = textMetrics.width;
+    let height = fontSize;
+
+    // Resize canvas to match text size
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+
+    // Re-apply font since canvas is resized.
+    ctx.font = `${fontSize}px ${entity.text.font ? entity.text.font : "monospace"}`;
+    ctx.textAlign = "center" ;
+    ctx.textBaseline = "middle";
+
+    //console.log(JSON.stringify(ctx));
+    //console.log(JSON.stringify(entity))
+    // Make the canvas transparent for simplicity
+    ctx.fillStyle = entity.text.textbgcolor ? entity.text.textbgcolor : "transparent";
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    ctx.fillStyle = entity.text.textfgcolor ? entity.text.textfgcolor : "white";
+    ctx.fillText(text, width / 2, height / 2);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.repeat.set(1, 1);
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+    });
+    if (_foundobject instanceof Mesh) {
+      (_foundobject as Mesh).material = material;
+    }
+
   }
 
   private _RGBToHex(r: number, g: number, b: number): string {
@@ -451,6 +516,13 @@ export class Floor3dCard extends LitElement {
 
     return "#" + rs + gs + bs;
   }
+
+  private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement): void {
+
+    this._updateTextCanvas(_item, canvas, state)
+
+  }
+
 
   private _updatelight(item: Floor3dCardConfig, state: string, light_name: string, color: number[], brightness: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property

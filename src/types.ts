@@ -13,6 +13,7 @@ export interface Floor3dCardConfig {
   type: string;
   path: string;
   name: string;
+  font: string;
   objfile: string;
   mtlfile: string;
   style: string;
@@ -27,6 +28,9 @@ export interface Floor3dCardConfig {
   lumens: number;
   colorcondition: any;
   light: any;
+  text: any;
+  textbgcolor: string;
+  textfgcolor: string;
   hide: any;
   state: string;
   target: any;
@@ -38,7 +42,7 @@ export interface Floor3dCardConfig {
 export interface EntityFloor3dCardConfig {
   hide: any;
   entity: string;
-  type3d: 'light' | 'color' | 'hide';
+  type3d: 'light' | 'color' | 'hide' | 'text';
   object_id: string;
   lumens: number;
   conditions: ConditionsFloor3dCardConfig[];
