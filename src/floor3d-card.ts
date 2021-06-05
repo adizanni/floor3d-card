@@ -73,6 +73,7 @@ export class Floor3dCard extends LitElement {
   private _brightness?: number[];
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
+  private _unit_of_measurement?: string[];
   private _loaded?: boolean;
 
   private _firstcall?: boolean;
@@ -252,6 +253,7 @@ export class Floor3dCard extends LitElement {
     if (this._config.entities) {
       if (!this._states) {
         this._states = [];
+        this._unit_of_measurement = [];
         this._color = [];
         this._brightness = [];
         this._lights = [];
@@ -275,6 +277,11 @@ export class Floor3dCard extends LitElement {
             this._brightness.push(hass.states[entity.entity].attributes['brightness']);
           } else {
             this._brightness.push(-1);
+          }
+          if (hass.states[entity.entity].attributes['unit_of_measurement']) {
+            this._unit_of_measurement.push(hass.states[entity.entity].attributes['unit_of_measurement']);
+          } else {
+            this._unit_of_measurement.push('');
           }
         });
         this._firstcall = false;
@@ -315,7 +322,7 @@ export class Floor3dCard extends LitElement {
               torerender = true;
             } else if (entity.type3d == 'text') {
               if (this._canvas[i]) {
-                this._updatetext(entity, this._states[i], this._canvas[i]);
+                this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
                 torerender = true;
               }
             }
@@ -437,7 +444,7 @@ export class Floor3dCard extends LitElement {
             this._updatehide(entity, this._states[i]);
           } else if (entity.type3d == 'text') {
             console.log('is text');
-            this._canvas[i] = this._createTextCanvas(entity, this._states[i]);
+            this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
           }
 
         }
@@ -446,11 +453,11 @@ export class Floor3dCard extends LitElement {
     console.log('Add 3D Object End');
   }
 
-  private _createTextCanvas(entity, text: string): HTMLCanvasElement {
+  private _createTextCanvas(entity, text: string, uom: string): HTMLCanvasElement {
 
     const canvas = document.createElement("canvas");
 
-    this._updateTextCanvas(entity, canvas, text);
+    this._updateTextCanvas(entity, canvas, text+uom);
 
     return canvas;
   }
@@ -517,9 +524,9 @@ export class Floor3dCard extends LitElement {
     return "#" + rs + gs + bs;
   }
 
-  private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement): void {
+  private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement, uom: string): void {
 
-    this._updateTextCanvas(_item, canvas, state)
+    this._updateTextCanvas(_item, canvas, state+uom)
 
   }
 
