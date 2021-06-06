@@ -98,6 +98,23 @@ entities:
 
 Color behavour: the object_id will be painted in the color when the state of the bound entity will be equal to the **state** value
 
+## Text
+
+For **text** example config:
+```yaml
+entities:
+  - entity: <a numeric or text sensor entity id>
+    type3d: text
+    object_id: <the plane object id in the 3D model that will allow the display of the state text>
+    text:
+      - font: <name of the font text ex:'verdana'>
+        textbgcolor: <background color for the text. ex: '#000000' or 'black'>
+        textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
+      .......
+```
+
+Text behaviour: the object_id representing the plane object (ex. mirror; picture, tv screen, etc) will display the state text for the entity
+
 
 ### Example
 
@@ -133,11 +150,10 @@ globalLightPower: 0.4
 ### To Do
 List of feature I will develop in the next releases:
 - Integration in HACS
-- Edit mode: enhance Edit Mode to make it more user friendly
 - Condition 3D Type: add templating and or support complex conditions
 - Default values for the config
 
-Project General Availabilit (https://github.com/adizanni/floor3d-card/projects/1)
+Project General Availability (https://github.com/adizanni/floor3d-card/projects/1)
 
 
 
