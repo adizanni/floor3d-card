@@ -22,7 +22,7 @@ import {
   LovelaceCardEditor,
   getLovelace,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
-import { MeshText2D, textAlign } from 'three-text2d';
+//import { MeshText2D, textAlign } from 'three-text2d';
 import './editor';
 import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray } from './helpers';
 import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
