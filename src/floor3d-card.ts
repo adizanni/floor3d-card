@@ -84,6 +84,8 @@ export class Floor3dCard extends LitElement {
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
 
+  private _hass?: HomeAssistant;
+
   constructor() {
 
     super();
@@ -204,7 +206,8 @@ export class Floor3dCard extends LitElement {
     this._content.innerText = '';
     this._content.appendChild(this._renderer.domElement)
     window.addEventListener("resize", this._resizeCanvas.bind(this));
-    this._content.addEventListener("dblclick", this._showObjectName.bind(this));
+    //this._content.addEventListener("dblclick", this._showObjectName.bind(this));
+    this._content.addEventListener("dblclick", this._performAction.bind(this));
     this._controls = new OrbitControls(this._camera, this._renderer.domElement);
     this._controls.maxPolarAngle = 0.9 * Math.PI / 2;
     this._controls.addEventListener('change', this._render.bind(this));
@@ -232,6 +235,35 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+  private _performAction(e: any): void {
+    //double click on object to show the name
+    const mouse: THREE.Vector2 = new THREE.Vector2();
+    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
+    mouse.y = - (e.offsetY / this._content.clientHeight) * 2 + 1;
+    const raycaster: THREE.Raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this._camera);
+    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
+    if (intersects.length > 0 && intersects[0].object.name != '') {
+      if (getLovelace().editMode) {
+        window.prompt("Object:", intersects[0].object.name);
+      } else {
+        this._config.entities.forEach((entity) => {
+          if ((entity.object_id == intersects[0].object.name)) {
+            if (entity.type3d == 'light') {
+              this._hass.callService('light', 'toggle', {
+                "entity_id": entity.entity
+              });
+            } else if (entity.type3d == 'gesture') {
+              this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+                "entity_id": entity.entity
+              });
+            }
+          }
+        });
+      }
+    }
+  }
+
   private _resizeCanvas(): void {
     // Resize 3D canvas when window resize happen (not working as expected TODO)
     //console.log('Resize canvas start');
@@ -250,6 +282,7 @@ export class Floor3dCard extends LitElement {
 
   public set hass(hass: HomeAssistant) {
     //called by Home Assistant Lovelace when a change of state is detected in entities
+    this._hass = hass;
     if (this._config.entities) {
       if (!this._states) {
         this._states = [];

@@ -98,6 +98,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const gestureOptions = {
+      icon: 'gesture-tap',
+      name: 'Gesture',
+      secondary: 'Gesture options.',
+      show: false,
+      visible: false,
+    };
+
     const actionsOptions = {
       icon: 'gesture-tap',
       name: 'Actions',
@@ -113,6 +121,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         color: { ...colorOptions },
         hide: { ...hideOptions },
         text: { ...textOptions },
+        gesture: { ...gestureOptions },
       },
     };
 
@@ -296,7 +305,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="options">
                 ${this._createTypeElement(index)} ${this._createLightElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
-                ${this._createTextElement(index)}
+                ${this._createTextElement(index)} ${this._createGestureElement(index)}
               </div>
             `
           : ''}
@@ -559,6 +568,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="color">color</paper-item>
                       <paper-item item-name="hide">hide</paper-item>
                       <paper-item item-name="text">text</paper-item>
+                      <paper-item item-name="gesture">gesture</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
                   <paper-input
@@ -904,6 +914,67 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .value="${config.text.textfgcolor ? config.text.textfgcolor : ''}"
                                 .configObject=${config.text}
                                 .configAttribute=${'textfgcolor'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createGestureElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.gesture;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'gesture' : false;
+    if (visible) {
+      config.gesture = { ...config.gesture };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="text">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                editable
+                                label="domain"
+                                .value=${config.gesture.domain ? config.gesture.domain : ''}
+                                .configObject=${config.gesture}
+                                .configAttribute=${'domain'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="service"
+                                .value=${config.gesture.service ? config.gesture.service : ''}
+                                .configObject=${config.gesture}
+                                .configAttribute=${'service'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                             `

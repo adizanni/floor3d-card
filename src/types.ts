@@ -29,11 +29,14 @@ export interface Floor3dCardConfig {
   colorcondition: any;
   light: any;
   text: any;
+  gesture: any;
   textbgcolor: string;
   textfgcolor: string;
   hide: any;
   state: string;
   target: any;
+  domain: string;
+  service: string;
   color: string;
   show_warning: boolean;
   show_error: boolean;
