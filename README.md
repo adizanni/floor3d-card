@@ -48,7 +48,7 @@ For each enity in the entities list you need to specify the following options:
 | ---- | ---- | ------- | -----------
 | entity | string | **Required** | your entity id.
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
-| type3d | string | **Required** | the type of object binding. Values are: light, hide, color
+| type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
 
@@ -66,7 +66,8 @@ entities:
 
 light_name is the name of the light object that will be created in the model to do the actual illumination.
 
-Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa 
+Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa.
+A double click on the light object will toggle the light (so far the events in iOS and Android are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
 
 ## Hide
 
@@ -115,6 +116,20 @@ entities:
 
 Text behaviour: the object_id representing the plane object (ex. mirror; picture, tv screen, etc) will display the state text for the entity
 
+## Gesture
+
+For **gesture** (action) example config:
+```yaml
+entities:
+  - entity: <an actionable entity>
+    type3d: gesture
+    object_id: <an object id in the 3D model you want to double click to trigger the gesture/action>
+    gesture:
+      domain: <the domain of the service to call>
+      service: <the service to call>
+```
+when you double click on the object, the domain.service is called with data { entity_id: entity }
+(so far the iOS and Android events are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
 
 ### Example
 
