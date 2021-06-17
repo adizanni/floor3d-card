@@ -40,7 +40,8 @@ Then configure a new panel card with the following options:
 | objfile | string | **Required** | object file name (.obj) Waterfront format.
 | mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
 | backgroundColor | string | '#aaaaaa' | canvas background color
-| globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene
+| globalLightPower  | string or <bumeric entity> | 0.3 | intensity of the light illuminating the full scene
+
 
 For each enity in the entities list you need to specify the following options:
 
@@ -51,6 +52,21 @@ For each enity in the entities list you need to specify the following options:
 | type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
+
+## Camera Rotation and Camera Position
+
+For **camera rotation and position** recording config:
+```yaml
+camera_position:
+  x: <x coordinate of the recorded camera positioon>
+  y: <y coordinate of the recorded camera positioon>
+  z: <z coordinate of the recorded camera positioon>
+camera_rotate:
+  x: <x coordinate of the recorded camera rotation>
+  y: <y coordinate of the recorded camera rotation>
+  z: <z coordinate of the recorded camera rotation>
+```
+When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates. 
 
 ## Lights
 
@@ -82,6 +98,20 @@ entities
 ```
 
 Hide behavour: the object_id will be hidden when the state of the bound entity will be equal to the **state** value
+
+## Show
+
+For **show** example config:
+```yaml
+entities
+  - entity: <a binary sensor entity id>
+    type3d: hide
+    object_id: <an object_id in the model you want to hide if condition is true>
+    show:
+      state: <the state of the entity triggering the showing of the object: ex 'off'>
+```
+
+Show behavour: the object_id will be visible when the state of the bound entity will be equal to the **state** value
 
 ## Color
 
