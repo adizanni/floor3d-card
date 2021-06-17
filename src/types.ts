@@ -18,7 +18,7 @@ export interface Floor3dCardConfig {
   mtlfile: string;
   style: string;
   backgroundColor: string;
-  globalLightPower: number;
+  globalLightPower: string;
   entities: any;
   tap_action?: ActionConfig;
   double_tap_action?: ActionConfig;
@@ -32,10 +32,17 @@ export interface Floor3dCardConfig {
   gesture: any;
   textbgcolor: string;
   textfgcolor: string;
+  camera_position: any;
+  camera_rotate: any;
+  x: number;
+  y: number;
+  z: number;
   hide: any;
+  show: any;
   state: string;
   target: any;
   domain: string;
+  camera: string;
   service: string;
   color: string;
   show_warning: boolean;

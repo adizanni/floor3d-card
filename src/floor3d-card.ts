@@ -64,6 +64,7 @@ export class Floor3dCard extends LitElement {
   private _camera?: THREE.PerspectiveCamera;
   private _renderer?: THREE.WebGLRenderer;
   private _controls?: OrbitControls;
+  private _hemiLight?: THREE.HemisphereLight;
   private _modelX?: number;
   private _modelY?: number;
   private _modelZ?: number;
@@ -208,10 +209,20 @@ export class Floor3dCard extends LitElement {
     window.addEventListener("resize", this._resizeCanvas.bind(this));
     //this._content.addEventListener("dblclick", this._showObjectName.bind(this));
     this._content.addEventListener("dblclick", this._performAction.bind(this));
+    this._content.addEventListener("touchstart", this._performAction.bind(this));
     this._controls = new OrbitControls(this._camera, this._renderer.domElement);
     this._controls.maxPolarAngle = 0.9 * Math.PI / 2;
     this._controls.addEventListener('change', this._render.bind(this));
-    this._scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5));
+    //this._scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5));
+    if (this._config.globalLightPower) {
+      if (!Number.isNaN(this._config.globalLightPower)) {
+        this._hemiLight.intensity = Number(this._config.globalLightPower);
+      } else if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
+        this._hemiLight.intensity = Number(this._hass.states[this._config.globalLightPower].state);
+      }
+    } else {
+      this._hemiLight.intensity = 0.3;
+    }
     this._renderer.render(this._scene, this._camera);
     this._resizeCanvas();
     console.log('First updated end');
@@ -250,7 +261,8 @@ export class Floor3dCard extends LitElement {
         this._config.entities.forEach((entity) => {
           if ((entity.object_id == intersects[0].object.name)) {
             if (entity.type3d == 'light') {
-              this._hass.callService('light', 'toggle', {
+
+              this._hass.callService(entity.entity.split(".")[0], 'toggle', {
                 "entity_id": entity.entity
               });
             } else if (entity.type3d == 'gesture') {
@@ -261,6 +273,8 @@ export class Floor3dCard extends LitElement {
           }
         });
       }
+    } else if (getLovelace().editMode) {
+      window.prompt("YAML:", "camera_position: { x: " + this._camera.position.x + ", y: " + this._camera.position.y + ", z: " + this._camera.position.z + " }\n" + "camera_rotate: { x: " + this._camera.rotation.x + ", y: " + this._camera.rotation.y + ", z: " + this._camera.rotation.z + " }");
     }
   }
 
@@ -353,6 +367,9 @@ export class Floor3dCard extends LitElement {
             } else if (entity.type3d == 'hide') {
               this._updatehide(entity, this._states[i]);
               torerender = true;
+            } else if (entity.type3d == 'show') {
+              this._updateshow(entity, this._states[i]);
+              torerender = true;
             } else if (entity.type3d == 'text') {
               if (this._canvas[i]) {
                 this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
@@ -380,14 +397,13 @@ export class Floor3dCard extends LitElement {
     }
     this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999,);
     this._scene.add(this._camera);
-    let hemiLight: THREE.HemisphereLight;
 
-    if (this._config.globalLightPower) {
-      hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, this._config.globalLightPower);
-    } else {
-      hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.3);
-    }
-    this._scene.add(hemiLight);
+    this._hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.3);
+
+    //let sky = new Sky();
+		//sky.scale.setScalar( 450000 );
+	  //this._scene.add( sky );
+    this._scene.add(this._hemiLight);
     this._renderer = new THREE.WebGLRenderer({ antialias: true });
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
@@ -426,12 +442,20 @@ export class Floor3dCard extends LitElement {
     console.log('Object loaded start');
     this._content.innerText = '2/2: 100%';
     const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
-    this._camera.position.set(box.max.x * 1.3, box.max.y * 6, box.max.z * 1.3);
+    if (this._config.camera_position) {
+      this._camera.position.set( this._config.camera_position.x, this._config.camera_position.y, this._config.camera_position.z);
+    } else {
+      this._camera.position.set(box.max.x * 1.3, box.max.y * 6, box.max.z * 1.3);
+    }
     this._modelX = object.position.x = -(box.max.x - box.min.x) / 2;
     this._modelY = object.position.y = - box.min.y;
     this._modelZ = object.position.z = -(box.max.z - box.min.z) / 2;
     this._scene.add(object);
-    this._camera.lookAt(object.position);
+    if (this._config.camera_rotate) {
+      this._camera.rotation.set( this._config.camera_rotate.x, this._config.camera_rotate.y, this._config.camera_rotate.z);
+    } else {
+      this._camera.lookAt(object.position);
+    }
     this._add3dObjects();
     this._firstUpdated();
     console.log('Object loaded end');
@@ -475,6 +499,8 @@ export class Floor3dCard extends LitElement {
             this._updatecolor(entity, this._states[i]);
           } else if (entity.type3d == 'hide') {
             this._updatehide(entity, this._states[i]);
+          } else if (entity.type3d == 'show') {
+            this._updateshow(entity, this._states[i]);
           } else if (entity.type3d == 'text') {
             console.log('is text');
             this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
@@ -624,6 +650,17 @@ export class Floor3dCard extends LitElement {
 
   }
 
+  private _updateshow(item: Floor3dCardConfig, state: string): void {
+    // hide the object when the state is equal to the configured value
+    const _object: any = this._scene.getObjectByName(item.object_id);
+
+    if (state == item.show.state) {
+      _object.visible = true;
+    } else {
+      _object.visible = false;
+    }
+
+  }
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(_changedProps: PropertyValues): boolean {

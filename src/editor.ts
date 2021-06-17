@@ -82,6 +82,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const showOptions = {
+      icon: 'arrow-expand-horizontal',
+      name: 'Show',
+      secondary: 'Show options.',
+      show: false,
+      visible: false,
+    };
+
     const lightOptions = {
       icon: 'lightbulb-on-outline',
       name: 'Light',
@@ -120,6 +128,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         light: { ...lightOptions },
         color: { ...colorOptions },
         hide: { ...hideOptions },
+        show: { ...showOptions },
         text: { ...textOptions },
         gesture: { ...gestureOptions },
       },
@@ -305,7 +314,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               <div class="options">
                 ${this._createTypeElement(index)} ${this._createLightElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
-                ${this._createTextElement(index)} ${this._createGestureElement(index)}
+                ${this._createShowElement(index)} ${this._createTextElement(index)} ${this._createGestureElement(index)}
               </div>
             `
           : ''}
@@ -448,12 +457,27 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <paper-input
-                  class="value-number"
-                  type="number"
+                  editable
                   label="Global Scene Light"
                   .value=${config.globalLightPower ? config.globalLightPower : ''}
                   .configObject=${config}
                   .configAttribute=${'globalLightPower'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Camera Position"
+                  .value=${config.camera_position ? config.camera_position : ''}
+                  .configObject=${config}
+                  .configAttribute=${'camera_position'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Camera Rotation"
+                  .value=${config.camera_rotate ? config.camera_rotate : ''}
+                  .configObject=${config}
+                  .configAttribute=${'camera_rotate'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
               </div>
@@ -567,6 +591,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="light">light</paper-item>
                       <paper-item item-name="color">color</paper-item>
                       <paper-item item-name="hide">hide</paper-item>
+                      <paper-item item-name="show">show</paper-item>
                       <paper-item item-name="text">text</paper-item>
                       <paper-item item-name="gesture">gesture</paper-item>
                     </paper-listbox>
@@ -1030,6 +1055,61 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 editable
                                 .configAttribute=${'state'}
                                 .configObject=${config.hide}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createShowElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.show;
+    const config = this._configArray[index];
+
+    const visible: boolean = config.type3d ? config.type3d === 'show' : false;
+
+    if (visible) {
+      config.show = { ...config.show };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="show">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                label="state"
+                                .value="${config.show.state ? config.show.state : ''}"
+                                editable
+                                .configAttribute=${'state'}
+                                .configObject=${config.show}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                             `
