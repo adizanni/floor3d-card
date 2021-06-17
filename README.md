@@ -194,9 +194,7 @@ globalLightPower: 0.4
 
 ### To Do
 List of feature I will develop in the next releases:
-- Integration in HACS
 - Condition 3D Type: add templating and or support complex conditions
-- Default values for the config
 
 Project General Availability (https://github.com/adizanni/floor3d-card/projects/1)
 
