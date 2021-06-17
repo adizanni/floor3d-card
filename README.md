@@ -40,7 +40,7 @@ Then configure a new panel card with the following options:
 | objfile | string | **Required** | object file name (.obj) Waterfront format.
 | mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
 | backgroundColor | string | '#aaaaaa' | canvas background color
-| globalLightPower  | string or <bumeric entity> | 0.3 | intensity of the light illuminating the full scene
+| globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene it can also the name of a numeric sensor
 
 
 For each enity in the entities list you need to specify the following options:
