@@ -207,21 +207,21 @@ export class Floor3dCard extends LitElement {
     this._content.innerText = '';
     this._content.appendChild(this._renderer.domElement)
     window.addEventListener("resize", this._resizeCanvas.bind(this));
-    //this._content.addEventListener("dblclick", this._showObjectName.bind(this));
     this._content.addEventListener("dblclick", this._performAction.bind(this));
     this._content.addEventListener("touchstart", this._performAction.bind(this));
     this._controls = new OrbitControls(this._camera, this._renderer.domElement);
     this._controls.maxPolarAngle = 0.9 * Math.PI / 2;
     this._controls.addEventListener('change', this._render.bind(this));
-    //this._scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 0.5));
-    if (this._config.globalLightPower) {
-      if (!Number.isNaN(this._config.globalLightPower)) {
-        this._hemiLight.intensity = Number(this._config.globalLightPower);
-      } else if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
+    if (this._hass.states[this._config.globalLightPower]) {
+      if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
         this._hemiLight.intensity = Number(this._hass.states[this._config.globalLightPower].state);
       }
     } else {
-      this._hemiLight.intensity = 0.3;
+      if (!Number.isNaN(this._config.globalLightPower)) {
+        this._hemiLight.intensity = Number(this._config.globalLightPower);
+      } else {
+        this._hemiLight.intensity = 0.5;
+      }
     }
     this._renderer.render(this._scene, this._camera);
     this._resizeCanvas();
@@ -547,9 +547,6 @@ export class Floor3dCard extends LitElement {
     ctx.textAlign = "center" ;
     ctx.textBaseline = "middle";
 
-    //console.log(JSON.stringify(ctx));
-    //console.log(JSON.stringify(entity))
-    // Make the canvas transparent for simplicity
     ctx.fillStyle = entity.text.textbgcolor ? entity.text.textbgcolor : "transparent";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
