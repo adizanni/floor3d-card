@@ -25,6 +25,7 @@ export interface Floor3dCardConfig {
   entity: string;
   type3d: string;
   object_id: string;
+  object_group: any;
   lumens: number;
   colorcondition: any;
   light: any;

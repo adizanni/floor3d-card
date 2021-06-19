@@ -217,7 +217,7 @@ export class Floor3dCard extends LitElement {
         this._hemiLight.intensity = Number(this._hass.states[this._config.globalLightPower].state);
       }
     } else {
-      if (!Number.isNaN(this._config.globalLightPower)) {
+      if (this._config.globalLightPower) {
         this._hemiLight.intensity = Number(this._config.globalLightPower);
       } else {
         this._hemiLight.intensity = 0.5;
@@ -281,10 +281,10 @@ export class Floor3dCard extends LitElement {
   private _resizeCanvas(): void {
     // Resize 3D canvas when window resize happen (not working as expected TODO)
     //console.log('Resize canvas start');
-    console.log('Card: Width ' + this._card.clientWidth + ' Height: ' + this._card.clientHeight);
-    console.log('Div: Width ' + this._content.clientWidth + ' Height: ' + this._content.clientHeight);
-    console.log('Canvas: CWidth ' + this._renderer.domElement.clientWidth + ' CHeight: ' + this._renderer.domElement.clientHeight);
-    console.log('Canvas: Width ' + this._renderer.domElement.width + ' Height: ' + this._renderer.domElement.height);
+    //console.log('Card: Width ' + this._card.clientWidth + ' Height: ' + this._card.clientHeight);
+    //console.log('Div: Width ' + this._content.clientWidth + ' Height: ' + this._content.clientHeight);
+    //console.log('Canvas: CWidth ' + this._renderer.domElement.clientWidth + ' CHeight: ' + this._renderer.domElement.clientHeight);
+    //console.log('Canvas: Width ' + this._renderer.domElement.width + ' Height: ' + this._renderer.domElement.height);
     if ((this._renderer.domElement.clientWidth !== this._renderer.domElement.width) || (this._renderer.domElement.clientHeight !== this._renderer.domElement.height)) {
       this._camera.aspect = this._renderer.domElement.clientWidth / this._renderer.domElement.clientHeight;
       this._camera.updateProjectionMatrix();
