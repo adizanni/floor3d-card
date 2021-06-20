@@ -6,9 +6,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 ## Installation
 
-**Pay attention the old config need some changes. I recommmend to save the card config from a previous version prior to upgrade to the new version. Then apply changes to your saved config in a normal editor and put back the new config in  a brand new card; Apologies for any incovenience**
-
-Waiting for the approval of the card in the HACS default repositories [Home Assistant Community Store](https://github.com/hacs/integration), you can include this repository (https://github.com/adizanni/floor3d-card) into the HACS custom repository and start using it.
+The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
 You can also  download the compiled js file from here (https://raw.githubusercontent.com/adizanni/floor3d-card/master/dist/floor3d-card.js) and upload it to your www home assistant folder
 
@@ -25,8 +23,9 @@ Model your home with all needed objects and furniture (I will post here some hin
 For further instruction I assume you will use SweetHome3D.
 At the end of your modeling, you need to export the files in obj format using '3D View \ Export to OBJ format ...', specify the folder where you want to store the output (be careful there are multiple files)
 Copy the full set of files (minimum is the .obj file and .mtl file) to a sub folder of /config/www in Home assistant.
-Be aware that when you remove objects from the model the object ids get reassigned: This meanse that after a modification and re-export of your model it is possible you need to redo the bindings with the new object names. I'm trying to find solutions or workaround, but it is not an easy task.It could be a good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids).
-Then configure a new panel card with the following options:
+Be aware that when you remove objects from the model the object ids get reassigned: This meanse that after a modification and re-export of your model it is possible you need to redo the bindings with the new object names. I'm trying to find solutions (https://github.com/adizanni/floor3d-card/issues/7) or workaround, but it is not an easy task.It could be a good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids). If you want to have an object that groups together other objects (ex a mannequin is composed by 100s of objects you want to treat it as one), you can follow this trick: https://community.home-assistant.io/t/live-3d-floor-plan-with-interactive-objects/301549/78?u=adizanni.
+
+When you are finished,  configure a new card (either in panel mode or regular) with the following options:
 
 ## Options
 
