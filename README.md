@@ -34,6 +34,7 @@ When you are finished,  configure a new card (either in panel mode or regular) w
 | type | string | **Required** | `custom:floor3d-card`.
 | name | string | Floor 3d | the name of the card.
 | entities | array | none | list of enitities to bind to 3D model objects.
+| object_groups | array | none | list of object groups to apply grouped entity bindings.
 | style | string | none | the style that will be applied to the canvas element of the card.
 | path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
 | objfile | string | **Required** | object file name (.obj) Waterfront format.
@@ -42,15 +43,28 @@ When you are finished,  configure a new card (either in panel mode or regular) w
 | globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene it can also the name of a numeric sensor
 
 
-For each enity in the entities list you need to specify the following options:
+For each entity in the entities list you need to specify the following options:
 
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
-| entity | string | **Required** | your entity id.
+| entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
 | type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
+
+For each object_group in object_groups:
+
+| Name | Type | Default | Description
+| ---- | ---- | ------- | -----------
+| object_group | string | **Required** | your object group name to be referenced by the entity field via <object_group> reference
+| objects | array | **Required** | the list of object_ids in your group.
+
+The objects array contains a list of 
+| Name | Type | Default | Description
+| ---- | ---- | ------- | -----------
+| object_id | string | **Required** | object_id of the object in the group
+
 
 ## Camera Rotation and Camera Position
 
@@ -159,6 +173,23 @@ entities:
 ```
 when you double click on the object, the domain.service is called with data { entity_id: entity }
 (so far the iOS and Android events are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
+
+### Object group example
+
+```yaml
+entities:
+  - entity: <lamp> (refers to the object_group defined below)
+    type3d: light
+    light:
+      lumen: 900
+object_groups:
+  - object_group: lamp
+    objects:
+      - object_id: lamp_base_20
+      - object_id: lamp_bulb_1
+```
+
+
 
 ### Example
 
