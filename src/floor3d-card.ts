@@ -24,7 +24,7 @@ import {
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 //import { MeshText2D, textAlign } from 'three-text2d';
 import './editor';
-import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray } from './helpers';
+import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray, createObjectGroupConfigArray } from './helpers';
 import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
 //import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
@@ -84,6 +84,7 @@ export class Floor3dCard extends LitElement {
 
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
+  private _object_ids?: Floor3dCardConfig[] = [];
 
   private _hass?: HomeAssistant;
 
@@ -120,6 +121,7 @@ export class Floor3dCard extends LitElement {
 
     this._config = config;
     this._configArray = createConfigArray(this._config);
+    this._object_ids = createObjectGroupConfigArray(this._config);
 
     if (!this._card) {
       console.log('Card not instanciated');
@@ -259,18 +261,23 @@ export class Floor3dCard extends LitElement {
         window.prompt("Object:", intersects[0].object.name);
       } else {
         this._config.entities.forEach((entity) => {
-          if ((entity.object_id == intersects[0].object.name)) {
-            if (entity.type3d == 'light') {
-
-              this._hass.callService(entity.entity.split(".")[0], 'toggle', {
-                "entity_id": entity.entity
-              });
-            } else if (entity.type3d == 'gesture') {
+          if (entity.type3d == 'light') {
+            this._object_ids.forEach(element => {
+              if (entity.entity == element.entity) {
+                element.objects.forEach(obj => {
+                  if ((obj.object_id == intersects[0].object.name)) {
+                    this._hass.callService(entity.entity.split(".")[0], 'toggle', {
+                      "entity_id": entity.entity
+                    });
+                  }
+                });
+              }
+            });
+          } else if (entity.type3d == 'gesture') {
               this._hass.callService(entity.gesture.domain, entity.gesture.service, {
                 "entity_id": entity.entity
               });
             }
-          }
         });
       }
     } else if (getLovelace().editMode) {
@@ -280,11 +287,6 @@ export class Floor3dCard extends LitElement {
 
   private _resizeCanvas(): void {
     // Resize 3D canvas when window resize happen (not working as expected TODO)
-    //console.log('Resize canvas start');
-    //console.log('Card: Width ' + this._card.clientWidth + ' Height: ' + this._card.clientHeight);
-    //console.log('Div: Width ' + this._content.clientWidth + ' Height: ' + this._content.clientHeight);
-    //console.log('Canvas: CWidth ' + this._renderer.domElement.clientWidth + ' CHeight: ' + this._renderer.domElement.clientHeight);
-    //console.log('Canvas: Width ' + this._renderer.domElement.width + ' Height: ' + this._renderer.domElement.height);
     if ((this._renderer.domElement.clientWidth !== this._renderer.domElement.width) || (this._renderer.domElement.clientHeight !== this._renderer.domElement.height)) {
       this._camera.aspect = this._renderer.domElement.clientWidth / this._renderer.domElement.clientHeight;
       this._camera.updateProjectionMatrix();
@@ -355,20 +357,20 @@ export class Floor3dCard extends LitElement {
               }
             }
             if (toupdate) {
-              this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
+              this._updatelight(entity, i);
               torerender = true;
             }
           }
           else if (this._states[i] !== hass.states[entity.entity].state) {
             this._states[i] = hass.states[entity.entity].state;
             if (entity.type3d == 'color') {
-              this._updatecolor(entity, this._states[i]);
+              this._updatecolor(entity, i);
               torerender = true;
             } else if (entity.type3d == 'hide') {
-              this._updatehide(entity, this._states[i]);
+              this._updatehide(entity, i);
               torerender = true;
             } else if (entity.type3d == 'show') {
-              this._updateshow(entity, this._states[i]);
+              this._updateshow(entity, i);
               torerender = true;
             } else if (entity.type3d == 'text') {
               if (this._canvas[i]) {
@@ -477,35 +479,44 @@ export class Floor3dCard extends LitElement {
   private _add3dObjects(): void {
 
     // Add-Modify the objects bound to the entities in the card config
+    console.log("Add Objects");
     if (this._states && this._config.entities) {
       this._config.entities.forEach((entity, i) => {
+        this._object_ids[i].objects.forEach(element => {
 
+          console.log("element: " + JSON.stringify(element));
+          const _foundobject: any = this._scene.getObjectByName(element.object_id)
 
-        const _foundobject: any = this._scene.getObjectByName(entity.object_id)
+          if (_foundobject) {
+            if (entity.type3d == 'light') {
 
-        if (_foundobject) {
-          if (entity.type3d == 'light') {
-
-            const box: THREE.Box3 = new THREE.Box3();
-            box.setFromObject(_foundobject);
-            const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
-            light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
-            light.castShadow = true;
-            light.name = this._lights[i];
-            this._scene.add(light);
-            this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
-          } else if (entity.type3d == 'color') {
+              const box: THREE.Box3 = new THREE.Box3();
+              box.setFromObject(_foundobject);
+              const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
+              light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
+              light.castShadow = true;
+              light.name = element.object_id + "_light";
+              this._scene.add(light);
+            //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
+            } else if (entity.type3d == 'color') {
             _foundobject.material = _foundobject.material.clone();
-            this._updatecolor(entity, this._states[i]);
-          } else if (entity.type3d == 'hide') {
-            this._updatehide(entity, this._states[i]);
-          } else if (entity.type3d == 'show') {
-            this._updateshow(entity, this._states[i]);
-          } else if (entity.type3d == 'text') {
-            console.log('is text');
-            this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
+            //this._updatecolor(entity, this._states[i]);
+            }
           }
-
+        });
+      });
+      this._config.entities.forEach((entity, i) => {
+        if (entity.type3d == 'light') {
+          this._updatelight(entity, i);
+        } else if (entity.type3d == 'color') {
+          this._updatecolor(entity, i);
+        } else if (entity.type3d == 'hide') {
+          this._updatehide(entity, i);
+        } else if (entity.type3d == 'show') {
+          this._updateshow(entity, i);
+        } else if (entity.type3d == 'text') {
+          console.log('is text');
+          this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
         }
       });
     }
@@ -587,76 +598,88 @@ export class Floor3dCard extends LitElement {
   }
 
 
-  private _updatelight(item: Floor3dCardConfig, state: string, light_name: string, color: number[], brightness: number): void {
+  private _updatelight(item: Floor3dCardConfig, i: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
-    const light: any = this._scene.getObjectByName(light_name);
-    if (!light) {
-      return
-    }
-    let max: number;
 
-    if (item.light.lumens) {
-      max = item.light.lumens;
-    } else {
-      max = 800;
-    }
+    this._object_ids[i].objects.forEach(element => {
 
-    if (state == 'on') {
-      if (brightness != -1) {
-        light.intensity = 0.01 * max * brightness / 255;
+      const light: any = this._scene.getObjectByName(element.object_id + "_light");
+
+      if (!light) {
+        return
+      }
+      let max: number;
+
+      if (item.light.lumens) {
+        max = item.light.lumens;
       } else {
-        light.intensity = 0.01 * max;
+        max = 800;
       }
-      if (color.length == 0) {
-        light.color = new THREE.Color('#ffffff');
+
+      if (this._states[i] == 'on') {
+        if (this._brightness[i] != -1) {
+          light.intensity = 0.01 * max * this._brightness[i] / 255;
+        } else {
+          light.intensity = 0.01 * max;
+        }
+        if (this._color[i].length == 0) {
+          light.color = new THREE.Color('#ffffff');
+        }
+        else {
+          light.color = new THREE.Color(this._RGBToHex(this._color[i][0], this._color[i][1], this._color[i][2]));
+        }
+      } else {
+        light.intensity = 0;
+        //light.color = new THREE.Color('#000000');
       }
-      else {
-        light.color = new THREE.Color(this._RGBToHex(color[0], color[1], color[2]));
-      }
-    } else {
-      light.intensity = 0;
-      //light.color = new THREE.Color('#000000');
-    }
+    });
   }
 
-  private _updatecolor(item: any, state: string): void {
+  private _updatecolor(item: any, index: number): void {
     // Change the color of the object when, for the bound device, the state matches the condition
 
-    const _object: any = this._scene.getObjectByName(item.object_id);
+    this._object_ids[index].objects.forEach(element => {
 
-    let i: any;
+      const _object: any = this._scene.getObjectByName(element.object_id);
 
-    for (i in item.colorcondition) {
-      if (state == item.colorcondition[i].state) {
-        _object.material.color.set(item.colorcondition[i].color);
-        return;
+      let i: any;
+
+      for (i in item.colorcondition) {
+        if (this._states[index] == item.colorcondition[i].state) {
+          _object.material.color.set(item.colorcondition[i].color);
+          break;
+        }
       }
-    }
+    });
   }
 
 
-  private _updatehide(item: Floor3dCardConfig, state: string): void {
+  private _updatehide(item: Floor3dCardConfig, index: number): void {
     // hide the object when the state is equal to the configured value
-    const _object: any = this._scene.getObjectByName(item.object_id);
+    this._object_ids[index].objects.forEach(element => {
 
-    if (state == item.hide.state) {
-      _object.visible = false;
-    } else {
-      _object.visible = true;
-    }
+      const _object: any = this._scene.getObjectByName(element.object_id);
 
+      if (this._states[index] == item.hide.state) {
+        _object.visible = false;
+      } else {
+        _object.visible = true;
+      }
+    });
   }
 
-  private _updateshow(item: Floor3dCardConfig, state: string): void {
+  private _updateshow(item: Floor3dCardConfig, index: number): void {
     // hide the object when the state is equal to the configured value
-    const _object: any = this._scene.getObjectByName(item.object_id);
+    this._object_ids[index].objects.forEach(element => {
 
-    if (state == item.show.state) {
-      _object.visible = true;
-    } else {
-      _object.visible = false;
-    }
+      const _object: any = this._scene.getObjectByName(element.object_id);
 
+      if (this._states[index] == item.show.state) {
+        _object.visible = true;
+      } else {
+        _object.visible = false;
+      }
+    });
   }
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate

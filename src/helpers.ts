@@ -81,6 +81,55 @@ export function createConfigArray(config): Floor3dCardConfig[] {
   return configArray;
 }
 
+export function createObjectGroupConfigArray(config): Floor3dCardConfig[] {
+  const configArray: Floor3dCardConfig[] = [];
+  if (config.entities) {
+    for (const entityConfig of config.entities) {
+      if (entityConfig.object_id) {
+        if (
+          entityConfig.object_id.charAt(0) == '<' &&
+          entityConfig.object_id.charAt(entityConfig.object_id.length - 1) == '>'
+        ) {
+          const group_name = entityConfig.object_id.substr(1, entityConfig.object_id.length - 2);
+          for (const objectGroupConfig of config.object_groups) {
+            if (objectGroupConfig.object_group == group_name) {
+              const objectConfig = mergeDeep({}, { entity: entityConfig.entity, objects: objectGroupConfig.objects });
+              configArray.push(objectConfig);
+              break;
+            }
+          }
+        } else if (entityConfig.object_id !== '') {
+          const objectConfig = mergeDeep(
+            {},
+            { entity: entityConfig.entity, objects: [{ object_id: entityConfig.object_id }] },
+          );
+          configArray.push(objectConfig);
+        }
+      }
+    }
+  }
+  console.log(JSON.stringify(configArray));
+  return configArray;
+}
+
+export function createEditorObjectGroupConfigArray(config): Floor3dCardConfig[] {
+  const configArray: Floor3dCardConfig[] = [];
+  if (config.object_groups) {
+    for (const objectGroupConfig of config.object_groups) {
+      if (typeof objectGroupConfig == 'string') {
+        const stringConfig = mergeDeep({}, { object_group: objectGroupConfig });
+        configArray.push(stringConfig);
+      } else if (typeof objectGroupConfig == 'object') {
+        const objectConfig = mergeDeep({}, objectGroupConfig);
+        configArray.push(objectConfig);
+      }
+    }
+  } else {
+    configArray.push(config);
+  }
+  return configArray;
+}
+
 export function createEditorConfigArray(config): Floor3dCardConfig[] {
   const configArray: Floor3dCardConfig[] = [];
   if (config.entities) {

@@ -9,7 +9,12 @@ import {
   internalProperty,
 } from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
-import { createEditorConfigArray, arrayMove, hasConfigOrEntitiesChanged } from './helpers';
+import {
+  createEditorConfigArray,
+  arrayMove,
+  hasConfigOrEntitiesChanged,
+  createEditorObjectGroupConfigArray,
+} from './helpers';
 import { Floor3dCardConfig } from './types';
 import { ConeBufferGeometry } from 'three';
 import { Floor3dCard } from './floor3d-card';
@@ -21,7 +26,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   @internalProperty() private _toggle?: boolean;
   @internalProperty() private _helpers?: any;
   private _configArray: any[] = [];
+  private _configObjectArray: any[] = [];
   private _entityOptionsArray: object[] = [];
+  private _entityOptionsGroupArray: object[] = [];
   private _options: any;
   private _initialized = false;
   private _visible: any[];
@@ -33,7 +40,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       this._config.entities = [{ entity: '' }];
     }
 
+    if (!config.object_groups) {
+      this._config.object_groups = [{ object_group: '' }];
+    }
+
     this._configArray = createEditorConfigArray(this._config);
+    this._configObjectArray = createEditorObjectGroupConfigArray(this._config);
 
     for (const entityConfig of this._configArray) {
       if (entityConfig.light) {
@@ -47,8 +59,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         }
       }
     }
-
+    this._config.object_groups = this._configObjectArray;
     this._config.entities = this._configArray;
+
     console.log(JSON.stringify(this._config));
 
     const typeOptions = {
@@ -114,6 +127,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const objectGroupOptions = {
+      icon: 'cube-unfolded',
+      name: 'Objects',
+      secondary: 'Objects.',
+      show: false,
+      visible: false,
+    };
+
     const actionsOptions = {
       icon: 'gesture-tap',
       name: 'Actions',
@@ -134,11 +155,24 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       },
     };
 
+    for (const objectconfig of this._configObjectArray) {
+      this._entityOptionsGroupArray.push({ ...objectGroupOptions });
+    }
+
     for (const config of this._configArray) {
       this._entityOptionsArray.push({ ...entityOptions });
     }
     if (!this._options) {
       this._options = {
+        object_groups: {
+          icon: 'group',
+          name: 'Object Groups',
+          secondary: 'Manage card Object Groups.',
+          show: true,
+          options: {
+            object_groups: this._entityOptionsGroupArray,
+          },
+        },
         entities: {
           icon: 'tune',
           name: 'Entities',
@@ -186,6 +220,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         <ha-icon @click=${this._config_changed} icon="mdi:refresh" class="ha-icon-large"> </ha-icon>
       </div>
       ${this._createModelElement()} ${this._createAppearanceElement()} ${this._createEntitiesElement()}
+      ${this._createObjectGroupsElement()}
     `;
   }
 
@@ -211,6 +246,99 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     if (preview_card) {
       preview_card.rerender();
     }
+  }
+
+  private _createObjectGroupsValues(): TemplateResult[] {
+    if (!this.hass || !this._config) {
+      return [html``];
+    }
+
+    const options = this._options.object_groups;
+    console.log('options group values: ' + JSON.stringify(options));
+    const valueElementArray: TemplateResult[] = [];
+    for (const config of this._configObjectArray) {
+      const index = this._configObjectArray.indexOf(config);
+      valueElementArray.push(html`
+        <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
+          <div style="display: flex; align-items: center; flex-direction: column;">
+            <div
+              style="font-size: 10px; margin-bottom: -8px; opacity: 0.5;"
+              @click=${this._toggleThing}
+              .options=${options.options.object_groups[index]}
+              .optionsTarget=${options.options.object_groups}
+              .index=${index}
+            >
+              options
+            </div>
+            <ha-icon
+              icon="mdi:chevron-${options.options.object_groups[index].show ? 'up' : 'down'}"
+              @click=${this._toggleThing}
+              .options=${options.options.object_groups[index]}
+              .optionsTarget=${options.options.object_groups}
+              .index=${index}
+            ></ha-icon>
+          </div>
+          <div class="value" style="flex-grow: 1;">
+            <paper-input
+              label="Object Group"
+              @value-changed=${this._valueChanged}
+              .configAttribute=${'object_group'}
+              .configObject=${this._configObjectArray[index]}
+              .value=${config.object_group}
+            >
+            </paper-input>
+          </div>
+          ${index !== 0
+            ? html`
+                <ha-icon
+                  class="ha-icon-large"
+                  icon="mdi:arrow-up"
+                  @click=${this._moveObject_Group}
+                  .configDirection=${'up'}
+                  .configArray=${this._config!.object_groups}
+                  .arrayAttribute=${'object_groups'}
+                  .arraySource=${this._config}
+                  .index=${index}
+                ></ha-icon>
+              `
+            : html`
+                <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
+              `}
+          ${index !== this._configObjectArray.length - 1
+            ? html`
+                <ha-icon
+                  class="ha-icon-large"
+                  icon="mdi:arrow-down"
+                  @click=${this._moveObject_Group}
+                  .configDirection=${'down'}
+                  .configArray=${this._config!.object_groups}
+                  .arrayAttribute=${'object_groups'}
+                  .arraySource=${this._config}
+                  .index=${index}
+                ></ha-icon>
+              `
+            : html`
+                <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
+              `}
+          <ha-icon
+            class="ha-icon-large"
+            icon="mdi:close"
+            @click=${this._removeObject_Group}
+            .configAttribute=${'object_group'}
+            .configArray=${'object_groups'}
+            .configIndex=${index}
+          ></ha-icon>
+        </div>
+        ${options.options.object_groups[index].show
+          ? html`
+              <div class="options">
+                ${this._createObject_GroupElement(index)}
+              </div>
+            `
+          : ''}
+      `);
+    }
+    return valueElementArray;
   }
 
   private _createActionsElement(): TemplateResult {
@@ -321,6 +449,43 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       `);
     }
     return valueElementArray;
+  }
+
+  private _createObjectGroupsElement(): TemplateResult {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+    const options = this._options.object_groups;
+
+    return html`
+      <div class="card-config">
+        <div class="option" @click=${this._toggleThing} .options=${options} .optionsTarget=${this._options}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+            <div class="title">${options.name}</div>
+            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
+          </div>
+          <div class="secondary">${options.secondary}</div>
+        </div>
+        ${options.show
+          ? html`
+              <div class="card-background" style="max-height: 400px; overflow: auto;">
+                ${this._createObjectGroupsValues()}
+                <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
+                  <ha-icon
+                    class="ha-icon-large"
+                    icon="mdi:plus"
+                    .configArray=${this._configObjectArray}
+                    .configAddValue=${'object_group'}
+                    .sourceArray=${this._config.object_groups}
+                    @click=${this._addObject_Group}
+                  ></ha-icon>
+                </div>
+              </div>
+            `
+          : ''}
+      </div>
+    `;
   }
 
   private _createEntitiesElement(): TemplateResult {
@@ -505,6 +670,23 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     this._toggle = !this._toggle;
   }
 
+  private _addObject_Group(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    let newObject;
+    if (target.configAddObject) {
+      newObject = target.configAddObject;
+    } else {
+      newObject = { [target.configAddValue]: '' };
+    }
+    const newArray = target.configArray.slice();
+    newArray.push(newObject);
+    this._config.object_groups = newArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   private _addEntity(ev): void {
     if (!this._config || !this.hass) {
       return;
@@ -534,6 +716,18 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  private _moveObject_Group(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    let newArray = target.configArray.slice();
+    if (target.configDirection == 'up') newArray = arrayMove(newArray, target.index, target.index - 1);
+    else if (target.configDirection == 'down') newArray = arrayMove(newArray, target.index, target.index + 1);
+    this._config.object_groups = newArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   private _removeEntity(ev): void {
     if (!this._config || !this.hass) {
       return;
@@ -548,6 +742,24 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       index++;
     }
     const newConfig = { [target.configArray]: entitiesArray };
+    this._config = Object.assign(this._config, newConfig);
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _removeObject_Group(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    const object_groupsArray: Floor3dCardConfig[] = [];
+    let index = 0;
+    for (const config of this._configObjectArray) {
+      if (target.configIndex !== index) {
+        object_groupsArray.push(config);
+      }
+      index++;
+    }
+    const newConfig = { [target.configArray]: object_groupsArray };
     this._config = Object.assign(this._config, newConfig);
     fireEvent(this, 'config-changed', { config: this._config });
   }
@@ -612,6 +824,56 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
+  private _createObject_GroupElement(index): TemplateResult {
+    const options = this._options.object_groups.options.object_groups[index];
+    const config = this._configObjectArray[index];
+    const arrayLength = config.objects ? config.objects.length : 0;
+    const visible = true;
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="bar">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.object_groups.options.object_groups}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="card-background" style="overflow: auto; max-height: 420px;">
+                      ${arrayLength > 0
+                        ? html`
+                            ${this._createObjectValues(index)}
+                          `
+                        : ''}
+                      <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
+                        <ha-icon
+                          class="ha-icon-large"
+                          icon="mdi:plus"
+                          .index=${index}
+                          @click=${this._addObject}
+                        ></ha-icon>
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
   private _createColorConditionElement(index): TemplateResult {
     const options = this._options.entities.options.entities[index].options.color;
     const config = this._configArray[index];
@@ -660,6 +922,70 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           `
         : ''}
     `;
+  }
+
+  private _createObjectValues(index): TemplateResult[] {
+    const config = this._configObjectArray[index];
+
+    const objectValuesArray: TemplateResult[] = [];
+    for (const object_id of config.objects) {
+      const objectIndex = config.objects.indexOf(object_id);
+      objectValuesArray.push(html`
+        <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
+          <div class="value">
+            <div style="display:flex;">
+              <paper-input
+                label="Object Id"
+                .value="${object_id.object_id ? object_id.object_id : ''}"
+                editable
+                .objectAttribute=${'object_id'}
+                .index=${index}
+                .objectIndex=${objectIndex}
+                @value-changed=${this._updateObject}
+              ></paper-input>
+            </div>
+          </div>
+          <div style="display: flex;">
+            ${objectIndex !== 0
+              ? html`
+                  <ha-icon
+                    class="ha-icon-large"
+                    icon="mdi:arrow-up"
+                    @click=${this._moveObject}
+                    .configDirection=${'up'}
+                    .index=${index}
+                    .objectIndex=${objectIndex}
+                  ></ha-icon>
+                `
+              : html`
+                  <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
+                `}
+            ${objectIndex !== config.objects.length - 1
+              ? html`
+                  <ha-icon
+                    class="ha-icon-large"
+                    icon="mdi:arrow-down"
+                    @click=${this._moveObject}
+                    .configDirection=${'down'}
+                    .index=${index}
+                    .objectIndex=${objectIndex}
+                  ></ha-icon>
+                `
+              : html`
+                  <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
+                `}
+            <ha-icon
+              class="ha-icon-large"
+              icon="mdi:close"
+              @click=${this._removeObject}
+              .index=${index}
+              .objectIndex=${objectIndex}
+            ></ha-icon>
+          </div>
+        </div>
+      `);
+    }
+    return objectValuesArray;
   }
 
   private _createColorConditionValues(index): TemplateResult[] {
@@ -735,6 +1061,28 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     return colorconditionValuesArray;
   }
 
+  private _addObject(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+
+    let objectArray = this._config.object_groups[target.index].objects;
+
+    if (!objectArray) {
+      objectArray = [];
+    }
+
+    const newObject = { object_id: '' };
+    const newArray = objectArray.slice();
+    newArray.push(newObject);
+
+    this._configObjectArray[target.index].objects = newArray;
+
+    this._config.object_groups = this._configObjectArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   private _addColorCondition(ev): void {
     if (!this._config || !this.hass) {
       return;
@@ -757,13 +1105,34 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  private _moveObject(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+
+    const objectArray = this._config.object_groups[target.index].objects;
+
+    let newArray = objectArray.slice();
+    if (target.configDirection == 'up') {
+      newArray = arrayMove(newArray, target.objectIndex, target.objectIndex - 1);
+    } else if (target.configDirection == 'down') {
+      newArray = arrayMove(newArray, target.objectIndex, target.objectIndex + 1);
+    }
+
+    this._configObjectArray[target.index].objects = newArray;
+
+    this._config.object_groups = this._configObjectArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   private _moveColorCondition(ev): void {
     if (!this._config || !this.hass) {
       return;
     }
     const target = ev.target;
 
-    const colorconditionArray = this._config.entities[target.index].severity;
+    const colorconditionArray = this._config.entities[target.index].colorcondition;
 
     let newArray = colorconditionArray.slice();
     if (target.configDirection == 'up') {
@@ -775,6 +1144,32 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     this._configArray[target.index].colorconditions = newArray;
 
     this._config.entities = this._configArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _removeObject(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+
+    const objectArray = this._configObjectArray[target.index].objects;
+
+    const clonedArray = objectArray.slice();
+    const newArray: any = [];
+    let arrayIndex = 0;
+    for (const config of clonedArray) {
+      if (target.objectIndex !== arrayIndex) {
+        newArray.push(clonedArray[arrayIndex]);
+      }
+      arrayIndex++;
+    }
+    if (newArray.length === 0) {
+      delete this._configObjectArray[target.index].objects;
+    } else {
+      this._configObjectArray[target.index].objects = newArray;
+    }
+    this._config.object_groups = this._configObjectArray;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
@@ -790,7 +1185,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     const newArray: any = [];
     let arrayIndex = 0;
     for (const config of clonedArray) {
-      if (target.severityIndex !== arrayIndex) {
+      if (target.colorconditionIndex !== arrayIndex) {
         newArray.push(clonedArray[arrayIndex]);
       }
       arrayIndex++;
@@ -801,6 +1196,32 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       this._configArray[target.index].colorcondition = newArray;
     }
     this._config.entities = this._configArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _updateObject(ev): void {
+    const target = ev.target;
+
+    const objectArray = this._configObjectArray[target.index].objects;
+
+    const newobjectArray: any = [];
+    for (const index in objectArray) {
+      if (target.objectIndex == index) {
+        const clonedObject = { ...objectArray[index] };
+        const newObject = { [target.objectAttribute]: target.value };
+        const mergedObject = Object.assign(clonedObject, newObject);
+        if (target.value == '') {
+          delete mergedObject[target.objectAttribute];
+        }
+        newobjectArray.push(mergedObject);
+      } else {
+        newobjectArray.push(objectArray[index]);
+      }
+    }
+
+    this._configObjectArray[target.index].objects = newobjectArray;
+
+    this._config.object_groups = this._configObjectArray;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
@@ -1220,6 +1641,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       }
     }
     this._config.entities = this._configArray;
+    this._config.object_groups = this._configObjectArray;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
