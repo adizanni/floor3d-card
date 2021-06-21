@@ -174,12 +174,13 @@ entities:
 when you double click on the object, the domain.service is called with data { entity_id: entity }
 (so far the iOS and Android events are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
 
-### Object group example
+## Object group example
 
 ```yaml
 entities:
-  - entity: <lamp> (refers to the object_group defined below)
+  - entity: light.bulb
     type3d: light
+    object_id: <lamp> (refers to the object_group defined below)
     light:
       lumen: 900
 object_groups:
