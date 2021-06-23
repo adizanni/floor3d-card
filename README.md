@@ -95,7 +95,7 @@ entities:
 
 light_name is the name of the light object that will be created in the model to do the actual illumination.
 
-Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa.
+Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa. If the light has color and brightness attributes they will be used to render the light.
 A double click on the light object will toggle the light (so far the events in iOS and Android are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
 
 ## Hide
@@ -151,9 +151,9 @@ entities:
     type3d: text
     object_id: <the plane object id in the 3D model that will allow the display of the state text>
     text:
-      - font: <name of the font text ex:'verdana'>
-        textbgcolor: <background color for the text. ex: '#000000' or 'black'>
-        textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
+      font: <name of the font text ex:'verdana'>
+      textbgcolor: <background color for the text. ex: '#000000' or 'black'>
+      textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
       .......
 ```
 
