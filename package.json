@@ -15,6 +15,7 @@
   "author": "Andrea Di Zanni <adizanni@msn.com>",
   "license": "MIT",
   "dependencies": {
+    "card-tools": "github:thomasloven/lovelace-card-tools",
     "custom-card-helpers": "^1.6.6",
     "home-assistant-js-websocket": "^4.5.0",
     "lit-element": "^2.4.0",

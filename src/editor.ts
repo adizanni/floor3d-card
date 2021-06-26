@@ -62,7 +62,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     this._config.object_groups = this._configObjectArray;
     this._config.entities = this._configArray;
 
-    console.log(JSON.stringify(this._config));
+    //console.log(JSON.stringify(this._config));
 
     const typeOptions = {
       icon: 'book-variant',
@@ -787,6 +787,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           ? html`
               <div class="value">
                 <div>
+                  <paper-input
+                    label="Entity template"
+                    .value="${config.entity_template ? config.entity_template : ''}"
+                    editable
+                    .configAttribute=${'entity_template'}
+                    .configObject=${config}
+                    @value-changed=${this._valueChanged}
+                  ></paper-input>
                   <paper-dropdown-menu
                     label="3D Type"
                     @selected-item-changed=${this._typeChanged}
@@ -1344,6 +1352,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .value=${config.text.font ? config.text.font : ''}
                                 .configObject=${config.text}
                                 .configAttribute=${'font'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Span percentage"
+                                .value=${config.text.span ? config.text.span : ''}
+                                .configObject=${config.text}
+                                .configAttribute=${'span'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input

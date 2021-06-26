@@ -108,7 +108,7 @@ export function createObjectGroupConfigArray(config): Floor3dCardConfig[] {
       }
     }
   }
-  console.log(JSON.stringify(configArray));
+  //console.log(JSON.stringify(configArray));
   return configArray;
 }
 

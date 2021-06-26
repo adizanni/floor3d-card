@@ -22,6 +22,7 @@ import {
   LovelaceCardEditor,
   getLovelace,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
+import { subscribeRenderTemplate } from "card-tools/src/templates";
 //import { MeshText2D, textAlign } from 'three-text2d';
 import './editor';
 import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray, createObjectGroupConfigArray } from './helpers';
@@ -296,6 +297,26 @@ export class Floor3dCard extends LitElement {
     //console.log('Resize canvas end');
   }
 
+  private _statewithtemplate(entity: Floor3dCardConfig): string {
+
+    let state = this._hass.states[entity.entity].state;
+
+    if (entity.entity_template) {
+      //console.log("Template: "+ entity.entity_template);
+      const trimmed = entity.entity_template.trim();
+
+      if ( (trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]') && trimmed.includes("$entity") ) {
+        const normal = trimmed.slice(3, -3).replace(/\$entity/g, state );
+        //console.log("Normal: " + normal);
+        state = eval(normal);;
+        //console.log("State: " + state)
+      }
+    }
+
+    return state;
+
+  }
+
   public set hass(hass: HomeAssistant) {
     //called by Home Assistant Lovelace when a change of state is detected in entities
     this._hass = hass;
@@ -309,7 +330,8 @@ export class Floor3dCard extends LitElement {
         this._canvas = [];
         //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
-          this._states.push(hass.states[entity.entity].state);
+
+          this._states.push( this._statewithtemplate( entity ));
           this._canvas.push(null);
           if (entity.type3d == 'light') {
             this._lights.push(entity.object_id + '_light');
@@ -338,10 +360,13 @@ export class Floor3dCard extends LitElement {
       else {
         let torerender = false;
         this._config.entities.forEach((entity, i) => {
+
+          let state = this._statewithtemplate(entity);
+
           if (entity.type3d == 'light') {
             let toupdate = false;
-            if (this._states[i] !== hass.states[entity.entity].state) {
-              this._states[i] = hass.states[entity.entity].state;
+            if (this._states[i] !== state) {
+              this._states[i] = state;
               toupdate = true;
             }
             if (hass.states[entity.entity].attributes['rgb_color']) {
@@ -361,8 +386,8 @@ export class Floor3dCard extends LitElement {
               torerender = true;
             }
           }
-          else if (this._states[i] !== hass.states[entity.entity].state) {
-            this._states[i] = hass.states[entity.entity].state;
+          else if (this._states[i] !== state) {
+            this._states[i] = state;
             if (entity.type3d == 'color') {
               this._updatecolor(entity, i);
               torerender = true;
@@ -484,7 +509,7 @@ export class Floor3dCard extends LitElement {
       this._config.entities.forEach((entity, i) => {
         this._object_ids[i].objects.forEach(element => {
 
-          console.log("element: " + JSON.stringify(element));
+          //console.log("element: " + JSON.stringify(element));
           const _foundobject: any = this._scene.getObjectByName(element.object_id)
 
           if (_foundobject) {
@@ -499,7 +524,7 @@ export class Floor3dCard extends LitElement {
               this._scene.add(light);
             //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
             } else if (entity.type3d == 'color') {
-            _foundobject.material = _foundobject.material.clone();
+              _foundobject.material = _foundobject.material.clone();
             //this._updatecolor(entity, this._states[i]);
             }
           }
@@ -515,7 +540,7 @@ export class Floor3dCard extends LitElement {
         } else if (entity.type3d == 'show') {
           this._updateshow(entity, i);
         } else if (entity.type3d == 'text') {
-          console.log('is text');
+          //console.log('is text');
           this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
         }
       });
@@ -547,7 +572,14 @@ export class Floor3dCard extends LitElement {
     let width = textMetrics.width;
     let height = fontSize;
 
+    let perct = 1.0;
+    if (entity.text.span) {
+      perct = parseFloat(entity.text.span) / 100.0;
+    }
     // Resize canvas to match text size
+
+    width = width / perct;
+    height = height / perct;
     canvas.width = width;
     canvas.height = height;
     canvas.style.width = width + "px";
@@ -562,6 +594,7 @@ export class Floor3dCard extends LitElement {
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.fillStyle = entity.text.textfgcolor ? entity.text.textfgcolor : "white";
+
     ctx.fillText(text, width / 2, height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -642,12 +675,23 @@ export class Floor3dCard extends LitElement {
 
       const _object: any = this._scene.getObjectByName(element.object_id);
 
-      let i: any;
+      if (_object) {
+        let i: any;
 
-      for (i in item.colorcondition) {
-        if (this._states[index] == item.colorcondition[i].state) {
-          _object.material.color.set(item.colorcondition[i].color);
-          break;
+        for (i in item.colorcondition) {
+          if (this._states[index] == item.colorcondition[i].state) {
+            const colorarray = item.colorcondition[i].color.split(",");
+            let color = "";
+            if (colorarray.length == 3) {
+              console.log("Color Array: " + JSON.stringify(colorarray));
+              color = this._RGBToHex(Number(colorarray[0]), Number(colorarray[1]), Number(colorarray[2]));
+              console.log("Color: " + color);
+            } else {
+              color = item.colorcondition[i].color;
+            }
+            _object.material.color.set(color);
+            break;
+          }
         }
       }
     });
@@ -660,11 +704,15 @@ export class Floor3dCard extends LitElement {
 
       const _object: any = this._scene.getObjectByName(element.object_id);
 
-      if (this._states[index] == item.hide.state) {
-        _object.visible = false;
-      } else {
-        _object.visible = true;
+      if (_object) {
+
+        if (this._states[index] == item.hide.state) {
+          _object.visible = false;
+        } else {
+          _object.visible = true;
+        }
       }
+
     });
   }
 
@@ -674,10 +722,13 @@ export class Floor3dCard extends LitElement {
 
       const _object: any = this._scene.getObjectByName(element.object_id);
 
-      if (this._states[index] == item.show.state) {
-        _object.visible = true;
-      } else {
-        _object.visible = false;
+      if (_object) {
+
+        if (this._states[index] == item.show.state) {
+          _object.visible = true;
+        } else {
+          _object.visible = false;
+        }
       }
     });
   }
