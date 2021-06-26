@@ -48,6 +48,7 @@ For each entity in the entities list you need to specify the following options:
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
+| entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. Use $entity to use the state of the entity
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
 | type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
@@ -132,10 +133,10 @@ For **color** example config:
 ```yaml
 entities:
   - entity: <a discrete sensor entity id>
-    type3d: color
+    type3d: color 
     object_id: <the object id in the 3D model that has to change color based on the state of the entity>
     colorcondition:
-      - color: <color to paint if condition for the entity id in the stat to be true ex:'#00ff00'>
+      - color: <color to paint if condition for the entity id in the stat to be true, it can be in Hex, html or rgb format (ex. '#ff0000' or 'red' or '255, 0, 0' >
         state: <state of the entity>
       .......
 ```
@@ -151,6 +152,7 @@ entities:
     type3d: text
     object_id: <the plane object id in the 3D model that will allow the display of the state text>
     text:
+      span: <percentage span of text in the object plane> (ex. 50%)
       font: <name of the font text ex:'verdana'>
       textbgcolor: <background color for the text. ex: '#000000' or 'black'>
       textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
