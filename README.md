@@ -48,7 +48,7 @@ For each entity in the entities list you need to specify the following options:
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
-| entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. Use $entity to use the state of the entity
+| entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. With $entity you specify  the state of the entity
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
 | type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
@@ -66,6 +66,18 @@ The objects array contains a list of
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
 
+### Client Side Javascript template example
+
+```
+  - entity: sensor.xiaomi_gateway_illuminance
+    type3d: show
+    show:
+      state: open
+    object_id: sweethome3d_opening_on_hinge_1_door_645
+    entity_template: '[[[ if ($entity > 700) { ''open'' } else { ''close'' } ]]] '
+
+```
+The example above shows a potential usage of the Client Side Javascript template example. If the state of the entity is greater than 700, the templated state of the entity will be 'open' thus the object 'sweethome3d_opening_on_hinge_1_door_645' will become visible
 
 ## Camera Rotation and Camera Position
 
