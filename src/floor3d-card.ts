@@ -330,29 +330,30 @@ export class Floor3dCard extends LitElement {
         this._canvas = [];
         //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
-
-          this._states.push( this._statewithtemplate( entity ));
-          this._canvas.push(null);
-          if (entity.type3d == 'light') {
-            this._lights.push(entity.object_id + '_light');
-          }
-          else {
-            this._lights.push('');
-          }
-          if (hass.states[entity.entity].attributes['rgb_color']) {
-            this._color.push(hass.states[entity.entity].attributes['rgb_color']);
-          } else {
-            this._color.push([]);
-          }
-          if (hass.states[entity.entity].attributes['brightness']) {
-            this._brightness.push(hass.states[entity.entity].attributes['brightness']);
-          } else {
-            this._brightness.push(-1);
-          }
-          if (hass.states[entity.entity].attributes['unit_of_measurement']) {
-            this._unit_of_measurement.push(hass.states[entity.entity].attributes['unit_of_measurement']);
-          } else {
-            this._unit_of_measurement.push('');
+          if (entity.entity !== '') {
+            this._states.push(this._statewithtemplate(entity));
+            this._canvas.push(null);
+            if (entity.type3d == 'light') {
+              this._lights.push(entity.object_id + '_light');
+            }
+            else {
+              this._lights.push('');
+            }
+            if (hass.states[entity.entity].attributes['rgb_color']) {
+              this._color.push(hass.states[entity.entity].attributes['rgb_color']);
+            } else {
+              this._color.push([]);
+            }
+            if (hass.states[entity.entity].attributes['brightness']) {
+              this._brightness.push(hass.states[entity.entity].attributes['brightness']);
+            } else {
+              this._brightness.push(-1);
+            }
+            if (hass.states[entity.entity].attributes['unit_of_measurement']) {
+              this._unit_of_measurement.push(hass.states[entity.entity].attributes['unit_of_measurement']);
+            } else {
+              this._unit_of_measurement.push('');
+            }
           }
         });
         this._firstcall = false;
@@ -361,46 +362,49 @@ export class Floor3dCard extends LitElement {
         let torerender = false;
         this._config.entities.forEach((entity, i) => {
 
-          let state = this._statewithtemplate(entity);
+          if (entity.entity !== '') {
 
-          if (entity.type3d == 'light') {
-            let toupdate = false;
-            if (this._states[i] !== state) {
-              this._states[i] = state;
-              toupdate = true;
-            }
-            if (hass.states[entity.entity].attributes['rgb_color']) {
-              if (hass.states[entity.entity].attributes['rgb_color'] !== this._color[i]) {
+            let state = this._statewithtemplate(entity);
+
+            if (entity.type3d == 'light') {
+              let toupdate = false;
+              if (this._states[i] !== state) {
+                this._states[i] = state;
                 toupdate = true;
-                this._color[i] = hass.states[entity.entity].attributes['rgb_color'];
               }
-            }
-            if (hass.states[entity.entity].attributes['brightness']) {
-              if (hass.states[entity.entity].attributes['brightness'] !== this._brightness[i]) {
-                toupdate = true;
-                this._brightness[i] = hass.states[entity.entity].attributes['brightness'];
+              if (hass.states[entity.entity].attributes['rgb_color']) {
+                if (hass.states[entity.entity].attributes['rgb_color'] !== this._color[i]) {
+                  toupdate = true;
+                  this._color[i] = hass.states[entity.entity].attributes['rgb_color'];
+                }
               }
-            }
-            if (toupdate) {
-              this._updatelight(entity, i);
-              torerender = true;
-            }
-          }
-          else if (this._states[i] !== state) {
-            this._states[i] = state;
-            if (entity.type3d == 'color') {
-              this._updatecolor(entity, i);
-              torerender = true;
-            } else if (entity.type3d == 'hide') {
-              this._updatehide(entity, i);
-              torerender = true;
-            } else if (entity.type3d == 'show') {
-              this._updateshow(entity, i);
-              torerender = true;
-            } else if (entity.type3d == 'text') {
-              if (this._canvas[i]) {
-                this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
+              if (hass.states[entity.entity].attributes['brightness']) {
+                if (hass.states[entity.entity].attributes['brightness'] !== this._brightness[i]) {
+                  toupdate = true;
+                  this._brightness[i] = hass.states[entity.entity].attributes['brightness'];
+                }
+              }
+              if (toupdate) {
+                this._updatelight(entity, i);
                 torerender = true;
+              }
+            }
+            else if (this._states[i] !== state) {
+              this._states[i] = state;
+              if (entity.type3d == 'color') {
+                this._updatecolor(entity, i);
+                torerender = true;
+              } else if (entity.type3d == 'hide') {
+                this._updatehide(entity, i);
+                torerender = true;
+              } else if (entity.type3d == 'show') {
+                this._updateshow(entity, i);
+                torerender = true;
+              } else if (entity.type3d == 'text') {
+                if (this._canvas[i]) {
+                  this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
+                  torerender = true;
+                }
               }
             }
           }
@@ -507,41 +511,45 @@ export class Floor3dCard extends LitElement {
     console.log("Add Objects");
     if (this._states && this._config.entities) {
       this._config.entities.forEach((entity, i) => {
-        this._object_ids[i].objects.forEach(element => {
+        if (entity.entity !== '') {
+          this._object_ids[i].objects.forEach(element => {
 
-          //console.log("element: " + JSON.stringify(element));
-          const _foundobject: any = this._scene.getObjectByName(element.object_id)
+            //console.log("element: " + JSON.stringify(element));
+            const _foundobject: any = this._scene.getObjectByName(element.object_id)
 
-          if (_foundobject) {
-            if (entity.type3d == 'light') {
+            if (_foundobject) {
+              if (entity.type3d == 'light') {
 
-              const box: THREE.Box3 = new THREE.Box3();
-              box.setFromObject(_foundobject);
-              const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
-              light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
-              light.castShadow = true;
-              light.name = element.object_id + "_light";
-              this._scene.add(light);
-            //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
-            } else if (entity.type3d == 'color') {
-              _foundobject.material = _foundobject.material.clone();
-            //this._updatecolor(entity, this._states[i]);
+                const box: THREE.Box3 = new THREE.Box3();
+                box.setFromObject(_foundobject);
+                const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
+                light.position.set((box.max.x - box.min.x) / 2 + box.min.x + this._modelX, (box.max.y - box.min.y) / 2 + box.min.y + this._modelY, (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ);
+                light.castShadow = true;
+                light.name = element.object_id + "_light";
+                this._scene.add(light);
+                //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
+              } else if (entity.type3d == 'color') {
+                _foundobject.material = _foundobject.material.clone();
+                //this._updatecolor(entity, this._states[i]);
+              }
             }
-          }
-        });
+          });
+        }
       });
       this._config.entities.forEach((entity, i) => {
-        if (entity.type3d == 'light') {
-          this._updatelight(entity, i);
-        } else if (entity.type3d == 'color') {
-          this._updatecolor(entity, i);
-        } else if (entity.type3d == 'hide') {
-          this._updatehide(entity, i);
-        } else if (entity.type3d == 'show') {
-          this._updateshow(entity, i);
-        } else if (entity.type3d == 'text') {
-          //console.log('is text');
-          this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
+        if (entity.entity !== '') {
+          if (entity.type3d == 'light') {
+            this._updatelight(entity, i);
+          } else if (entity.type3d == 'color') {
+            this._updatecolor(entity, i);
+          } else if (entity.type3d == 'hide') {
+            this._updatehide(entity, i);
+          } else if (entity.type3d == 'show') {
+            this._updateshow(entity, i);
+          } else if (entity.type3d == 'text') {
+            //console.log('is text');
+            this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
+          }
         }
       });
     }
