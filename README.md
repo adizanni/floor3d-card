@@ -24,6 +24,9 @@ For further instruction I assume you will use SweetHome3D.
 At the end of your modeling, you need to export the files in obj format using '3D View \ Export to OBJ format ...', specify the folder where you want to store the output (be careful there are multiple files)
 Copy the full set of files (minimum is the .obj file and .mtl file) to a sub folder of /config/www in Home assistant.
 Be aware that when you remove objects from the model the object ids get reassigned: This meanse that after a modification and re-export of your model it is possible you need to redo the bindings with the new object names. I'm trying to find solutions (https://github.com/adizanni/floor3d-card/issues/7) or workaround, but it is not an easy task.It could be a good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids). If you want to have an object that groups together other objects (ex a mannequin is composed by 100s of objects you want to treat it as one), you can follow this trick: https://community.home-assistant.io/t/live-3d-floor-plan-with-interactive-objects/301549/78?u=adizanni.
+Based on some feedback there are some open issues which I will try to fix, please follow these rules if you want things to go smooth:
+
+- Place the upper left corner of your 2D floor model at 0,0 coordinates otherwise the camera setting will work weirdly (due to calculation on the coordinates that I need to fix) 
 
 When you are finished,  configure a new card (either in panel mode or regular) with the following options:
 
@@ -48,6 +51,7 @@ For each entity in the entities list you need to specify the following options:
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
+| entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. With $entity you specify  the state of the entity
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
 | type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
 
@@ -65,6 +69,19 @@ The objects array contains a list of
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
 
+### Client Side Javascript template example
+
+```yaml
+  - entity: sensor.temperature
+    type3d: color
+    colorcondition:
+      - color: red
+        state: hot
+    object_id: your_object
+    entity_template: '[[[ if ($entity > 25) { "hot" } else { "cool" } ]]]'
+
+```
+The example above shows a potential usage of the Client Side Javascript template example. If the state of the entity is greater than 25, the templated state of the entity will be 'hot' thus the object 'your_object' will become red
 
 ## Camera Rotation and Camera Position
 
@@ -132,10 +149,10 @@ For **color** example config:
 ```yaml
 entities:
   - entity: <a discrete sensor entity id>
-    type3d: color
+    type3d: color 
     object_id: <the object id in the 3D model that has to change color based on the state of the entity>
     colorcondition:
-      - color: <color to paint if condition for the entity id in the stat to be true ex:'#00ff00'>
+      - color: <color to paint if condition for the entity id in the stat to be true, it can be in Hex, html or rgb format (ex. '#ff0000' or 'red' or '255, 0, 0' >
         state: <state of the entity>
       .......
 ```
@@ -151,6 +168,7 @@ entities:
     type3d: text
     object_id: <the plane object id in the 3D model that will allow the display of the state text>
     text:
+      span: <percentage span of text in the object plane> (ex. 50%)
       font: <name of the font text ex:'verdana'>
       textbgcolor: <background color for the text. ex: '#000000' or 'black'>
       textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
