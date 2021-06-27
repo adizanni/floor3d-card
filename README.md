@@ -71,7 +71,7 @@ The objects array contains a list of
 
 ### Client Side Javascript template example
 
-```
+```yaml
   - entity: sensor.temperature
     type3d: color
     colorcondition:
