@@ -31,6 +31,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _entityOptionsGroupArray: object[] = [];
   private _options: any;
   private _initialized = false;
+  private _objects: any;
   private _visible: any[];
 
   public setConfig(config: Floor3dCardConfig): void {
@@ -197,15 +198,28 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       };
     }
 
+    if (this._config.objectlist && !this._objects) {
+      this._fetchObjectList();
+    }
+
     fireEvent(this, 'config-changed', { config: this._config });
   }
-  /* set config from card
-  public setConfig(config: Floor3dCardConfig): void {
-    this._config = config;
 
-    this.loadCardHelpers();
+  private _fetchObjectList(): void {
+    fetch(this._config.path + this._config.objectlist)
+      .then(function(response): any {
+        if (!response.ok) {
+          throw Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then(this._onobjectloaded.bind(this));
   }
-  */
+
+  private _onobjectloaded(json: any): void {
+    this._objects = Object.keys(json);
+  }
+
   protected shouldUpdate(): boolean {
     if (!this._initialized) {
       this._initialize();
@@ -254,7 +268,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     const options = this._options.object_groups;
-    console.log('options group values: ' + JSON.stringify(options));
+    //console.log('options group values: ' + JSON.stringify(options));
     const valueElementArray: TemplateResult[] = [];
     for (const config of this._configObjectArray) {
       const index = this._configObjectArray.indexOf(config);
@@ -386,15 +400,22 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               .index=${index}
             ></ha-icon>
           </div>
-          <div class="value" style="flex-grow: 1;">
-            <paper-input
-              label="Entity"
-              @value-changed=${this._valueChanged}
+          <div class="values" style="flex-grow: 1;">
+            <paper-dropdown-menu
+              label="Entity (Required)"
+              @selected-item-changed=${this._valueChanged}
+              .configObject=${config}
               .configAttribute=${'entity'}
-              .configObject=${this._configArray[index]}
-              .value=${config.entity}
+              .ignoreNull=${true}
             >
-            </paper-input>
+              <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(config.entity)}>
+                ${entities.map(entity => {
+                  return html`
+                    <paper-item>${entity}</paper-item>
+                  `;
+                })}
+              </paper-listbox>
+            </paper-dropdown-menu>
           </div>
           ${index !== 0
             ? html`
@@ -576,6 +597,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .value="${config.mtlfile ? config.mtlfile : ''}"
                   .configObject=${config}
                   .configAttribute=${'mtlfile'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Object list JSON"
+                  .value="${config.objectlist ? config.objectlist : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'objectlist'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
               </div>
@@ -767,7 +796,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _createTypeElement(index): TemplateResult {
     const options = this._options.entities.options.entities[index].options.threed;
     const config = this._configArray[index];
-
     return html`
       <div class="category" id="type">
         <div
@@ -816,14 +844,34 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="gesture">gesture</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
-                  <paper-input
-                    label="Object"
-                    .value="${config.object_id ? config.object_id : ''}"
-                    editable
-                    .configAttribute=${'object_id'}
-                    .configObject=${config}
-                    @value-changed=${this._valueChanged}
-                  ></paper-input>
+                  ${!this._objects
+                    ? html`
+                        <paper-input
+                          label="Object"
+                          .value="${config.object_id ? config.object_id : ''}"
+                          editable
+                          .configAttribute=${'object_id'}
+                          .configObject=${config}
+                          @value-changed=${this._valueChanged}
+                        ></paper-input>
+                      `
+                    : html`
+                        <paper-dropdown-menu
+                          label="Object id"
+                          @selected-item-changed=${this._valueChanged}
+                          .configAttribute=${'object_id'}
+                          .configObject=${config}
+                          .ignoreNull=${true}
+                        >
+                          <paper-listbox slot="dropdown-content" .selected=${this._objects.indexOf(config.object_id)}>
+                            ${this._objects.map(object_id => {
+                              return html`
+                                <paper-item>${object_id}</paper-item>
+                              `;
+                            })}
+                          </paper-listbox>
+                        </paper-dropdown-menu>
+                      `}
                 </div>
               </div>
             `

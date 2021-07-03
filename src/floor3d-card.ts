@@ -275,10 +275,10 @@ export class Floor3dCard extends LitElement {
               }
             });
           } else if (entity.type3d == 'gesture') {
-              this._hass.callService(entity.gesture.domain, entity.gesture.service, {
-                "entity_id": entity.entity
-              });
-            }
+            this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+              "entity_id": entity.entity
+            });
+          }
         });
       }
     } else if (getLovelace().editMode) {
@@ -299,22 +299,24 @@ export class Floor3dCard extends LitElement {
 
   private _statewithtemplate(entity: Floor3dCardConfig): string {
 
-    let state = this._hass.states[entity.entity].state;
+    if (this._hass.states[entity.entity]) {
+      let state = this._hass.states[entity.entity].state;
 
-    if (entity.entity_template) {
-      //console.log("Template: "+ entity.entity_template);
-      const trimmed = entity.entity_template.trim();
+      if (entity.entity_template) {
+        //console.log("Template: "+ entity.entity_template);
+        const trimmed = entity.entity_template.trim();
 
-      if ( (trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]') && trimmed.includes("$entity") ) {
-        const normal = trimmed.slice(3, -3).replace(/\$entity/g, state );
-        //console.log("Normal: " + normal);
-        state = eval(normal);;
-        //console.log("State: " + state)
+        if ((trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]') && trimmed.includes("$entity")) {
+          const normal = trimmed.slice(3, -3).replace(/\$entity/g, state);
+          //console.log("Normal: " + normal);
+          state = eval(normal);;
+          //console.log("State: " + state)
+        }
       }
+      return state;
+    } else {
+      return "";
     }
-
-    return state;
-
   }
 
   public set hass(hass: HomeAssistant) {
@@ -432,8 +434,8 @@ export class Floor3dCard extends LitElement {
     this._hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.3);
 
     //let sky = new Sky();
-		//sky.scale.setScalar( 450000 );
-	  //this._scene.add( sky );
+    //sky.scale.setScalar( 450000 );
+    //this._scene.add( sky );
     this._scene.add(this._hemiLight);
     this._renderer = new THREE.WebGLRenderer({ antialias: true });
     this._renderer.domElement.style.width = '100%';
@@ -460,12 +462,12 @@ export class Floor3dCard extends LitElement {
 
   private _onLoadMaterialProgress(_progress: ProgressEvent): void {
     //progress function called at regular intervals during material loading process
-    this._content.innerText = '1/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
+    this._content.innerText = '1/2: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
   }
 
   private _onLoadObjectProgress(_progress: ProgressEvent): void {
     //progress function called at regular intervals during object loading process
-    this._content.innerText = '2/2: '+ Math.round((_progress.loaded/_progress.total)*100)+'%';
+    this._content.innerText = '2/2: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
   }
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
@@ -474,7 +476,7 @@ export class Floor3dCard extends LitElement {
     this._content.innerText = '2/2: 100%';
     const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
     if (this._config.camera_position) {
-      this._camera.position.set( this._config.camera_position.x, this._config.camera_position.y, this._config.camera_position.z);
+      this._camera.position.set(this._config.camera_position.x, this._config.camera_position.y, this._config.camera_position.z);
     } else {
       this._camera.position.set(box.max.x * 1.3, box.max.y * 6, box.max.z * 1.3);
     }
@@ -483,7 +485,7 @@ export class Floor3dCard extends LitElement {
     this._modelZ = object.position.z = -(box.max.z - box.min.z) / 2;
     this._scene.add(object);
     if (this._config.camera_rotate) {
-      this._camera.rotation.set( this._config.camera_rotate.x, this._config.camera_rotate.y, this._config.camera_rotate.z);
+      this._camera.rotation.set(this._config.camera_rotate.x, this._config.camera_rotate.y, this._config.camera_rotate.z);
     } else {
       this._camera.lookAt(object.position);
     }
@@ -560,7 +562,7 @@ export class Floor3dCard extends LitElement {
 
     const canvas = document.createElement("canvas");
 
-    this._updateTextCanvas(entity, canvas, text+uom);
+    this._updateTextCanvas(entity, canvas, text + uom);
 
     return canvas;
   }
@@ -595,7 +597,7 @@ export class Floor3dCard extends LitElement {
 
     // Re-apply font since canvas is resized.
     ctx.font = `${fontSize}px ${entity.text.font ? entity.text.font : "monospace"}`;
-    ctx.textAlign = "center" ;
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     ctx.fillStyle = entity.text.textbgcolor ? entity.text.textbgcolor : "transparent";
@@ -634,7 +636,7 @@ export class Floor3dCard extends LitElement {
 
   private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement, uom: string): void {
 
-    this._updateTextCanvas(_item, canvas, state+uom)
+    this._updateTextCanvas(_item, canvas, state + uom)
 
   }
 
