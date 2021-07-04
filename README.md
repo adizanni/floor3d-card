@@ -66,7 +66,7 @@ For each object_group in object_groups:
 
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
-| object_group | string | **Required** | your object group name to be referenced by the entity field via <object_group> reference
+| object_group | string | **Required** | your object group name to be referenced by the entity field via <object_group> reference (braces <> have to wrap the object_group name)
 | objects | array | **Required** | the list of object_ids in your group.
 
 The objects array contains a list of 
@@ -203,7 +203,7 @@ when you double click on the object, the domain.service is called with data { en
 entities:
   - entity: light.bulb
     type3d: light
-    object_id: <lamp> (refers to the object_group defined below)
+    object_id: <lamp> (refers to the object_group defined below, braces <> have to wrap the object_group name)
     light:
       lumen: 900
 object_groups:
