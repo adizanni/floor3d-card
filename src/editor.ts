@@ -217,7 +217,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _onobjectloaded(json: any): void {
-    this._objects = Object.keys(json);
+    this._objects = Object.keys(json).sort(function(a, b) {
+      return a.toLowerCase().localeCompare(b.toLowerCase());
+    });
   }
 
   protected shouldUpdate(): boolean {
@@ -401,7 +403,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             ></ha-icon>
           </div>
           <div class="values" style="flex-grow: 1;">
-            ${true
+            ${false
               ? html`
                   <paper-dropdown-menu
                     label="Entity (Required)"
@@ -420,25 +422,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   </paper-dropdown-menu>
                 `
               : html`
-                  <paper-input-container>
-                    <input
-                      type="text"
-                      label="Entity"
-                      list="entities"
-                      value=${config.entity}
-                      autocomplete="on"
-                      @value-changed=${this._valueChanged}
-                      .configAttribute=${'entity'}
-                      .configObject=${this._configArray[index]}
-                    />
-                    <datalist id="entities">
-                      ${entities.map(entity => {
-                        return html`
-                          <option value="${entity}"></option>
-                        `;
-                      })}
-                    </datalist>
-                  </paper-input-container>
+                  <paper-input
+                    label="Entity"
+                    @value-changed=${this._valueChanged}
+                    .configAttribute=${'entity'}
+                    .configObject=${this._configArray[index]}
+                    .value=${config.entity}
+                  >
+                  </paper-input>
                 `}
           </div>
           ${index !== 0
@@ -888,7 +879,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           .ignoreNull=${true}
                         >
                           <paper-listbox slot="dropdown-content" .selected=${this._objects.indexOf(config.object_id)}>
-                            ${this._objects.sort().map(object_id => {
+                            ${this._objects.map(object_id => {
                               return html`
                                 <paper-item>${object_id}</paper-item>
                               `;
