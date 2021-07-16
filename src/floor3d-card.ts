@@ -57,7 +57,7 @@ export class Floor3dCard extends LitElement {
   private _canvas_id: string;
   private _states?: string[];
   private _color?: number[][];
-  private _initialcolor?: number[][];
+  private _initialcolor?: string[];
   private _brightness?: number[];
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
@@ -113,6 +113,10 @@ export class Floor3dCard extends LitElement {
     this._config = config;
     this._configArray = createConfigArray(this._config);
     this._object_ids = createObjectGroupConfigArray(this._config);
+    this._initialcolor = [];
+    this._configArray.forEach(() => {
+      this._initialcolor.push('');
+    });
 
     if (this._config.show_warning) {
       render(this._showWarning(localize('common.show_warning')), this._card);
@@ -310,12 +314,10 @@ export class Floor3dCard extends LitElement {
         this._brightness = [];
         this._lights = [];
         this._canvas = [];
-        this._initialcolor = [];
         //console.log(JSON.stringify(this._config.entities));
         this._config.entities.forEach((entity) => {
           if (entity.entity !== '') {
             this._states.push(this._statewithtemplate(entity));
-            this._initialcolor.push([]);
             this._canvas.push(null);
             if (entity.type3d == 'light') {
               this._lights.push(entity.object_id + '_light');
@@ -325,7 +327,7 @@ export class Floor3dCard extends LitElement {
             if (hass.states[entity.entity].attributes['rgb_color']) {
               this._color.push(hass.states[entity.entity].attributes['rgb_color']);
             } else if (hass.states[entity.entity].attributes['color_temp']) {
-              this._color.push(hass.states[entity.entity].attributes['color_temp']);
+              this._color.push(this._TemperatureToRGB(hass.states[entity.entity].attributes['color_temp']));
             } else {
               this._color.push([]);
             }
@@ -553,13 +555,11 @@ export class Floor3dCard extends LitElement {
     if (this._states && this._config.entities) {
       this._config.entities.forEach((entity, i) => {
         if (entity.entity !== '') {
-          let j = 0;
-          this._object_ids[i].objects.forEach((element) => {
-            console.log('element: ' + JSON.stringify(element));
-            const _foundobject: any = this._scene.getObjectByName(element.object_id);
-
-            if (_foundobject) {
-              if (entity.type3d == 'light') {
+          if (entity.type3d == 'light') {
+            this._object_ids[i].objects.forEach((element) => {
+              //console.log('element: ' + JSON.stringify(element));
+              const _foundobject: any = this._scene.getObjectByName(element.object_id);
+              if (_foundobject) {
                 const box: THREE.Box3 = new THREE.Box3();
                 box.setFromObject(_foundobject);
                 const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 300, 2);
@@ -572,18 +572,18 @@ export class Floor3dCard extends LitElement {
                 light.name = element.object_id + '_light';
                 this._scene.add(light);
                 //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
-              } else if (entity.type3d == 'color' && j == 0) {
-                _foundobject.material = _foundobject.material.clone();
-                this._initialcolor[i] = [
-                  _foundobject.material.color.r,
-                  _foundobject.material.color.g,
-                  _foundobject.material.color.b,
-                ];
-                //this._updatecolor(entity, this._states[i]);
               }
+            });
+          }
+          if (entity.type3d == 'color') {
+            console.log('Object: ' + this._object_ids[i].objects[0].object_id);
+            const _foundobject: any = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+            console.log('Material is array: ' + Array.isArray(_foundobject.material));
+            if (!Array.isArray(_foundobject.material)) {
+              _foundobject.material = _foundobject.material.clone();
+              this._initialcolor[i] = _foundobject.material.color.getHex();
             }
-            j = j + 1;
-          });
+          }
         }
       });
       this._config.entities.forEach((entity, i) => {
@@ -747,38 +747,32 @@ export class Floor3dCard extends LitElement {
   private _updatecolor(item: any, index: number): void {
     // Change the color of the object when, for the bound device, the state matches the condition
 
-    this._object_ids[index].objects.forEach((element) => {
-      const _object: any = this._scene.getObjectByName(element.object_id);
-
-      if (_object) {
-        let i: any;
-        let defaultcolor = true;
-        for (i in item.colorcondition) {
-          if (this._states[index] == item.colorcondition[i].state) {
-            const colorarray = item.colorcondition[i].color.split(',');
-            let color = '';
-            if (colorarray.length == 3) {
-              console.log('Color Array: ' + JSON.stringify(colorarray));
-              color = this._RGBToHex(Number(colorarray[0]), Number(colorarray[1]), Number(colorarray[2]));
-              console.log('Color: ' + color);
-            } else {
-              color = item.colorcondition[i].color;
-            }
-            _object.material.color.set(color);
-            defaultcolor = false;
-            break;
+    const _object: any = this._scene.getObjectByName(this._object_ids[index].objects[0].object_id);
+    if (_object) {
+      let i: any;
+      let defaultcolor = true;
+      for (i in item.colorcondition) {
+        if (this._states[index] == item.colorcondition[i].state) {
+          const colorarray = item.colorcondition[i].color.split(',');
+          let color = '';
+          if (colorarray.length == 3) {
+            color = this._RGBToHex(Number(colorarray[0]), Number(colorarray[1]), Number(colorarray[2]));
+          } else {
+            color = item.colorcondition[i].color;
           }
-        }
-        if (defaultcolor) {
-          let color = this._RGBToHex(
-            Number(this._initialcolor[index][0]),
-            Number(this._initialcolor[index][1]),
-            Number(this._initialcolor[index][2]),
-          );
-          _object.material.color.set(color);
+          if (!Array.isArray(_object.material)) {
+            _object.material.color.set(color);
+          }
+          defaultcolor = false;
+          break;
         }
       }
-    });
+      if (defaultcolor) {
+        if (!Array.isArray(_object.material)) {
+          _object.material.color.set(this._initialcolor[index]);
+        }
+      }
+    }
   }
 
   private _updatehide(item: Floor3dCardConfig, index: number): void {
