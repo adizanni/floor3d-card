@@ -324,7 +324,10 @@ export class Floor3dCard extends LitElement {
             }
             if (hass.states[entity.entity].attributes['rgb_color']) {
               this._color.push(hass.states[entity.entity].attributes['rgb_color']);
-            } else {
+            } else if (hass.states[entity.entity].attributes['color_temp']) {
+              this._color.push(hass.states[entity.entity].attributes['color_temp'])
+            }
+            else {
               this._color.push([]);
             }
             if (hass.states[entity.entity].attributes['brightness']) {
