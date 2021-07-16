@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/camelcase */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PropertyValues } from 'lit-element';
+import { PropertyValues } from 'lit';
 import { HomeAssistant } from 'custom-card-helpers';
 import { Floor3dCardConfig } from './types';
 
@@ -16,7 +16,7 @@ export function mergeDeep(...objects: any): any {
   const isObject = (obj: any): boolean => obj && typeof obj === 'object';
 
   return objects.reduce((prev: any, obj: any) => {
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
       const pVal = prev[key];
       const oVal = obj[key];
 

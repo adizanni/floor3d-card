@@ -1,13 +1,7 @@
-import {
-  LitElement,
-  html,
-  customElement,
-  property,
-  TemplateResult,
-  CSSResult,
-  css,
-  internalProperty,
-} from 'lit-element';
+/* eslint-disable @typescript-eslint/ban-types */
+import { LitElement, CSSResultGroup, css } from 'lit';
+import { property, customElement, state, query } from 'lit/decorators';
+import { TemplateResult, html } from 'lit';
 import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
 import {
   createEditorConfigArray,
@@ -16,15 +10,15 @@ import {
   createEditorObjectGroupConfigArray,
 } from './helpers';
 import { Floor3dCardConfig } from './types';
-import { ConeBufferGeometry } from 'three';
 import { Floor3dCard } from './floor3d-card';
+//import '@vaadin/vaadin-combo-box/theme/material/vaadin-combo-box-light';
 
 @customElement('floor3d-card-editor')
 export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor {
   @property({ attribute: false }) public hass?: HomeAssistant;
-  @internalProperty() private _config?: Floor3dCardConfig;
-  @internalProperty() private _toggle?: boolean;
-  @internalProperty() private _helpers?: any;
+  @state() private _config?: Floor3dCardConfig;
+  @state() private _toggle?: boolean;
+  @state() private _helpers?: any;
   private _configArray: any[] = [];
   private _configObjectArray: any[] = [];
   private _entityOptionsArray: object[] = [];
@@ -32,6 +26,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _options: any;
   private _initialized = false;
   private _objects: any;
+  private _entity_ids: string[];
   private _visible: any[];
 
   public setConfig(config: Floor3dCardConfig): void {
@@ -207,7 +202,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
 
   private _fetchObjectList(): void {
     fetch(this._config.path + this._config.objectlist)
-      .then(function(response): any {
+      .then(function (response): any {
         if (!response.ok) {
           throw Error(response.statusText);
         }
@@ -217,7 +212,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _onobjectloaded(json: any): void {
-    this._objects = Object.keys(json).sort(function(a, b) {
+    this._objects = Object.keys(json).sort(function (a, b) {
       return a.toLowerCase().localeCompare(b.toLowerCase());
     });
   }
@@ -317,9 +312,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-            : html`
-                <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-              `}
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           ${index !== this._configObjectArray.length - 1
             ? html`
                 <ha-icon
@@ -333,9 +326,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-            : html`
-                <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-              `}
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           <ha-icon
             class="ha-icon-large"
             icon="mdi:close"
@@ -346,11 +337,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           ></ha-icon>
         </div>
         ${options.options.object_groups[index].show
-          ? html`
-              <div class="options">
-                ${this._createObject_GroupElement(index)}
-              </div>
-            `
+          ? html` <div class="options">${this._createObject_GroupElement(index)}</div> `
           : ''}
       `);
     }
@@ -378,7 +365,11 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     const options = this._options.entities;
-    const entities = Object.keys(this.hass.states);
+    if (!this._entity_ids) {
+      this._entity_ids = Object.keys(this.hass.states).sort(function (a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+      });
+    }
     const valueElementArray: TemplateResult[] = [];
     for (const config of this._configArray) {
       const index = this._configArray.indexOf(config);
@@ -403,24 +394,20 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             ></ha-icon>
           </div>
           <div class="values" style="flex-grow: 1;">
-            ${false
-              ? html`
-                  <paper-dropdown-menu
-                    label="Entity (Required)"
-                    @selected-item-changed=${this._valueChanged}
-                    .configObject=${config}
-                    .configAttribute=${'entity'}
-                    .ignoreNull=${true}
-                  >
-                    <paper-listbox slot="dropdown-content" .selected=${entities.indexOf(config.entity)}>
-                      ${entities.sort().map(entity => {
-                        return html`
-                          <paper-item>${entity}</paper-item>
-                        `;
-                      })}
-                    </paper-listbox>
-                  </paper-dropdown-menu>
-                `
+            ${this._entity_ids.length < 100
+              ? html`<paper-dropdown-menu
+                  label="Entity (Required)"
+                  @value-changed=${this._valueChanged}
+                  .configAttribute=${'entity'}
+                  .configObject=${this._configArray[index]}
+                  .ignoreNull=${true}
+                >
+                  <paper-listbox slot="dropdown-content" .selected=${this._entity_ids.indexOf(config.entity)}>
+                    ${this._entity_ids.map((entity) => {
+                      return html` <paper-item>${entity}</paper-item> `;
+                    })}
+                  </paper-listbox>
+                </paper-dropdown-menu>`
               : html`
                   <paper-input
                     label="Entity"
@@ -445,9 +432,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-            : html`
-                <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-              `}
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           ${index !== this._configArray.length - 1
             ? html`
                 <ha-icon
@@ -461,9 +446,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-            : html`
-                <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-              `}
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           <ha-icon
             class="ha-icon-large"
             icon="mdi:close"
@@ -879,10 +862,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           .ignoreNull=${true}
                         >
                           <paper-listbox slot="dropdown-content" .selected=${this._objects.indexOf(config.object_id)}>
-                            ${this._objects.map(object_id => {
-                              return html`
-                                <paper-item>${object_id}</paper-item>
-                              `;
+                            ${this._objects.map((object_id) => {
+                              return html` <paper-item>${object_id}</paper-item> `;
                             })}
                           </paper-listbox>
                         </paper-dropdown-menu>
@@ -923,11 +904,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               ${options.show
                 ? html`
                     <div class="card-background" style="overflow: auto; max-height: 420px;">
-                      ${arrayLength > 0
-                        ? html`
-                            ${this._createObjectValues(index)}
-                          `
-                        : ''}
+                      ${arrayLength > 0 ? html` ${this._createObjectValues(index)} ` : ''}
                       <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
                         <ha-icon
                           class="ha-icon-large"
@@ -973,11 +950,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               ${options.show
                 ? html`
                     <div class="card-background" style="overflow: auto; max-height: 420px;">
-                      ${arrayLength > 0
-                        ? html`
-                            ${this._createColorConditionValues(index)}
-                          `
-                        : ''}
+                      ${arrayLength > 0 ? html` ${this._createColorConditionValues(index)} ` : ''}
                       <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
                         <ha-icon
                           class="ha-icon-large"
@@ -1028,9 +1001,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .objectIndex=${objectIndex}
                   ></ha-icon>
                 `
-              : html`
-                  <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-                `}
+              : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             ${objectIndex !== config.objects.length - 1
               ? html`
                   <ha-icon
@@ -1042,9 +1013,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .objectIndex=${objectIndex}
                   ></ha-icon>
                 `
-              : html`
-                  <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-                `}
+              : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             <ha-icon
               class="ha-icon-large"
               icon="mdi:close"
@@ -1101,9 +1070,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .colorconditionIndex=${colorconditionIndex}
                   ></ha-icon>
                 `
-              : html`
-                  <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-                `}
+              : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             ${colorconditionIndex !== config.colorcondition.length - 1
               ? html`
                   <ha-icon
@@ -1115,9 +1082,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .colorconditionIndex=${colorconditionIndex}
                   ></ha-icon>
                 `
-              : html`
-                  <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon>
-                `}
+              : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             <ha-icon
               class="ha-icon-large"
               icon="mdi:close"
@@ -1724,7 +1689,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
-  static get styles(): CSSResult {
+  static get styles(): CSSResultGroup {
     return css`
       .option {
         padding: 4px 0px;
