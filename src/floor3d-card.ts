@@ -57,7 +57,7 @@ export class Floor3dCard extends LitElement {
   private _canvas_id: string;
   private _states?: string[];
   private _color?: number[][];
-  private _initialcolor?: number[][][];
+  private _initialcolor?: number[][];
   private _brightness?: number[];
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
@@ -551,7 +551,8 @@ export class Floor3dCard extends LitElement {
     if (this._states && this._config.entities) {
       this._config.entities.forEach((entity, i) => {
         if (entity.entity !== '') {
-          this._object_ids[i].objects.forEach((element, j) => {
+          let j = 0;
+          this._object_ids[i].objects.forEach((element) => {
             //console.log("element: " + JSON.stringify(element));
             const _foundobject: any = this._scene.getObjectByName(element.object_id);
 
@@ -569,9 +570,9 @@ export class Floor3dCard extends LitElement {
                 light.name = element.object_id + '_light';
                 this._scene.add(light);
                 //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
-              } else if (entity.type3d == 'color') {
+              } else if (entity.type3d == 'color' && j == 0) {
                 _foundobject.material = _foundobject.material.clone();
-                this._initialcolor[i][j] = [
+                this._initialcolor[i] = [
                   _foundobject.material.color.r,
                   _foundobject.material.color.g,
                   _foundobject.material.color.b,
@@ -579,6 +580,7 @@ export class Floor3dCard extends LitElement {
                 //this._updatecolor(entity, this._states[i]);
               }
             }
+            j = j + 1;
           });
         }
       });
@@ -743,7 +745,7 @@ export class Floor3dCard extends LitElement {
   private _updatecolor(item: any, index: number): void {
     // Change the color of the object when, for the bound device, the state matches the condition
 
-    this._object_ids[index].objects.forEach((element, j) => {
+    this._object_ids[index].objects.forEach((element) => {
       const _object: any = this._scene.getObjectByName(element.object_id);
 
       if (_object) {
@@ -767,9 +769,9 @@ export class Floor3dCard extends LitElement {
         }
         if (defaultcolor) {
           let color = this._RGBToHex(
-            Number(this._initialcolor[index][j][0]),
-            Number(this._initialcolor[index][j][1]),
-            Number(this._initialcolor[index][j][2]),
+            Number(this._initialcolor[index][0]),
+            Number(this._initialcolor[index][1]),
+            Number(this._initialcolor[index][2]),
           );
           _object.material.color.set(color);
         }
