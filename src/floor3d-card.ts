@@ -325,9 +325,8 @@ export class Floor3dCard extends LitElement {
             if (hass.states[entity.entity].attributes['rgb_color']) {
               this._color.push(hass.states[entity.entity].attributes['rgb_color']);
             } else if (hass.states[entity.entity].attributes['color_temp']) {
-              this._color.push(hass.states[entity.entity].attributes['color_temp'])
-            }
-            else {
+              this._color.push(hass.states[entity.entity].attributes['color_temp']);
+            } else {
               this._color.push([]);
             }
             if (hass.states[entity.entity].attributes['brightness']) {
@@ -556,7 +555,7 @@ export class Floor3dCard extends LitElement {
         if (entity.entity !== '') {
           let j = 0;
           this._object_ids[i].objects.forEach((element) => {
-            //console.log("element: " + JSON.stringify(element));
+            console.log('element: ' + JSON.stringify(element));
             const _foundobject: any = this._scene.getObjectByName(element.object_id);
 
             if (_foundobject) {
