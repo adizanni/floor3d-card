@@ -370,6 +370,12 @@ export class Floor3dCard extends LitElement {
                 }
               }
               if (hass.states[entity.entity].attributes['color_temp']) {
+                console.log(
+                  'RGB from mireds: ' +
+                    JSON.stringify(
+                      this._TemperatureToRGB(parseInt(hass.states[entity.entity].attributes['color_temp'])),
+                    ),
+                );
                 if (
                   this._TemperatureToRGB(parseInt(hass.states[entity.entity].attributes['color_temp'])) !==
                   this._color[i]
