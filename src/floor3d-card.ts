@@ -324,7 +324,7 @@ export class Floor3dCard extends LitElement {
             } else {
               this._lights.push('');
             }
-            console.log('RGB: ' + JSON.stringify(this._TemperatureToRGB(250)));
+            //console.log('RGB: ' + JSON.stringify(this._TemperatureToRGB(250)));
             if (hass.states[entity.entity].attributes['rgb_color']) {
               this._color.push(hass.states[entity.entity].attributes['rgb_color']);
             } else if (hass.states[entity.entity].attributes['color_temp']) {
@@ -375,7 +375,9 @@ export class Floor3dCard extends LitElement {
                   this._color[i]
                 ) {
                   toupdate = true;
-                  this._color[i] = this._TemperatureToRGB(hass.states[entity.entity].attributes['color_temp']);
+                  this._color[i] = this._TemperatureToRGB(
+                    parseInt(hass.states[entity.entity].attributes['color_temp']),
+                  );
                 }
               }
               if (toupdate) {
