@@ -79,6 +79,7 @@ export class Floor3dCard extends LitElement {
   private _direction_light: THREE.DirectionalLight;
   private _point_light: THREE.PointLight;
   _helper: THREE.DirectionalLightHelper;
+  _modelready: boolean;
   constructor() {
     super();
 
@@ -346,72 +347,70 @@ export class Floor3dCard extends LitElement {
         });
         this._firstcall = false;
       } else {
-        let torerender = false;
-        this._config.entities.forEach((entity, i) => {
-          if (entity.entity !== '') {
-            let state = this._statewithtemplate(entity);
+        if (this._renderer && this._modelready) {
+          let torerender = false;
+          this._config.entities.forEach((entity, i) => {
+            if (entity.entity !== '') {
+              let state = this._statewithtemplate(entity);
 
-            if (entity.type3d == 'light') {
-              let toupdate = false;
-              if (this._states[i] !== state) {
-                this._states[i] = state;
-                toupdate = true;
-              }
-              if (hass.states[entity.entity].attributes['rgb_color']) {
-                if (hass.states[entity.entity].attributes['rgb_color'] !== this._color[i]) {
+              if (entity.type3d == 'light') {
+                let toupdate = false;
+                if (this._states[i] !== state) {
+                  this._states[i] = state;
                   toupdate = true;
-                  this._color[i] = hass.states[entity.entity].attributes['rgb_color'];
                 }
-              }
-              if (hass.states[entity.entity].attributes['brightness']) {
-                if (hass.states[entity.entity].attributes['brightness'] !== this._brightness[i]) {
-                  toupdate = true;
-                  this._brightness[i] = hass.states[entity.entity].attributes['brightness'];
+                if (hass.states[entity.entity].attributes['color_mode']) {
+                  if ((hass.states[entity.entity].attributes['color_mode'] = 'color_temp')) {
+                    if (
+                      this._TemperatureToRGB(parseInt(hass.states[entity.entity].attributes['color_temp'])) !==
+                      this._color[i]
+                    ) {
+                      toupdate = true;
+                      this._color[i] = this._TemperatureToRGB(
+                        parseInt(hass.states[entity.entity].attributes['color_temp']),
+                      );
+                    }
+                  }
+                  if ((hass.states[entity.entity].attributes['color_mode'] = 'rgb')) {
+                    if (hass.states[entity.entity].attributes['rgb_color'] !== this._color[i]) {
+                      toupdate = true;
+                      this._color[i] = hass.states[entity.entity].attributes['rgb_color'];
+                    }
+                  }
                 }
-              }
-              if (hass.states[entity.entity].attributes['color_temp']) {
-                console.log(
-                  'RGB from mireds: ' +
-                    JSON.stringify(
-                      this._TemperatureToRGB(parseInt(hass.states[entity.entity].attributes['color_temp'])),
-                    ),
-                );
-                if (
-                  this._TemperatureToRGB(parseInt(hass.states[entity.entity].attributes['color_temp'])) !==
-                  this._color[i]
-                ) {
-                  toupdate = true;
-                  this._color[i] = this._TemperatureToRGB(
-                    parseInt(hass.states[entity.entity].attributes['color_temp']),
-                  );
+                if (hass.states[entity.entity].attributes['brightness']) {
+                  if (hass.states[entity.entity].attributes['brightness'] !== this._brightness[i]) {
+                    toupdate = true;
+                    this._brightness[i] = hass.states[entity.entity].attributes['brightness'];
+                  }
                 }
-              }
-              if (toupdate) {
-                this._updatelight(entity, i);
-                torerender = true;
-              }
-            } else if (this._states[i] !== state) {
-              this._states[i] = state;
-              if (entity.type3d == 'color') {
-                this._updatecolor(entity, i);
-                torerender = true;
-              } else if (entity.type3d == 'hide') {
-                this._updatehide(entity, i);
-                torerender = true;
-              } else if (entity.type3d == 'show') {
-                this._updateshow(entity, i);
-                torerender = true;
-              } else if (entity.type3d == 'text') {
-                if (this._canvas[i]) {
-                  this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
+                if (toupdate) {
+                  this._updatelight(entity, i);
                   torerender = true;
+                }
+              } else if (this._states[i] !== state) {
+                this._states[i] = state;
+                if (entity.type3d == 'color') {
+                  this._updatecolor(entity, i);
+                  torerender = true;
+                } else if (entity.type3d == 'hide') {
+                  this._updatehide(entity, i);
+                  torerender = true;
+                } else if (entity.type3d == 'show') {
+                  this._updateshow(entity, i);
+                  torerender = true;
+                } else if (entity.type3d == 'text') {
+                  if (this._canvas[i]) {
+                    this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
+                    torerender = true;
+                  }
                 }
               }
             }
+          });
+          if (torerender) {
+            this._render();
           }
-        });
-        if (torerender) {
-          this._render();
         }
       }
     }
@@ -420,6 +419,7 @@ export class Floor3dCard extends LitElement {
   protected display3dmodel(): void {
     //load the model into the GL Renderer
     console.log('Start Build Renderer');
+    this._modelready = false;
     this._scene = new THREE.Scene();
     if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
       this._scene.background = new THREE.Color(this._config.backgroundColor);
@@ -514,10 +514,13 @@ export class Floor3dCard extends LitElement {
     }
     this._add3dObjects();
     console.log('Object loaded end');
+
     if (this._content && this._renderer) {
+      this._modelready = true;
       console.log('Show canvas');
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
+
       window.addEventListener('resize', this._resizeCanvas.bind(this));
       this._content.addEventListener('dblclick', this._performAction.bind(this));
       this._content.addEventListener('touchstart', this._performAction.bind(this));
@@ -525,6 +528,8 @@ export class Floor3dCard extends LitElement {
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
       this._controls.addEventListener('change', this._render.bind(this));
       this._renderer.setPixelRatio(window.devicePixelRatio);
+      // ambient and directional light
+
       if (this._hass.states[this._config.globalLightPower]) {
         if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
           this._ambient_light.intensity = this._direction_light.intensity = Number(
@@ -538,7 +543,6 @@ export class Floor3dCard extends LitElement {
           this._ambient_light.intensity = this._direction_light.intensity = 0.5;
         }
       }
-      // light
       this._render();
       this._resizeCanvas();
     }
@@ -568,6 +572,7 @@ export class Floor3dCard extends LitElement {
       this._config.entities.forEach((entity, i) => {
         if (entity.entity !== '') {
           if (entity.type3d == 'light') {
+            // Add-Lights
             this._object_ids[i].objects.forEach((element) => {
               //console.log('element: ' + JSON.stringify(element));
               const _foundobject: any = this._scene.getObjectByName(element.object_id);
@@ -588,6 +593,7 @@ export class Floor3dCard extends LitElement {
             });
           }
           if (entity.type3d == 'color') {
+            // Add Color Conditions Objects
             console.log('Object: ' + this._object_ids[i].objects[0].object_id);
             const _foundobject: any = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
             console.log('Material is array: ' + Array.isArray(_foundobject.material));
@@ -833,7 +839,6 @@ export class Floor3dCard extends LitElement {
 
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
-    console.log('Render start');
     /*
     if (this._config.show_warning) {
       return this._showWarning(localize('common.show_warning'));
@@ -843,7 +848,6 @@ export class Floor3dCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
 */
-    console.log('Render end');
 
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto'}`} id="${this._card_id}">
