@@ -52,6 +52,7 @@ When you are finished,  configure a new card (either in panel mode or regular) w
 | mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
 | backgroundColor | string | '#aaaaaa' | canvas background color
 | globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene it can also the name of a numeric sensor
+| shadow | string | no | 'yes' if lights cast shadow on object. This is  realistic but impacts performances. By default wall, floors and objects with "door" in the name, receives and cast shadows
 
 
 For each entity in the entities list you need to specify the following options:
