@@ -11,7 +11,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
-You can also  download the compiled js file from here (https://raw.githubusercontent.com/adizanni/floor3d-card/master/dist/floor3d-card.js) and upload it to your www home assistant folder
+You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/v0.9.18/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
@@ -247,12 +247,8 @@ backgroundColor: '#000001'
 globalLightPower: 0.4
 ```
 
-<img width="300" alt="Example Light On" src="https://github.com/adizanni/visualization-card-3d-floor/blob/main/images/ExampleOn.png?raw=true">
-<img width="300" alt="Example Light Off" src="https://github.com/adizanni/visualization-card-3d-floor/blob/main/images/ExampleOff.png?raw=true">
 
 ### To Do
-List of feature I will develop in the next releases:
-- Condition 3D Type: add templating and or support complex conditions
 
 Project General Availability (https://github.com/adizanni/floor3d-card/projects/1)
 
