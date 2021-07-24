@@ -658,6 +658,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
+                  label="Shadow"
+                  .value=${config.shadow ? config.shadow : ''}
+                  .configObject=${config}
+                  .configAttribute=${'shadow'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
                   label="Camera Position"
                   .value=${config.camera_position ? config.camera_position : ''}
                   .configObject=${config}

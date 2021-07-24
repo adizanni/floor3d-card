@@ -20,6 +20,7 @@ export interface Floor3dCardConfig {
   style: string;
   backgroundColor: string;
   globalLightPower: string;
+  shadow: string;
   entities: any;
   tap_action?: ActionConfig;
   double_tap_action?: ActionConfig;
