@@ -503,7 +503,12 @@ export class Floor3dCard extends LitElement {
 
     if (this._config.shadow) {
       if (this._config.shadow == 'yes') {
+        console.log('Shadow On');
+        this._renderer.shadowMap.enabled = true;
         object.traverse(this._setShadow.bind(this));
+      } else {
+        console.log('Shadow Off');
+        this._renderer.shadowMap.enabled = false;
       }
     }
     this._scene.add(object);
@@ -538,7 +543,6 @@ export class Floor3dCard extends LitElement {
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
       this._controls.addEventListener('change', this._render.bind(this));
       this._renderer.setPixelRatio(window.devicePixelRatio);
-      this._renderer.shadowMap.enabled = true;
       // ambient and directional light
 
       if (this._hass.states[this._config.globalLightPower]) {
