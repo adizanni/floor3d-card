@@ -276,8 +276,7 @@ export class Floor3dCard extends LitElement {
   }
   
   private _resizeCanvas(): void {
-	//TODO: Needs a bit more work
-	console.log('Resize canvas start');
+    console.log('Resize canvas start');
     if (
       this._renderer.domElement.parentElement.clientWidth !== this._renderer.domElement.width ||
       this._renderer.domElement.parentElement.clientHeight !== this._renderer.domElement.height
@@ -868,8 +867,12 @@ export class Floor3dCard extends LitElement {
   // https://lit-element.polymer-project.org/guide/templates
 
   protected render(): TemplateResult | void {
+    let htmlHeight: string;
+    if(this._ispanel()) htmlHeight = "calc(100vh - var(--header-height))";
+    else htmlHeight = "auto";
+    
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: calc(100vh - var(--header-height));'}`} id="${this._card_id}">
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`} id="${this._card_id}">
       </ha-card>
     `;
   }
