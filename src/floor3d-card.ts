@@ -65,6 +65,7 @@ export class Floor3dCard extends LitElement {
   private _loaded?: boolean;
 
   private _firstcall?: boolean;
+  private resizeTimeout?: number;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
   private _progress?: HTMLElement;
@@ -269,16 +270,21 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+  private _resizeCanvasDebounce(): void {
+	window.clearTimeout(this.resizeTimeout);
+	this.resizeTimeout = window.setTimeout(() => {this._resizeCanvas()}, 250);
+  }
+  
   private _resizeCanvas(): void {
-    // Resize 3D canvas when window resize happen (not working as expected TODO)
-    console.log('Resize canvas start');
+	//TODO: Needs a bit more work
+	console.log('Resize canvas start');
     if (
-      this._renderer.domElement.clientWidth !== this._renderer.domElement.width ||
-      this._renderer.domElement.clientHeight !== this._renderer.domElement.height
+      this._renderer.domElement.parentElement.clientWidth !== this._renderer.domElement.width ||
+      this._renderer.domElement.parentElement.clientHeight !== this._renderer.domElement.height
     ) {
-      this._camera.aspect = this._renderer.domElement.clientWidth / this._renderer.domElement.clientHeight;
+      this._camera.aspect = this._renderer.domElement.parentElement.clientWidth / this._renderer.domElement.parentElement.clientHeight;
       this._camera.updateProjectionMatrix();
-      this._renderer.setSize(this._renderer.domElement.clientWidth, this._renderer.domElement.clientHeight, true);
+      this._renderer.setSize(this._renderer.domElement.parentElement.clientWidth, this._renderer.domElement.parentElement.clientHeight, true);
       this._renderer.render(this._scene, this._camera);
     }
     console.log('Resize canvas end');
@@ -536,7 +542,7 @@ export class Floor3dCard extends LitElement {
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
 
-      window.addEventListener('resize', this._resizeCanvas.bind(this));
+      window.addEventListener('resize', this._resizeCanvasDebounce.bind(this));
       this._content.addEventListener('dblclick', this._performAction.bind(this));
       this._content.addEventListener('touchstart', this._performAction.bind(this));
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
@@ -863,7 +869,7 @@ export class Floor3dCard extends LitElement {
 
   protected render(): TemplateResult | void {
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: auto'}`} id="${this._card_id}">
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: calc(100vh - var(--header-height));'}`} id="${this._card_id}">
       </ha-card>
     `;
   }
