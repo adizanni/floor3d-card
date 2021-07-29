@@ -200,6 +200,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  get _show_warning(): boolean {
+    return this._config?.show_warning || true;
+  }
+
+  get _show_error(): boolean {
+    return this._config?.show_error || true;
+  }
+
   private _fetchObjectList(): void {
     fetch(this._config.path + this._config.objectlist)
       .then(function (response): any {

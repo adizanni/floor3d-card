@@ -271,19 +271,26 @@ export class Floor3dCard extends LitElement {
   }
 
   private _resizeCanvasDebounce(): void {
-	window.clearTimeout(this.resizeTimeout);
-	this.resizeTimeout = window.setTimeout(() => {this._resizeCanvas()}, 250);
+    window.clearTimeout(this.resizeTimeout);
+    this.resizeTimeout = window.setTimeout(() => {
+      this._resizeCanvas();
+    }, 250);
   }
-  
+
   private _resizeCanvas(): void {
     console.log('Resize canvas start');
     if (
       this._renderer.domElement.parentElement.clientWidth !== this._renderer.domElement.width ||
       this._renderer.domElement.parentElement.clientHeight !== this._renderer.domElement.height
     ) {
-      this._camera.aspect = this._renderer.domElement.parentElement.clientWidth / this._renderer.domElement.parentElement.clientHeight;
+      this._camera.aspect =
+        this._renderer.domElement.parentElement.clientWidth / this._renderer.domElement.parentElement.clientHeight;
       this._camera.updateProjectionMatrix();
-      this._renderer.setSize(this._renderer.domElement.parentElement.clientWidth, this._renderer.domElement.parentElement.clientHeight, true);
+      this._renderer.setSize(
+        this._renderer.domElement.parentElement.clientWidth,
+        this._renderer.domElement.parentElement.clientHeight,
+        true,
+      );
       this._renderer.render(this._scene, this._camera);
     }
     console.log('Resize canvas end');
@@ -446,30 +453,43 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
-    if (this._config.mtlfile && this._config.mtlfile != '') {
-      const mtlLoader: MTLLoader = new MTLLoader();
-      mtlLoader.setPath(this._config.path);
-      mtlLoader.load(
-        this._config.mtlfile,
-        this._onLoaded3DMaterials.bind(this),
-        this._onLoadMaterialProgress.bind(this),
-        function (error: ErrorEvent) {
-          throw new Error(error.error);
-        },
-      );
+    if (this._config.path && this._config.path != '') {
+      let path = this._config.path;
+      const lastChar = path.substr(-1);
+      if (lastChar != '/') {
+        path = path + '/';
+      }
+      console.log('Path: ' + path);
+      if (this._config.mtlfile && this._config.mtlfile != '') {
+        const mtlLoader: MTLLoader = new MTLLoader();
+        mtlLoader.setPath(path);
+        mtlLoader.load(
+          this._config.mtlfile,
+          this._onLoaded3DMaterials.bind(this),
+          this._onLoadMaterialProgress.bind(this),
+          function (error: ErrorEvent): void {
+            throw new Error(error.error);
+          },
+        );
+      } else {
+        const objLoader: OBJLoader = new OBJLoader();
+        objLoader.load(
+          path + this._config.objfile,
+          this._onLoaded3DModel.bind(this),
+          this._onLoadObjectProgress.bind(this),
+          function (error: ErrorEvent): void {
+            throw new Error(error.error);
+          },
+        );
+      }
     } else {
-      const objLoader: OBJLoader = new OBJLoader();
-      objLoader.load(
-        this._config.path + this._config.objfile,
-        this._onLoaded3DModel.bind(this),
-        this._onLoadObjectProgress.bind(this),
-        function (error: ErrorEvent): void {
-          throw new Error(error.error);
-        },
-      );
+      throw new Error('Path is empty');
     }
-
     console.log('End Build Renderer');
+  }
+
+  private _onLoadError(event: ErrorEvent): void {
+    this._showError(event.error);
   }
 
   private _onLoadMaterialProgress(_progress: ProgressEvent): void {
@@ -583,10 +603,15 @@ export class Floor3dCard extends LitElement {
     // Materials Loaded Event: last root material passed to the function
     console.log('Matesrial loaded start');
     materials.preload();
+    let path = this._config.path;
+    const lastChar = path.substr(-1);
+    if (lastChar != '/') {
+      path = path + '/';
+    }
     const objLoader: OBJLoader = new OBJLoader();
     objLoader.setMaterials(materials);
     objLoader.load(
-      this._config.path + this._config.objfile,
+      path + this._config.objfile,
       this._onLoaded3DModel.bind(this),
       this._onLoadObjectProgress.bind(this),
       function (error: ErrorEvent): void {
@@ -867,12 +892,20 @@ export class Floor3dCard extends LitElement {
   // https://lit-element.polymer-project.org/guide/templates
 
   protected render(): TemplateResult | void {
+    if (this._config.show_error) {
+      return this._showError(localize('common.show_error'));
+    }
+
     let htmlHeight: string;
-    if(this._ispanel()) htmlHeight = "calc(100vh - var(--header-height))";
-    else htmlHeight = "auto";
-    
+    if (this._ispanel()) htmlHeight = 'calc(100vh - var(--header-height))';
+    else htmlHeight = 'auto';
+
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`} id="${this._card_id}">
+      <ha-card
+        tabindex="0"
+        .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`}
+        id="${this._card_id}"
+      >
       </ha-card>
     `;
   }
