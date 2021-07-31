@@ -201,11 +201,11 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   get _show_warning(): boolean {
-    return this._config?.show_warning || true;
+    return this._config?.show_warning || false;
   }
 
   get _show_error(): boolean {
-    return this._config?.show_error || true;
+    return this._config?.show_error || false;
   }
 
   private _fetchObjectList(): void {

@@ -57,7 +57,8 @@ export class Floor3dCard extends LitElement {
   private _canvas_id: string;
   private _states?: string[];
   private _color?: number[][];
-  private _initialcolor?: string[];
+  private _initialmaterial?: THREE.Material[][];
+  private _clonedmaterial?: THREE.Material[][];
   private _brightness?: number[];
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
@@ -116,9 +117,19 @@ export class Floor3dCard extends LitElement {
     this._config = config;
     this._configArray = createConfigArray(this._config);
     this._object_ids = createObjectGroupConfigArray(this._config);
-    this._initialcolor = [];
-    this._configArray.forEach(() => {
-      this._initialcolor.push('');
+    this._initialmaterial = [];
+    this._clonedmaterial = [];
+    let i = 0;
+
+    this._object_ids.forEach((entity) => {
+      this._initialmaterial.push([]);
+      this._clonedmaterial.push([]);
+
+      entity.objects.forEach(() => {
+        this._initialmaterial[i].push(null);
+        this._clonedmaterial[i].push(null);
+      });
+      i += 1;
     });
 
     if (this._config.show_warning) {
@@ -589,14 +600,32 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+  private _setNoShadowLight(object: THREE.Object3D): void {
+    object.receiveShadow = true;
+    object.castShadow = false;
+    return;
+  }
+
   private _setShadow(object: THREE.Object3D): void {
+    /*
     if (object.name.includes('wall') || object.name.toLowerCase().includes('door')) {
       object.receiveShadow = true;
       object.castShadow = true;
+      return;
     }
     if (object.name.includes('room')) {
       object.receiveShadow = true;
+      return;
     }
+    if (object.name.toLowerCase().includes('light')) {
+      object.receiveShadow = true;
+      object.castShadow = false;
+      return;
+    }
+    */
+    object.receiveShadow = true;
+    object.castShadow = true;
+    return;
   }
 
   private _onLoaded3DMaterials(materials: MTLLoader.MaterialCreator): void {
@@ -640,6 +669,7 @@ export class Floor3dCard extends LitElement {
                   (box.max.y - box.min.y) / 2 + box.min.y + this._modelY,
                   (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ,
                 );
+                _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
                 light.castShadow = true;
                 light.name = element.object_id + '_light';
                 this._scene.add(light);
@@ -649,13 +679,16 @@ export class Floor3dCard extends LitElement {
           }
           if (entity.type3d == 'color') {
             // Clone Material to allow object color changes based on Color Conditions Objects
-            console.log('Object: ' + this._object_ids[i].objects[0].object_id);
-            const _foundobject: any = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
-            console.log('Material is array: ' + Array.isArray(_foundobject.material));
-            if (!Array.isArray(_foundobject.material)) {
-              _foundobject.material = _foundobject.material.clone();
-              this._initialcolor[i] = _foundobject.material.color.getHex();
-            }
+            let j = 0;
+            this._object_ids[i].objects.forEach((element) => {
+              let _foundobject: any = this._scene.getObjectByName(element.object_id);
+              console.log('Material is array: ' + Array.isArray(_foundobject.material));
+              this._initialmaterial[i][j] = _foundobject.material;
+              if (!Array.isArray(_foundobject.material)) {
+                this._clonedmaterial[i][j] = _foundobject.material.clone();
+              }
+              j = j + 1;
+            });
           }
         }
       });
@@ -822,32 +855,38 @@ export class Floor3dCard extends LitElement {
   private _updatecolor(item: any, index: number): void {
     // Change the color of the object when, for the bound device, the state matches the condition
 
-    const _object: any = this._scene.getObjectByName(this._object_ids[index].objects[0].object_id);
-    if (_object) {
-      let i: any;
-      let defaultcolor = true;
-      for (i in item.colorcondition) {
-        if (this._states[index] == item.colorcondition[i].state) {
-          const colorarray = item.colorcondition[i].color.split(',');
-          let color = '';
-          if (colorarray.length == 3) {
-            color = this._RGBToHex(Number(colorarray[0]), Number(colorarray[1]), Number(colorarray[2]));
-          } else {
-            color = item.colorcondition[i].color;
+    let j = 0;
+    this._object_ids[index].objects.forEach((element) => {
+      let _object: any = this._scene.getObjectByName(element.object_id);
+
+      if (_object) {
+        let i: any;
+        let defaultcolor = true;
+        for (i in item.colorcondition) {
+          if (this._states[index] == item.colorcondition[i].state) {
+            const colorarray = item.colorcondition[i].color.split(',');
+            let color = '';
+            if (colorarray.length == 3) {
+              color = this._RGBToHex(Number(colorarray[0]), Number(colorarray[1]), Number(colorarray[2]));
+            } else {
+              color = item.colorcondition[i].color;
+            }
+            if (!Array.isArray(_object.material)) {
+              _object.material = this._clonedmaterial[index][j];
+              _object.material.color.set(color);
+            }
+            defaultcolor = false;
+            break;
           }
-          if (!Array.isArray(_object.material)) {
-            _object.material.color.set(color);
+        }
+        if (defaultcolor) {
+          if (this._initialmaterial[index][j]) {
+            _object.material = this._initialmaterial[index][j];
           }
-          defaultcolor = false;
-          break;
         }
       }
-      if (defaultcolor) {
-        if (!Array.isArray(_object.material)) {
-          _object.material.color.set(this._initialcolor[index]);
-        }
-      }
-    }
+      j += 1;
+    });
   }
 
   private _updatehide(item: Floor3dCardConfig, index: number): void {
