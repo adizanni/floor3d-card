@@ -652,7 +652,7 @@ export class Floor3dCard extends LitElement {
 
   private _add3dObjects(): void {
     // Add-Modify the objects bound to the entities in the card config
-    console.log('Add Objects');
+    console.log('Add Objects Start');
     if (this._states && this._config.entities) {
       this._config.entities.forEach((entity, i) => {
         if (entity.entity !== '') {
