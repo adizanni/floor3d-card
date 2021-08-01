@@ -1,5 +1,6 @@
 # floor3d-card
 
+[![GitHub Release][releases-shield]][releases]
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
 Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. Be advised it is still an alfa version; it requires a bit of manual installation actions and related troubleshooting. I'm working at a more official and easy to setup version using card templates projects.
@@ -11,7 +12,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
-You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/v0.9.18/floor3d-card.js) and upload it to your www home assistant folder
+You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/latest/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
