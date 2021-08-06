@@ -11,7 +11,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
-You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/v0.9.18/floor3d-card.js) and upload it to your www home assistant folder
+You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/latest/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
