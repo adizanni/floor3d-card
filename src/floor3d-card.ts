@@ -241,21 +241,23 @@ export class Floor3dCard extends LitElement {
         window.prompt('Object:', intersects[0].object.name);
       } else {
         this._config.entities.forEach((entity) => {
-          if (entity.type3d == 'light') {
+          if (entity.type3d == 'light' || entity.type3d == 'gesture') {
             this._object_ids.forEach((element) => {
               if (entity.entity == element.entity) {
                 element.objects.forEach((obj) => {
                   if (obj.object_id == intersects[0].object.name) {
-                    this._hass.callService(entity.entity.split('.')[0], 'toggle', {
-                      entity_id: entity.entity,
-                    });
+                    if (entity.type3d == 'light') {
+                      this._hass.callService(entity.entity.split('.')[0], 'toggle', {
+                        entity_id: entity.entity,
+                      });
+                    } else if (entity.type3d == 'gesture') {
+                      this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+                        entity_id: entity.entity,
+                      });
+                    }
                   }
                 });
               }
-            });
-          } else if (entity.type3d == 'gesture') {
-            this._hass.callService(entity.gesture.domain, entity.gesture.service, {
-              entity_id: entity.entity,
             });
           }
         });
