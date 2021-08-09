@@ -1345,6 +1345,23 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'lumens'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
+                              <paper-dropdown-menu
+                                label="Light Vertical Alignment"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.light}
+                                .configAttribute=${'vertical_alignment'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.light.vertical_alignment ? config.light.vertical_alignment : null}"
+                                >
+                                  <paper-item item-name="bottom">bottom</paper-item>
+                                  <paper-item item-name="middle">middle</paper-item>
+                                  <paper-item item-name="hide">top</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
                             `
                           : ''}
                       </div>

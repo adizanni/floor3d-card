@@ -22,7 +22,7 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { Material, Mesh, Vector3 } from 'three';
+import { BooleanKeyframeTrack, Material, Mesh, Vector3 } from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -240,25 +240,22 @@ export class Floor3dCard extends LitElement {
       if (getLovelace().editMode) {
         window.prompt('Object:', intersects[0].object.name);
       } else {
-        this._config.entities.forEach((entity) => {
+        this._config.entities.forEach((entity, i) => {
           if (entity.type3d == 'light' || entity.type3d == 'gesture') {
-            this._object_ids.forEach((element) => {
-              if (entity.entity == element.entity) {
-                element.objects.forEach((obj) => {
-                  if (obj.object_id == intersects[0].object.name) {
-                    if (entity.type3d == 'light') {
-                      this._hass.callService(entity.entity.split('.')[0], 'toggle', {
-                        entity_id: entity.entity,
-                      });
-                    } else if (entity.type3d == 'gesture') {
-                      this._hass.callService(entity.gesture.domain, entity.gesture.service, {
-                        entity_id: entity.entity,
-                      });
-                    }
-                  }
-                });
+            for (let j = 0; j < this._object_ids[i].objects.length; j++) {
+              if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
+                if (entity.type3d == 'light') {
+                  this._hass.callService(entity.entity.split('.')[0], 'toggle', {
+                    entity_id: entity.entity,
+                  });
+                } else if (entity.type3d == 'gesture') {
+                  this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+                    entity_id: entity.entity,
+                  });
+                }
+                break;
               }
-            });
+            }
           }
         });
       }
@@ -666,11 +663,25 @@ export class Floor3dCard extends LitElement {
                 const box: THREE.Box3 = new THREE.Box3();
                 box.setFromObject(_foundobject);
                 const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 700, 2);
-                light.position.set(
-                  (box.max.x - box.min.x) / 2 + box.min.x + this._modelX,
-                  (box.max.y - box.min.y) / 2 + box.min.y + this._modelY,
-                  (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ,
-                );
+                let x: number, y: number, z: number;
+
+                x = (box.max.x - box.min.x) / 2 + box.min.x + this._modelX;
+                z = (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ;
+                y = (box.max.y - box.min.y) / 2 + box.min.y + this._modelY;
+                if (entity.light.vertical_alignment) {
+                  switch (entity.light.vertical_alignment) {
+                    case 'top':
+                      y = box.max.y + this._modelY;
+                      break;
+                    case 'middle':
+                      y = (box.max.y - box.min.y) / 2 + box.min.y + this._modelY;
+                      break;
+                    case 'bottom':
+                      y = box.min.y + this._modelY;
+                      break;
+                  }
+                }
+                light.position.set(x, y, z);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
                 light.castShadow = true;
                 light.name = element.object_id + '_light';

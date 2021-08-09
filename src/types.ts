@@ -34,9 +34,11 @@ export interface Floor3dCardConfig {
   lumens: number;
   colorcondition: any;
   light: any;
+  door: any;
   text: any;
   gesture: any;
   span: string;
+  vertical_alignment: string;
   textbgcolor: string;
   textfgcolor: string;
   camera_position: any;
