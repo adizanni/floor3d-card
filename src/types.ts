@@ -35,6 +35,9 @@ export interface Floor3dCardConfig {
   colorcondition: any;
   light: any;
   door: any;
+  doortype: string;
+  side: string;
+  direction: string;
   text: any;
   gesture: any;
   span: string;

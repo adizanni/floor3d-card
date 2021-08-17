@@ -115,6 +115,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const doorOptions = {
+      icon: 'door',
+      name: 'Door',
+      secondary: 'Door options.',
+      show: false,
+      visible: false,
+    };
+
     const gestureOptions = {
       icon: 'gesture-tap',
       name: 'Gesture',
@@ -147,6 +155,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         hide: { ...hideOptions },
         show: { ...showOptions },
         text: { ...textOptions },
+        door: { ...doorOptions },
         gesture: { ...gestureOptions },
       },
     };
@@ -470,6 +479,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._createTypeElement(index)} ${this._createLightElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
                 ${this._createShowElement(index)} ${this._createTextElement(index)} ${this._createGestureElement(index)}
+                ${this._createDoorElement(index)}
               </div>
             `
           : ''}
@@ -855,6 +865,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="hide">hide</paper-item>
                       <paper-item item-name="show">show</paper-item>
                       <paper-item item-name="text">text</paper-item>
+                      <paper-item item-name="door">door</paper-item>
                       <paper-item item-name="gesture">gesture</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
@@ -1439,6 +1450,102 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'textfgcolor'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createDoorElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.door;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'door' : false;
+    if (visible) {
+      config.door = { ...config.door };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="door">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-dropdown-menu
+                                label="Door Type"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.door}
+                                .configAttribute=${'doortype'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.door.doortype ? config.door.doortype : null}"
+                                >
+                                  <paper-item item-name="swing">swing</paper-item>
+                                  <paper-item item-name="slide">slide</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
+                              <paper-dropdown-menu
+                                label="Side"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.door}
+                                .configAttribute=${'side'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.door.side ? config.door.side : null}"
+                                >
+                                  <paper-item item-name="up">up</paper-item>
+                                  <paper-item item-name="down">down</paper-item>
+                                  <paper-item item-name="left">left</paper-item>
+                                  <paper-item item-name="right">right</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
+                              <paper-dropdown-menu
+                                label="Direction"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.door}
+                                .configAttribute=${'direction'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.door.direction ? config.door.direction : null}"
+                                >
+                                  <paper-item item-name="none">none</paper-item>
+                                  <paper-item item-name="inner">inner</paper-item>
+                                  <paper-item item-name="outer">outer</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
                             `
                           : ''}
                       </div>

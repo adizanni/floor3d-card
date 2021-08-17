@@ -22,7 +22,7 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { BooleanKeyframeTrack, Material, Mesh, Vector3 } from 'three';
+import { BooleanKeyframeTrack, DirectionalLightHelper, Material, Mesh, Vector3 } from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -64,6 +64,7 @@ export class Floor3dCard extends LitElement {
   private _canvas?: HTMLCanvasElement[];
   private _unit_of_measurement?: string[];
   private _loaded?: boolean;
+  private _doorposition: number[][];
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
@@ -426,6 +427,9 @@ export class Floor3dCard extends LitElement {
               } else if (entity.type3d == 'show') {
                 this._updateshow(entity, i);
                 torerender = true;
+              } else if (entity.type3d == 'door') {
+                this._updatedoor(entity, i);
+                torerender = true;
               } else if (entity.type3d == 'text') {
                 if (this._canvas[i]) {
                   this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
@@ -653,8 +657,20 @@ export class Floor3dCard extends LitElement {
     // Add-Modify the objects bound to the entities in the card config
     console.log('Add Objects Start');
     if (this._states && this._config.entities) {
+      this._doorposition = [];
       this._config.entities.forEach((entity, i) => {
+        this._doorposition.push([0, 0, 0]);
         if (entity.entity !== '') {
+          if (entity.type3d == 'door') {
+            const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+            if (_foundobject) {
+              //_foundobject.removeFromParent();
+              (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
+              let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
+              this._doorposition[i] = [vec.x, vec.y, vec.z];
+              console.log('Saved position: ' + JSON.stringify(this._doorposition));
+            }
+          }
           if (entity.type3d == 'light') {
             // Add Virtual Light Objects
             this._object_ids[i].objects.forEach((element) => {
@@ -695,7 +711,7 @@ export class Floor3dCard extends LitElement {
             let j = 0;
             this._object_ids[i].objects.forEach((element) => {
               let _foundobject: any = this._scene.getObjectByName(element.object_id);
-              console.log('Material is array: ' + Array.isArray(_foundobject.material));
+              //console.log('Material is array: ' + Array.isArray(_foundobject.material));
               this._initialmaterial[i][j] = _foundobject.material;
               if (!Array.isArray(_foundobject.material)) {
                 this._clonedmaterial[i][j] = _foundobject.material.clone();
@@ -715,6 +731,8 @@ export class Floor3dCard extends LitElement {
             this._updatehide(entity, i);
           } else if (entity.type3d == 'show') {
             this._updateshow(entity, i);
+          } else if (entity.type3d == 'door') {
+            this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
             //console.log('is text');
             this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
@@ -863,6 +881,151 @@ export class Floor3dCard extends LitElement {
         //light.color = new THREE.Color('#000000');
       }
     });
+  }
+
+  private _updatedoor(item: Floor3dCardConfig, i: number): void {
+    // perform action of door objects
+
+    const _obj: any = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+
+    let door: THREE.Mesh;
+
+    /*
+    if (_obj.parent) {
+      door = _obj.parent;
+    } else {
+      door = _obj;
+    }*/
+
+    door = _obj;
+
+    if (door) {
+      if (item.door.doortype) {
+        if (this._states[i] == 'off') {
+          //door.position.set(this._doorposition[i].x, this._doorposition[i].y, this._doorposition[i].z);
+          //door.rotation.set(this._doorrotation[i].x, this._doorrotation[i].y, this._doorrotation[i].z);
+        } else if (this._states[i] == 'on') {
+          if (item.door.doortype == 'swing') {
+            this._rotatedoor(door, item.door.side, item.door.direction, this._doorposition[i]);
+            return;
+          } else if (item.door.doortype == 'slide') {
+            this._translatedoor(door, item.door.side);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  private _rotatedoorter(_obj: THREE.Mesh, side: string, direction: string) {
+    let axis: Vector3 = new Vector3();
+    let angle: number;
+    if (side == 'left') {
+      axis.x = 0;
+      axis.z = 0;
+      axis.y = 1;
+    } else if ((side = 'right')) {
+      axis.x = 0;
+      axis.z = 0;
+      axis.y = 1;
+    }
+    if (direction == 'inner') {
+      angle = Math.PI / 2;
+    } else if (direction == 'outer') {
+      angle = -Math.PI / 2;
+    }
+    _obj.geometry.computeBoundingBox();
+    let boundingBox = _obj.geometry.boundingBox;
+    console.log('rotate translation bounding box: ' + JSON.stringify(boundingBox));
+    console.log('rotate door iniitial position: ' + JSON.stringify(_obj.position));
+    let position = new THREE.Vector3();
+    position.subVectors(boundingBox.max, boundingBox.min);
+    console.log('rotate translation subvector: ' + JSON.stringify(position));
+    position.multiplyScalar(0.5);
+    console.log('rotate translation scalar: ' + JSON.stringify(position));
+    position.add(boundingBox.min);
+    console.log('rotate translation scalar + bounding box: ' + JSON.stringify(position));
+    position.applyMatrix4(_obj.matrixWorld);
+    console.log('rotate translation vector: ' + JSON.stringify(position));
+    _obj.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-position.x, -position.y, -position.z));
+    console.log('rotate door position after translation: ' + JSON.stringify(_obj.position));
+    _obj.rotation.y = Math.PI / 2;
+    _obj.position.set(position.x, position.y, position.z);
+    console.log('rotate door final position: ' + JSON.stringify(_obj.position));
+  }
+
+  private _rotatedoorbis(_obj: THREE.Mesh, side: string, direction: string) {
+    let axis: Vector3 = new Vector3();
+    let angle: number;
+    if (side == 'left') {
+      axis.x = 0;
+      axis.z = 0;
+      axis.y = 1;
+    } else if ((side = 'right')) {
+      axis.x = 0;
+      axis.z = 0;
+      axis.y = 1;
+    }
+    if (direction == 'inner') {
+      angle = Math.PI / 2;
+    } else if (direction == 'outer') {
+      angle = -Math.PI / 2;
+    }
+    _obj.setRotationFromAxisAngle(axis, Math.PI / 2);
+  }
+
+  private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[]) {
+    _obj.geometry.computeBoundingBox();
+    let size: Vector3 = new THREE.Vector3();
+    let center: Vector3 = new THREE.Vector3();
+    _obj.geometry.boundingBox.getSize(size);
+    _obj.geometry.center();
+    _obj.geometry.boundingBox.getCenter(center);
+    console.log('rotate door position: ' + JSON.stringify(_obj.position));
+    console.log('rotate door iniitial position: ' + JSON.stringify(pos));
+    console.log('rotate door size: ' + JSON.stringify(size));
+    console.log('rotate door center: ' + JSON.stringify(center));
+
+    let translate: THREE.Vector3 = new THREE.Vector3();
+    //translate.y = -center.y;
+    translate.y = center.y / 2;
+    _obj.rotation.y += Math.PI / 2;
+    if (side == 'left') {
+      translate.z = -center.x - size.x / 2;
+    } else if (side == 'right') {
+      translate.z = -center.x + size.x / 2;
+    }
+    if (direction == 'inner') {
+      translate.x = center.z - size.x / 2;
+    } else {
+      translate.x = center.z + size.x / 2;
+    }
+    console.log('rotate door translate vector:  ' + JSON.stringify(translate));
+    console.log('saved position: ', JSON.stringify(pos));
+    _obj.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
+    _obj.position.set(pos[0], pos[1], pos[2]);
+  }
+
+  private _translatedoor(_obj: any, side: string) {
+    let bBox = new THREE.Box3().setFromObject(_obj);
+    let size = { x: bBox.max.x - bBox.min.x, y: bBox.max.y - bBox.min.y, z: bBox.max.z - bBox.min.z };
+    let translate: THREE.Vector3 = new THREE.Vector3();
+
+    if (side == 'left') {
+      translate.x = -size.x;
+      translate.y = 0;
+    } else if (side == 'right') {
+      translate.x = size.x;
+      translate.y = 0;
+    } else if (side == 'down') {
+      translate.y = -size.y;
+      translate.x = 0;
+    } else if (side == 'up') {
+      translate.y = size.y;
+      translate.x = 0;
+    }
+    translate.z = 0;
+    _obj.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
   }
 
   private _updatecolor(item: any, index: number): void {
