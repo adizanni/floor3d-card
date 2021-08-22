@@ -62,7 +62,7 @@ For each entity in the entities list you need to specify the following options:
 | entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
 | entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. With $entity you specify  the state of the entity
 | object_id | string | **Required** | the name of the object in the model to biind to your entity.
-| type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture
+| type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture, door, rotate
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
 
@@ -200,6 +200,35 @@ entities:
 ```
 when you double click on the object, the domain.service is called with data { entity_id: entity }
 (so far the iOS and Android events are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
+
+## Door
+
+For **door** example config:
+```yaml
+entities:
+  - entity: <a on/off  entity>
+    type3d: door
+    object_id: <an object id representing the panel of a door: object_groups not supported yet>
+    door:
+      doortype: <'slide' for sliding doors/windows, 'swing' for swinging doors windows>
+      side: 'up', 'down', 'left' and 'right', the border of the door that is the axis of rotation
+      direction: 'inner' and 'outer', the direction of rotation
+```
+a door/window object/entity is rotated by 90 degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You will notice that complex doors have many sub objects (ex. handles). Today you can only select one object that is going to be rotated (you will probably select the main door / window pane). I'm going to do a tutorial to explain how to build a door in sweethome3d that will act realistically (either using my plugin https://github.com/adizanni/ExportToHASS or updating the obj file) 
+
+## Rotate
+
+For **rotate** example config:
+```yaml
+entities:
+  - entity: <a on/off  entity>
+    type3d: rotate
+    object_id: <an object id representing the object to be rotated>
+    rotate:
+      axis: <'x', 'y' and 'z', along which axis the object should rotate>
+      round_per_seconds: 1-4, speed of rotation (experimental)
+```
+an object to rotate (animation) when the associated entity will be 'on'. Be advised that for the first release the object will rotate using the center as point of rotation. Center being defined as the center of the bounding box of the object. For fans, if the fan object is not centered in the rotation axis you will see strange revolution animations. 
 
 ## Object group example
 
