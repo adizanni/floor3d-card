@@ -17,7 +17,7 @@
   "dependencies": {
     "@vaadin/vaadin-combo-box": "^20.0.0",
     "card-tools": "github:thomasloven/lovelace-card-tools",
-    "custom-card-helpers": "^1.7.1",
+    "custom-card-helpers": "^1.7.2",
     "home-assistant-js-websocket": "^5.10.0",
     "lit": "^2.0.0-rc.2",
     "three": "^0.130.1"

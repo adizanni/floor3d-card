@@ -40,6 +40,9 @@ export interface Floor3dCardConfig {
   direction: string;
   text: any;
   gesture: any;
+  rotate: any;
+  round_per_second: number;
+  axis: string;
   span: string;
   vertical_alignment: string;
   textbgcolor: string;

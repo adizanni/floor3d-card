@@ -84,7 +84,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
 
     this.hass.resources;
     const hideOptions = {
-      icon: 'arrow-expand-horizontal',
+      icon: 'eye-off',
       name: 'Hide',
       secondary: 'Hide options.',
       show: false,
@@ -92,9 +92,17 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     };
 
     const showOptions = {
-      icon: 'arrow-expand-horizontal',
+      icon: 'eye',
       name: 'Show',
       secondary: 'Show options.',
+      show: false,
+      visible: false,
+    };
+
+    const rotateOptions = {
+      icon: 'fan',
+      name: 'Rotate',
+      secondary: 'Rotate options.',
       show: false,
       visible: false,
     };
@@ -156,6 +164,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         show: { ...showOptions },
         text: { ...textOptions },
         door: { ...doorOptions },
+        rotate: { ...rotateOptions },
         gesture: { ...gestureOptions },
       },
     };
@@ -479,7 +488,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._createTypeElement(index)} ${this._createLightElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
                 ${this._createShowElement(index)} ${this._createTextElement(index)} ${this._createGestureElement(index)}
-                ${this._createDoorElement(index)}
+                ${this._createDoorElement(index)} ${this._createRotateElement(index)}
               </div>
             `
           : ''}
@@ -866,6 +875,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="show">show</paper-item>
                       <paper-item item-name="text">text</paper-item>
                       <paper-item item-name="door">door</paper-item>
+                      <paper-item item-name="rotate">rotate</paper-item>
                       <paper-item item-name="gesture">gesture</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
@@ -1541,7 +1551,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   attr-for-selected="item-name"
                                   selected="${config.door.direction ? config.door.direction : null}"
                                 >
-                                  <paper-item item-name="none">none</paper-item>
                                   <paper-item item-name="inner">inner</paper-item>
                                   <paper-item item-name="outer">outer</paper-item>
                                 </paper-listbox>
@@ -1605,6 +1614,76 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .value=${config.gesture.service ? config.gesture.service : ''}
                                 .configObject=${config.gesture}
                                 .configAttribute=${'service'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createRotateElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.rotate;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'rotate' : false;
+    if (visible) {
+      config.rotate = { ...config.rotate };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="text">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+          ? html`
+                           <paper-dropdown-menu
+                                label="Axis"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.rotate}
+                                .configAttribute=${'axis'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.rotate.axis ? config.rotate.axis : null}"
+                                >
+                                  <paper-item item-name="x">x</paper-item>
+                                  <paper-item item-name="y">y</paper-item>
+                                  <paper-item item-name="z">z</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
+                              <paper-input
+                                editable
+                                label="Round per seconds (max 2)"
+                                .value=${config.rotate.round_per_second ? config.rotate.round_per_second : ''}
+                                .configObject=${config.rotate}
+                                .configAttribute=${'round_per_second'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                             `

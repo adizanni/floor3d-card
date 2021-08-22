@@ -22,7 +22,7 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { BooleanKeyframeTrack, DirectionalLightHelper, Material, Mesh, Vector3 } from 'three';
+import { BooleanKeyframeTrack, DirectionalLightHelper, Group, Material, Mesh, Vector3 } from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -53,6 +53,8 @@ export class Floor3dCard extends LitElement {
   private _modelX?: number;
   private _modelY?: number;
   private _modelZ?: number;
+  private _to_animate: boolean;
+  private _count_to_animate: number;
 
   private _canvas_id: string;
   private _states?: string[];
@@ -64,7 +66,12 @@ export class Floor3dCard extends LitElement {
   private _canvas?: HTMLCanvasElement[];
   private _unit_of_measurement?: string[];
   private _loaded?: boolean;
-  private _doorposition: number[][];
+  private _objposition: number[][];
+  private _objects_to_rotate: THREE.Group[] = [];
+  private _axis_to_rotate: string[] = [];
+  private _round_per_seconds: number[] = [];
+  private _rotation_state: boolean[] = [];
+  private _rotation_index: number[] = [];
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
@@ -288,6 +295,41 @@ export class Floor3dCard extends LitElement {
     }, 250);
   }
 
+
+  private async _rotateobjects() {
+
+    await new Promise(r => setTimeout(r, 250));
+
+    requestAnimationFrame(this._rotateobjects.bind(this));
+
+    let to_render = false;
+
+    this._rotation_state.forEach((state, index) => {
+
+      if (state) {
+        to_render = true;
+        switch (this._axis_to_rotate[index]) {
+          case 'x':
+            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI / 4;
+            break;
+          case 'y':
+            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI / 4;
+            break;
+          case 'z':
+            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI / 4;
+            break;
+        }
+
+      }
+
+    });
+
+    if (to_render) {
+      this._renderer.render(this._scene, this._camera);
+    }
+
+  }
+
   private _resizeCanvas(): void {
     console.log('Resize canvas start');
     if (
@@ -312,14 +354,11 @@ export class Floor3dCard extends LitElement {
       let state = this._hass.states[entity.entity].state;
 
       if (entity.entity_template) {
-        //console.log("Template: "+ entity.entity_template);
         const trimmed = entity.entity_template.trim();
 
         if (trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]' && trimmed.includes('$entity')) {
           const normal = trimmed.slice(3, -3).replace(/\$entity/g, state);
-          //console.log("Normal: " + normal);
           state = eval(normal);
-          //console.log("State: " + state)
         }
       }
       return state;
@@ -340,6 +379,8 @@ export class Floor3dCard extends LitElement {
         this._brightness = [];
         this._lights = [];
         this._canvas = [];
+        this._to_animate = false;
+        this._count_to_animate = 0;
         this._config.entities.forEach((entity) => {
           if (entity.entity !== '') {
             this._states.push(this._statewithtemplate(entity));
@@ -349,7 +390,6 @@ export class Floor3dCard extends LitElement {
             } else {
               this._lights.push('');
             }
-            //console.log('RGB: ' + JSON.stringify(this._TemperatureToRGB(250)));
             let i = this._color.push([255, 255, 255]) - 1;
             if (hass.states[entity.entity].attributes['color_mode']) {
               if ((hass.states[entity.entity].attributes['color_mode'] = 'color_temp')) {
@@ -369,6 +409,9 @@ export class Floor3dCard extends LitElement {
               this._unit_of_measurement.push(hass.states[entity.entity].attributes['unit_of_measurement']);
             } else {
               this._unit_of_measurement.push('');
+            }
+            if (entity.type3d == 'rotate') {
+              this._to_animate = true;
             }
           }
         });
@@ -435,6 +478,12 @@ export class Floor3dCard extends LitElement {
                   this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
                   torerender = true;
                 }
+              } else if (entity.type3d == 'rotate') {
+                this._rotation_index.forEach((index, j) => {
+                  if (index == i) {
+                    this._rotation_state[j] = (this._states[i] == 'on');
+                  }
+                });
               }
             }
           }
@@ -600,6 +649,9 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
+      if (this._to_animate) {
+        this._rotateobjects();
+      }
     }
   }
 
@@ -633,7 +685,7 @@ export class Floor3dCard extends LitElement {
 
   private _onLoaded3DMaterials(materials: MTLLoader.MaterialCreator): void {
     // Materials Loaded Event: last root material passed to the function
-    console.log('Matesrial loaded start');
+    console.log('Material loaded start');
     materials.preload();
     let path = this._config.path;
     const lastChar = path.substr(-1);
@@ -657,18 +709,24 @@ export class Floor3dCard extends LitElement {
     // Add-Modify the objects bound to the entities in the card config
     console.log('Add Objects Start');
     if (this._states && this._config.entities) {
-      this._doorposition = [];
+      this._objposition = [];
       this._config.entities.forEach((entity, i) => {
-        this._doorposition.push([0, 0, 0]);
+        this._objposition.push([0, 0, 0]);
         if (entity.entity !== '') {
-          if (entity.type3d == 'door') {
+          if (entity.type3d == 'door' || entity.type3d == 'rotate') {
             const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
             if (_foundobject) {
-              //_foundobject.removeFromParent();
               (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
               let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
-              this._doorposition[i] = [vec.x, vec.y, vec.z];
-              console.log('Saved position: ' + JSON.stringify(this._doorposition));
+              this._objposition[i] = [vec.x, vec.y, vec.z];
+              if (entity.type3d == 'rotate') {
+                  this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
+                  this._round_per_seconds.push(entity.rotate.round_per_second);
+                  this._axis_to_rotate.push(entity.rotate.axis);
+                  this._rotation_state.push(false);
+                  this._rotation_index.push(i);
+                  console.log('Rotate object added')
+              }
             }
           }
           if (entity.type3d == 'light') {
@@ -711,7 +769,6 @@ export class Floor3dCard extends LitElement {
             let j = 0;
             this._object_ids[i].objects.forEach((element) => {
               let _foundobject: any = this._scene.getObjectByName(element.object_id);
-              //console.log('Material is array: ' + Array.isArray(_foundobject.material));
               this._initialmaterial[i][j] = _foundobject.material;
               if (!Array.isArray(_foundobject.material)) {
                 this._clonedmaterial[i][j] = _foundobject.material.clone();
@@ -734,7 +791,6 @@ export class Floor3dCard extends LitElement {
           } else if (entity.type3d == 'door') {
             this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
-            //console.log('is text');
             this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
           }
         }
@@ -890,142 +946,182 @@ export class Floor3dCard extends LitElement {
 
     let door: THREE.Mesh;
 
-    /*
-    if (_obj.parent) {
-      door = _obj.parent;
-    } else {
-      door = _obj;
-    }*/
-
     door = _obj;
 
     if (door) {
       if (item.door.doortype) {
-        if (this._states[i] == 'off') {
-          //door.position.set(this._doorposition[i].x, this._doorposition[i].y, this._doorposition[i].z);
-          //door.rotation.set(this._doorrotation[i].x, this._doorrotation[i].y, this._doorrotation[i].z);
-        } else if (this._states[i] == 'on') {
-          if (item.door.doortype == 'swing') {
-            this._rotatedoor(door, item.door.side, item.door.direction, this._doorposition[i]);
+        if (item.door.doortype == 'swing') {
+            this._rotatedoor(door, item.door.side, item.door.direction, this._objposition[i], this._states[i]);
             return;
-          } else if (item.door.doortype == 'slide') {
-            this._translatedoor(door, item.door.side);
+        } else if (item.door.doortype == 'slide') {
+            this._translatedoor(door, item.door.side, this._states[i]);
             return;
-          }
         }
       }
     }
+
   }
 
-  private _rotatedoorter(_obj: THREE.Mesh, side: string, direction: string) {
-    let axis: Vector3 = new Vector3();
-    let angle: number;
-    if (side == 'left') {
-      axis.x = 0;
-      axis.z = 0;
-      axis.y = 1;
-    } else if ((side = 'right')) {
-      axis.x = 0;
-      axis.z = 0;
-      axis.y = 1;
-    }
-    if (direction == 'inner') {
-      angle = Math.PI / 2;
-    } else if (direction == 'outer') {
-      angle = -Math.PI / 2;
-    }
+  private _centerrotateobj(_obj: THREE.Mesh, pos: number[]): THREE.Group {
+
+    let initialworldposition = new THREE.Vector3;
+    _obj.getWorldPosition(initialworldposition);
+
+    let relativeposition = new THREE.Vector3(pos[0], pos[1], pos[2]);
+    let finalposition = initialworldposition.add(relativeposition);
+
+    _obj.geometry.center(); // this re-sets the mesh position
+    _obj.position.multiplyScalar(- 1);
+
+    let pivot: THREE.Group = new THREE.Group();
+    pivot.add(_obj);
+    this._scene.add(pivot);
+
+    console.log(pivot);
+    console.log(pos);
+
+    let size = new THREE.Vector3;
+
+    _obj.geometry.boundingBox.getSize(size);
+
+    let translate: THREE.Vector3 = new THREE.Vector3();
+
+    translate.y = size.y / 2;
+    translate.z = size.z / 2;
+    translate.x = size.x / 2;
+
+    pivot.position.set(finalposition.x+translate.x, finalposition.y+translate.y, finalposition.z+translate.z);
+
+    return pivot;
+
+  }
+
+  private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[], _doorstate: string) {
+
     _obj.geometry.computeBoundingBox();
-    let boundingBox = _obj.geometry.boundingBox;
-    console.log('rotate translation bounding box: ' + JSON.stringify(boundingBox));
-    console.log('rotate door iniitial position: ' + JSON.stringify(_obj.position));
-    let position = new THREE.Vector3();
-    position.subVectors(boundingBox.max, boundingBox.min);
-    console.log('rotate translation subvector: ' + JSON.stringify(position));
-    position.multiplyScalar(0.5);
-    console.log('rotate translation scalar: ' + JSON.stringify(position));
-    position.add(boundingBox.min);
-    console.log('rotate translation scalar + bounding box: ' + JSON.stringify(position));
-    position.applyMatrix4(_obj.matrixWorld);
-    console.log('rotate translation vector: ' + JSON.stringify(position));
-    _obj.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(-position.x, -position.y, -position.z));
-    console.log('rotate door position after translation: ' + JSON.stringify(_obj.position));
-    _obj.rotation.y = Math.PI / 2;
-    _obj.position.set(position.x, position.y, position.z);
-    console.log('rotate door final position: ' + JSON.stringify(_obj.position));
-  }
 
-  private _rotatedoorbis(_obj: THREE.Mesh, side: string, direction: string) {
-    let axis: Vector3 = new Vector3();
-    let angle: number;
-    if (side == 'left') {
-      axis.x = 0;
-      axis.z = 0;
-      axis.y = 1;
-    } else if ((side = 'right')) {
-      axis.x = 0;
-      axis.z = 0;
-      axis.y = 1;
-    }
-    if (direction == 'inner') {
-      angle = Math.PI / 2;
-    } else if (direction == 'outer') {
-      angle = -Math.PI / 2;
-    }
-    _obj.setRotationFromAxisAngle(axis, Math.PI / 2);
-  }
-
-  private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[]) {
-    _obj.geometry.computeBoundingBox();
     let size: Vector3 = new THREE.Vector3();
     let center: Vector3 = new THREE.Vector3();
+
     _obj.geometry.boundingBox.getSize(size);
     _obj.geometry.center();
     _obj.geometry.boundingBox.getCenter(center);
-    console.log('rotate door position: ' + JSON.stringify(_obj.position));
-    console.log('rotate door iniitial position: ' + JSON.stringify(pos));
-    console.log('rotate door size: ' + JSON.stringify(size));
-    console.log('rotate door center: ' + JSON.stringify(center));
 
     let translate: THREE.Vector3 = new THREE.Vector3();
-    //translate.y = -center.y;
-    translate.y = center.y / 2;
-    _obj.rotation.y += Math.PI / 2;
-    if (side == 'left') {
-      translate.z = -center.x - size.x / 2;
-    } else if (side == 'right') {
-      translate.z = -center.x + size.x / 2;
-    }
-    if (direction == 'inner') {
-      translate.x = center.z - size.x / 2;
+
+    translate.y = size.y / 2;
+    translate.z = size.z / 2;
+    translate.x = size.x / 2;
+
+    if (_doorstate == 'on') {
+      if (side == 'left') {
+        translate.z += 0;
+        translate.x += 0;
+      } else if (side == 'right') {
+        translate.x += -size.z;
+        translate.z += -size.x;
+      }
+      if (direction == 'inner') {
+        if (side == 'left' || side == 'right') {
+          _obj.rotation.y = -Math.PI / 2;
+          translate.x += 0;
+        } else if (side == 'up' || side == 'down') {
+          translate.y += +0;
+          if (size.x > size.z) {
+            if (side == 'up') {
+              translate.z += +size.y;
+            } else if (side == 'down') {
+              translate.z += 0;
+            }
+            _obj.rotation.x = -Math.PI / 2;
+          } else {
+            if (side == 'up') {
+              translate.x += +size.y;
+            } else if (side == 'down') {
+              translate.x += 0;
+            }
+            _obj.rotation.z = -Math.PI / 2;
+          }
+        }
+      } else  if (direction == 'outer') {
+        if (side == 'left' || side == 'right') {
+          _obj.rotation.y = +Math.PI / 2;
+          translate.z += 0;
+          translate.x += 0;
+        } else if (side == 'up' || side == 'down') {
+          if (size.x > size.z) {
+            if (side == 'up') {
+              translate.z += +size.y;
+            } else if (side == 'down') {
+              translate.z += 0;
+            }
+            _obj.rotation.x = +Math.PI / 2;
+          } else {
+            if (side == 'up') {
+              translate.x += +size.y;
+            } else if (side == 'down') {
+              translate.x += 0;
+            }
+            _obj.rotation.z = +Math.PI / 2;
+          }
+        }
+      }
+
     } else {
-      translate.x = center.z + size.x / 2;
+      _obj.rotation.y = 0;
+      _obj.rotation.x = 0;
+      _obj.rotation.z = 0;
     }
-    console.log('rotate door translate vector:  ' + JSON.stringify(translate));
-    console.log('saved position: ', JSON.stringify(pos));
+
     _obj.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
     _obj.position.set(pos[0], pos[1], pos[2]);
   }
 
-  private _translatedoor(_obj: any, side: string) {
-    let bBox = new THREE.Box3().setFromObject(_obj);
-    let size = { x: bBox.max.x - bBox.min.x, y: bBox.max.y - bBox.min.y, z: bBox.max.z - bBox.min.z };
-    let translate: THREE.Vector3 = new THREE.Vector3();
+  private _translatedoor(_obj: THREE.Mesh, side: string, doorstate: string) {
 
-    if (side == 'left') {
-      translate.x = -size.x;
-      translate.y = 0;
-    } else if (side == 'right') {
-      translate.x = size.x;
-      translate.y = 0;
-    } else if (side == 'down') {
-      translate.y = -size.y;
-      translate.x = 0;
-    } else if (side == 'up') {
-      translate.y = size.y;
-      translate.x = 0;
+
+    let translate: THREE.Vector3 = new THREE.Vector3(0,0,0);
+
+    let size: Vector3 = new THREE.Vector3();
+    let center: Vector3 = new THREE.Vector3();
+
+    _obj.geometry.computeBoundingBox();
+    _obj.geometry.boundingBox.getSize(size);
+
+    if (doorstate == 'off') {
+      _obj.position.set(0, 0, 0);
+    } else if (doorstate == 'on') {
+      if (side == 'left') {
+        if (size.x > size.z) {
+          translate.z += 0;
+          translate.x += -size.x;
+          translate.y = 0
+        } else {
+          translate.z += -size.z;
+          translate.x += 0;
+          translate.y += 0;
+        }
+      } else if (side == 'right') {
+        if (size.x > size.z) {
+          translate.z += 0;
+          translate.x += +size.x;
+          translate.y += 0;
+        } else {
+          translate.z += +size.z;
+          translate.x += 0;
+          translate.y += 0
+        }
+      } else if (side == 'down') {
+        translate.y += -size.y;
+        translate.x += 0;
+        translate.z += 0;
+      } else if (side == 'up') {
+        translate.y += +size.y;
+        translate.x += 0;
+        translate.z += 0;
+      }
+      _obj.position.set(translate.x, translate.y, translate.z);
     }
-    translate.z = 0;
-    _obj.geometry.applyMatrix(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
   }
 
   private _updatecolor(item: any, index: number): void {
@@ -1099,7 +1195,6 @@ export class Floor3dCard extends LitElement {
 
   // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(_changedProps: PropertyValues): boolean {
-    //console.log(JSON.stringify(changedProps))
     return true;
     //return hasConfigOrEntityChanged(this, _changedProps, false);
   }
