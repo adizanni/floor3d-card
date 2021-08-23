@@ -272,19 +272,19 @@ export class Floor3dCard extends LitElement {
       window.prompt(
         'YAML:',
         'camera_position: { x: ' +
-          this._camera.position.x +
-          ', y: ' +
-          this._camera.position.y +
-          ', z: ' +
-          this._camera.position.z +
-          ' }\n' +
-          'camera_rotate: { x: ' +
-          this._camera.rotation.x +
-          ', y: ' +
-          this._camera.rotation.y +
-          ', z: ' +
-          this._camera.rotation.z +
-          ' }',
+        this._camera.position.x +
+        ', y: ' +
+        this._camera.position.y +
+        ', z: ' +
+        this._camera.position.z +
+        ' }\n' +
+        'camera_rotate: { x: ' +
+        this._camera.rotation.x +
+        ', y: ' +
+        this._camera.rotation.y +
+        ', z: ' +
+        this._camera.rotation.z +
+        ' }',
       );
     }
   }
@@ -298,12 +298,12 @@ export class Floor3dCard extends LitElement {
 
 
   private async _rotateobjects() {
-	  
+
     let lastFrameSec = this._clock.getDelta();
     let targetFps = 240;
     let fps = lastFrameSec == 0 ? targetFps : 1 / lastFrameSec;
     await new Promise(r => setTimeout(r, 1000 / targetFps));
-	
+
     requestAnimationFrame(this._rotateobjects.bind(this));
     let to_render = false;
 
@@ -723,12 +723,11 @@ export class Floor3dCard extends LitElement {
               let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
               this._objposition[i] = [vec.x, vec.y, vec.z];
               if (entity.type3d == 'rotate') {
-                  this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
-                  this._round_per_seconds.push(entity.rotate.round_per_second);
-                  this._axis_to_rotate.push(entity.rotate.axis);
-                  this._rotation_state.push(false);
-                  this._rotation_index.push(i);
-                  console.log('Rotate object added')
+                this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
+                this._round_per_seconds.push(entity.rotate.round_per_second);
+                this._axis_to_rotate.push(entity.rotate.axis);
+                this._rotation_state.push(false);
+                this._rotation_index.push(i);
               }
             }
           }
@@ -960,11 +959,11 @@ export class Floor3dCard extends LitElement {
     if (door) {
       if (item.door.doortype) {
         if (item.door.doortype == 'swing') {
-            this._rotatedoor(door, item.door.side, item.door.direction, this._objposition[i], this._states[i]);
-            return;
+          this._rotatedoor(door, item.door.side, item.door.direction, this._objposition[i], this._states[i]);
+          return;
         } else if (item.door.doortype == 'slide') {
-            this._translatedoor(door, item.door.side, this._states[i]);
-            return;
+          this._translatedoor(door, item.door.side, this._states[i]);
+          return;
         }
       }
     }
@@ -986,9 +985,6 @@ export class Floor3dCard extends LitElement {
     pivot.add(_obj);
     this._scene.add(pivot);
 
-    console.log(pivot);
-    console.log(pos);
-
     let size = new THREE.Vector3;
 
     _obj.geometry.boundingBox.getSize(size);
@@ -999,7 +995,7 @@ export class Floor3dCard extends LitElement {
     translate.z = size.z / 2;
     translate.x = size.x / 2;
 
-    pivot.position.set(finalposition.x+translate.x, finalposition.y+translate.y, finalposition.z+translate.z);
+    pivot.position.set(finalposition.x + translate.x, finalposition.y + translate.y, finalposition.z + translate.z);
 
     return pivot;
 
@@ -1023,17 +1019,19 @@ export class Floor3dCard extends LitElement {
     translate.x = size.x / 2;
 
     if (_doorstate == 'on') {
-      if (side == 'left') {
-        translate.z += 0;
-        translate.x += 0;
-      } else if (side == 'right') {
-        translate.x += -size.z;
-        translate.z += -size.x;
-      }
       if (direction == 'inner') {
         if (side == 'left' || side == 'right') {
           _obj.rotation.y = -Math.PI / 2;
           translate.x += 0;
+          if (size.x > size.z) {
+            if (side == 'right') {
+              translate.x += -size.z;
+              translate.z += -size.x;
+            } else if (side = 'left') {
+              translate.z += 0;
+              translate.x += 0;
+            }
+          }
         } else if (side == 'up' || side == 'down') {
           translate.y += +0;
           if (size.x > size.z) {
@@ -1052,11 +1050,19 @@ export class Floor3dCard extends LitElement {
             _obj.rotation.z = -Math.PI / 2;
           }
         }
-      } else  if (direction == 'outer') {
+      } else if (direction == 'outer') {
         if (side == 'left' || side == 'right') {
           _obj.rotation.y = +Math.PI / 2;
-          translate.z += 0;
           translate.x += 0;
+          if (size.x > size.z) {
+            if (side == 'right') {
+              translate.x += +size.z;
+              translate.z += +size.x;
+            } else if (side = 'left') {
+              translate.z += 0;
+              translate.x += 0;
+            }
+          }
         } else if (side == 'up' || side == 'down') {
           if (size.x > size.z) {
             if (side == 'up') {
@@ -1089,7 +1095,7 @@ export class Floor3dCard extends LitElement {
   private _translatedoor(_obj: THREE.Mesh, side: string, doorstate: string) {
 
 
-    let translate: THREE.Vector3 = new THREE.Vector3(0,0,0);
+    let translate: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
     let size: Vector3 = new THREE.Vector3();
     let center: Vector3 = new THREE.Vector3();
@@ -1220,11 +1226,8 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card
-        tabindex="0"
-        .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`}
-        id="${this._card_id}"
-      >
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`}
+        id="${this._card_id}">
       </ha-card>
     `;
   }
@@ -1237,7 +1240,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _showWarning(warning: string): TemplateResult {
-    return html` <hui-warning>${warning}</hui-warning> `;
+    return html`<hui-warning>${warning}</hui-warning>`;
   }
 
   private _showError(error: string): TemplateResult {
@@ -1248,7 +1251,7 @@ export class Floor3dCard extends LitElement {
       origConfig: this._config,
     });
 
-    return html` ${errorCard} `;
+    return html`${errorCard}`;
   }
 
   // https://lit-element.polymer-project.org/guide/styles
