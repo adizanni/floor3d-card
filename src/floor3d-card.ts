@@ -1025,12 +1025,23 @@ export class Floor3dCard extends LitElement {
           translate.x += 0;
           if (size.x > size.z) {
             if (side == 'right') {
-              translate.x += -size.z;
+              translate.z += -size.x;
+              //translate.x += 0;
+              translate.x += +size.z;
+            } else if (side = 'left') {
+              translate.z += 0;
+              translate.x += 0;
+            }
+          } else {
+            if (side == 'right') {
+              translate.x += +size.z;
+              //translate.z += 0;
               translate.z += -size.x;
             } else if (side = 'left') {
               translate.z += 0;
               translate.x += 0;
             }
+
           }
         } else if (side == 'up' || side == 'down') {
           translate.y += +0;
@@ -1056,7 +1067,17 @@ export class Floor3dCard extends LitElement {
           translate.x += 0;
           if (size.x > size.z) {
             if (side == 'right') {
-              translate.x += +size.z;
+              translate.x += -size.z;
+              //translate.x += 0;
+              translate.z += size.x;
+            } else if (side = 'left') {
+              translate.z += 0;
+              translate.x += 0;
+            }
+          } else {
+            if (side == 'right') {
+              translate.x += -size.z;
+              //translate.z += 0;
               translate.z += +size.x;
             } else if (side = 'left') {
               translate.z += 0;
