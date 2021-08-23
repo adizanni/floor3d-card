@@ -72,6 +72,7 @@ export class Floor3dCard extends LitElement {
   private _round_per_seconds: number[] = [];
   private _rotation_state: boolean[] = [];
   private _rotation_index: number[] = [];
+  private _clock?: THREE.Clock;
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
@@ -297,11 +298,13 @@ export class Floor3dCard extends LitElement {
 
 
   private async _rotateobjects() {
-
-    await new Promise(r => setTimeout(r, 250));
-
+	  
+    let lastFrameSec = this._clock.getDelta();
+    let targetFps = 240;
+    let fps = lastFrameSec == 0 ? targetFps : 1 / lastFrameSec;
+    await new Promise(r => setTimeout(r, 1000 / targetFps));
+	
     requestAnimationFrame(this._rotateobjects.bind(this));
-
     let to_render = false;
 
     this._rotation_state.forEach((state, index) => {
@@ -310,13 +313,13 @@ export class Floor3dCard extends LitElement {
         to_render = true;
         switch (this._axis_to_rotate[index]) {
           case 'x':
-            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI / 4;
+            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI / fps;
             break;
           case 'y':
-            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI / 4;
+            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI / fps;
             break;
           case 'z':
-            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI / 4;
+            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI / fps;
             break;
         }
 
@@ -327,7 +330,6 @@ export class Floor3dCard extends LitElement {
     if (to_render) {
       this._renderer.render(this._scene, this._camera);
     }
-
   }
 
   private _resizeCanvas(): void {
@@ -650,6 +652,7 @@ export class Floor3dCard extends LitElement {
       this._render();
       this._resizeCanvas();
       if (this._to_animate) {
+        this._clock = new THREE.Clock();
         this._rotateobjects();
       }
     }
@@ -792,6 +795,12 @@ export class Floor3dCard extends LitElement {
             this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
             this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
+          } else if (entity.type3d == 'rotate') {
+            this._rotation_index.forEach((index, j) => {
+              if (index == i) {
+                this._rotation_state[j] = (this._states[i] == 'on');
+              }
+            });
           }
         }
       });
