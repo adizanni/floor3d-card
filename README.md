@@ -214,7 +214,7 @@ entities:
       side: 'up', 'down', 'left' and 'right', the border of the door that is the axis of rotation
       direction: 'inner' and 'outer', the direction of rotation
 ```
-a door/window object/entity is rotated by 90 degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You will notice that complex doors have many sub objects (ex. handles). Today you can only select one object that is going to be rotated (you will probably select the main door / window pane). I'm going to do a tutorial to explain how to build a door in sweethome3d that will act realistically (either using my plugin https://github.com/adizanni/ExportToHASS or updating the obj file) 
+a door/window object/entity is rotated by 90 degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You will notice that complex doors have many sub objects (ex. handles). Today you can only select one object that is going to be rotated (you will probably select the main door / window pane). I'm going to do a tutorial to explain how to build a door in sweethome3d that will act realistically (either using my plugin https://github.com/adizanni/ExportToHASS or updating the obj file). **Be aware, in this first version the door works only if the panel has a square angle with the model axis**  
 
 ## Rotate
 
