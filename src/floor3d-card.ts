@@ -313,13 +313,13 @@ export class Floor3dCard extends LitElement {
         to_render = true;
         switch (this._axis_to_rotate[index]) {
           case 'x':
-            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI / fps;
+            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI * 2 / fps;
             break;
           case 'y':
-            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI / fps;
+            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI * 2 / fps;
             break;
           case 'z':
-            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI / fps;
+            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI * 2 / fps;
             break;
         }
 
