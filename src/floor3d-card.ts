@@ -54,7 +54,6 @@ export class Floor3dCard extends LitElement {
   private _modelY?: number;
   private _modelZ?: number;
   private _to_animate: boolean;
-  private _count_to_animate: number;
 
   private _canvas_id: string;
   private _states?: string[];
@@ -296,42 +295,6 @@ export class Floor3dCard extends LitElement {
     }, 250);
   }
 
-
-  private async _rotateobjects() {
-
-    let lastFrameSec = this._clock.getDelta();
-    let targetFps = 240;
-    let fps = lastFrameSec == 0 ? targetFps : 1 / lastFrameSec;
-    await new Promise(r => setTimeout(r, 1000 / targetFps));
-
-    requestAnimationFrame(this._rotateobjects.bind(this));
-    let to_render = false;
-
-    this._rotation_state.forEach((state, index) => {
-
-      if (state != 0) {
-        to_render = true;
-        switch (this._axis_to_rotate[index]) {
-          case 'x':
-            this._objects_to_rotate[index].rotation.x += this._round_per_seconds[index] * Math.PI * 2 * state / fps;
-            break;
-          case 'y':
-            this._objects_to_rotate[index].rotation.y += this._round_per_seconds[index] * Math.PI * 2 * state / fps;
-            break;
-          case 'z':
-            this._objects_to_rotate[index].rotation.z += this._round_per_seconds[index] * Math.PI * 2 * state / fps;
-            break;
-        }
-
-      }
-
-    });
-
-    if (to_render) {
-      this._renderer.render(this._scene, this._camera);
-    }
-  }
-
   private _resizeCanvas(): void {
     console.log('Resize canvas start');
     if (
@@ -381,8 +344,7 @@ export class Floor3dCard extends LitElement {
         this._brightness = [];
         this._lights = [];
         this._canvas = [];
-        this._to_animate = false;
-        this._count_to_animate = 0;
+
         this._config.entities.forEach((entity) => {
           if (entity.entity !== '') {
             this._states.push(this._statewithtemplate(entity));
@@ -411,9 +373,6 @@ export class Floor3dCard extends LitElement {
               this._unit_of_measurement.push(hass.states[entity.entity].attributes['unit_of_measurement']);
             } else {
               this._unit_of_measurement.push('');
-            }
-            if (entity.type3d == 'rotate') {
-              this._to_animate = true;
             }
           }
         });
@@ -648,10 +607,6 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
-      if (this._to_animate) {
-        this._clock = new THREE.Clock();
-        this._rotateobjects();
-      }
     }
   }
 
@@ -995,26 +950,51 @@ export class Floor3dCard extends LitElement {
   }
   
   private _rotatecalc(entity: Floor3dCardConfig, i: number) {
-    this._rotation_index.forEach((index, j) => {
-      if (index == i) {
-        //1 if the entity is on, 0 if the entity is off
-        this._rotation_state[j] = (this._states[i] == 'on' ? 1 : 0);
-        
-        //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
-        //into a decimal and store it as the rotation state
-        if(this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
-          this._rotation_state[j] = this._hass.states[entity.entity].attributes['percentage'] / 100;
-        }
-        
-        //If the entity is on and it is reversed, set the rotation state to the negative value of itself
-        if(
-          this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['direction'] && 
-          this._hass.states[entity.entity].attributes['direction'] == 'reverse'
-        ) {
-          this._rotation_state[j] = 0 - this._rotation_state[j];
-        }
+    
+    let j = this._rotation_index.indexOf(i);
+    
+    //1 if the entity is on, 0 if the entity is off
+    this._rotation_state[j] = (this._states[i] == 'on' ? 1 : 0);
+    
+    //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
+    //into a decimal and store it as the rotation state
+    if(this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
+      this._rotation_state[j] = this._hass.states[entity.entity].attributes['percentage'] / 100;
+    }
+    
+    //If the entity is on and it is reversed, set the rotation state to the negative value of itself
+    if(
+      this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['direction'] && 
+      this._hass.states[entity.entity].attributes['direction'] == 'reverse'
+    ) {
+      this._rotation_state[j] = 0 - this._rotation_state[j];
+    }
+    
+    //If every rotating entity is stopped, disable animation
+    if(this._rotation_state.every(item => item === 0)) {
+      if(this._to_animate) {
+        this._to_animate = false;
+        this._clock = null;
+        this._renderer.setAnimationLoop(null);
       }
-    });
+    }
+    
+    //Otherwise, start an animation loop
+    else if(!this._to_animate) {
+      this._to_animate = true;
+      this._clock = new THREE.Clock();
+      this._renderer.setAnimationLoop(() => {
+        let moveBy = this._clock.getDelta() * Math.PI * 2;
+
+        this._rotation_state.forEach((state, index) => {
+          if (state != 0) {
+            this._objects_to_rotate[index].rotation[this._axis_to_rotate[index]] += this._round_per_seconds[index] * state * moveBy;
+          }
+        });
+
+        this._renderer.render(this._scene, this._camera);
+      });
+    }
   }
 
   private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[], _doorstate: string) {

@@ -226,7 +226,7 @@ entities:
     object_id: <an object id representing the object to be rotated>
     rotate:
       axis: <'x', 'y' and 'z', along which axis the object should rotate>
-      round_per_seconds: 1-4, speed of rotation (experimental)
+      round_per_seconds: 1-4, speed of rotation. Use a negative number to spin the other direction.
 ```
 an object to rotate (animation) when the associated entity will be 'on'. Be advised that for the first release the object will rotate using the center as point of rotation. Center being defined as the center of the bounding box of the object. For fans, if the fan object is not centered in the rotation axis you will see strange revolution animations. 
 
