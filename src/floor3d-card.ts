@@ -99,6 +99,24 @@ export class Floor3dCard extends LitElement {
     this._card_id = 'ha-card-1';
     console.log('New Card');
   }
+  
+  public connectedCallback(): void {
+    super.connectedCallback();
+    
+    if(this._to_animate) {
+      this._clock = new THREE.Clock();
+      this._renderer.setAnimationLoop(() => this._rotateobjects());
+    }
+  }
+  
+  public disconnectedCallback(): void {
+    super.disconnectedCallback();
+    
+    if(this._to_animate) {
+      this._clock = null;
+      this._renderer.setAnimationLoop(null);
+    }
+  }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('floor3d-card-editor');
@@ -983,18 +1001,20 @@ export class Floor3dCard extends LitElement {
     else if(!this._to_animate) {
       this._to_animate = true;
       this._clock = new THREE.Clock();
-      this._renderer.setAnimationLoop(() => {
-        let moveBy = this._clock.getDelta() * Math.PI * 2;
-
-        this._rotation_state.forEach((state, index) => {
-          if (state != 0) {
-            this._objects_to_rotate[index].rotation[this._axis_to_rotate[index]] += this._round_per_seconds[index] * state * moveBy;
-          }
-        });
-
-        this._renderer.render(this._scene, this._camera);
-      });
+      this._renderer.setAnimationLoop(() => this._rotateobjects());
     }
+  }
+  
+  private _rotateobjects() {
+    let moveBy = this._clock.getDelta() * Math.PI * 2;
+
+    this._rotation_state.forEach((state, index) => {
+      if (state != 0) {
+        this._objects_to_rotate[index].rotation[this._axis_to_rotate[index]] += this._round_per_seconds[index] * state * moveBy;
+      }
+    });
+
+    this._renderer.render(this._scene, this._camera);
   }
 
   private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[], _doorstate: string) {
