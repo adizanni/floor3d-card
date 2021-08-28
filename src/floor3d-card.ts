@@ -728,6 +728,7 @@ export class Floor3dCard extends LitElement {
                   }
                 }
                 light.position.set(x, y, z);
+                this._setNoShadowLight(_foundobject);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
                 light.castShadow = true;
                 light.name = element.object_id + '_light';
