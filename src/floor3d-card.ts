@@ -361,7 +361,7 @@ export class Floor3dCard extends LitElement {
       this._renderer.setSize(
         this._renderer.domElement.parentElement.clientWidth,
         this._renderer.domElement.parentElement.clientHeight,
-        false,
+        !this._issidebar(),
       );
       this._renderer.render(this._scene, this._camera);
     }
