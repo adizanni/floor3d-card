@@ -75,6 +75,8 @@ export class Floor3dCard extends LitElement {
   private _firstcall?: boolean;
   private resizeTimeout?: number;
   private _resizeEventListener: EventListener;
+  private _zIndexInterval: number;
+  private _cardObscured: boolean;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
   private _progress?: HTMLElement;
@@ -84,6 +86,7 @@ export class Floor3dCard extends LitElement {
   private _object_ids?: Floor3dCardConfig[] = [];
 
   private _hass?: HomeAssistant;
+  private _haShadowRoot: any;
   private _card_id: string;
   private _ambient_light: THREE.AmbientLight;
   private _direction_light: THREE.DirectionalLight;
@@ -95,7 +98,9 @@ export class Floor3dCard extends LitElement {
     super();
     
     this._loaded = false;
+    this._cardObscured = false;
     this._resizeEventListener = () => this._resizeCanvasDebounce();
+    this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._card_id = 'ha-card-1';
     console.log('New Card');
   }
@@ -108,6 +113,10 @@ export class Floor3dCard extends LitElement {
     }
     
     if(this._loaded) {
+      this._zIndexInterval = window.setInterval(() => {
+        this._zIndexChecker();
+      }, 250);
+    
       if(this._to_animate) {
         this._clock = new THREE.Clock();
         this._renderer.setAnimationLoop(() => this._rotateobjects());
@@ -123,6 +132,7 @@ export class Floor3dCard extends LitElement {
     super.disconnectedCallback();
     
     window.removeEventListener('resize', this._resizeEventListener);
+    window.clearInterval(this._zIndexInterval);
     
     if(this._loaded) {
       if(this._to_animate) {
@@ -340,6 +350,63 @@ export class Floor3dCard extends LitElement {
         ' }',
       );
     }
+  }
+  
+  private _zIndexChecker(): void {
+    let centerX = (this._card.getBoundingClientRect().left + this._card.getBoundingClientRect().right) / 2;
+    let centerY = (this._card.getBoundingClientRect().top + this._card.getBoundingClientRect().bottom) / 2;
+    let topElement = this._haShadowRoot.elementFromPoint(centerX, centerY);
+    
+    if(topElement != null) {
+      let topZIndex = this._getZIndex(topElement.shadowRoot.firstElementChild);
+      let myZIndex = this._getZIndex(this._card);
+      
+      if(myZIndex != topZIndex) {
+        if(!this._cardObscured) {
+          this._cardObscured = true;
+          
+          if(this._to_animate) {
+            console.log("Canvas Obscured; stopping animation");
+            this._clock = null;
+            this._renderer.setAnimationLoop(null);
+          }
+        }
+      }
+      else {
+        if(this._cardObscured) {
+          this._cardObscured = false;
+          
+          if(this._to_animate) {
+            console.log("Canvas visible again; starting animation");
+            this._clock = new THREE.Clock();
+            this._renderer.setAnimationLoop(() => this._rotateobjects());
+          }
+        }
+      }
+    }
+  }
+  
+  private _getZIndex(toCheck: any): string {
+    let returnVal: string;
+    
+    returnVal = getComputedStyle(toCheck).getPropertyValue('--dialog-z-index');
+    if(returnVal == '') {
+      returnVal = getComputedStyle(toCheck).getPropertyValue('z-index');
+    }
+    
+    if(returnVal == '' || returnVal == 'auto') {
+      if(toCheck.parentNode.constructor.name == 'ShadowRoot') {
+        return this._getZIndex(toCheck.parentNode.host);
+      }
+      else if(toCheck.parentNode.constructor.name == 'HTMLDocument') {
+        return '0';
+      }
+      else {
+        return this._getZIndex(toCheck.parentNode);
+      }
+    }
+    
+    return returnVal;
   }
 
   private _resizeCanvasDebounce(): void {
@@ -660,6 +727,10 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
+      
+      this._zIndexInterval = window.setInterval(() => {
+        this._zIndexChecker();
+      }, 250);
       
       this._loaded = true;
     }
