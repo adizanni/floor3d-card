@@ -55,7 +55,6 @@ export class Floor3dCard extends LitElement {
   private _modelZ?: number;
   private _to_animate: boolean;
 
-  private _canvas_id: string;
   private _states?: string[];
   private _color?: number[][];
   private _initialmaterial?: THREE.Material[][];
@@ -75,6 +74,7 @@ export class Floor3dCard extends LitElement {
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
+  private _resizeEventListener: EventListener;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
   private _progress?: HTMLElement;
@@ -93,9 +93,9 @@ export class Floor3dCard extends LitElement {
 
   constructor() {
     super();
-
+    
     this._loaded = false;
-    this._canvas_id = '3d_canvas';
+    this._resizeEventListener = () => this._resizeCanvasDebounce();
     this._card_id = 'ha-card-1';
     console.log('New Card');
   }
@@ -103,18 +103,28 @@ export class Floor3dCard extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
     
-    if(this._to_animate) {
-      this._clock = new THREE.Clock();
-      this._renderer.setAnimationLoop(() => this._rotateobjects());
+    window.addEventListener('resize', this._resizeEventListener);
+    
+    if(this._loaded) {
+      if(this._to_animate) {
+        this._clock = new THREE.Clock();
+        this._renderer.setAnimationLoop(() => this._rotateobjects());
+      }
+      
+      this._resizeCanvas();
     }
   }
   
   public disconnectedCallback(): void {
     super.disconnectedCallback();
     
-    if(this._to_animate) {
-      this._clock = null;
-      this._renderer.setAnimationLoop(null);
+    window.removeEventListener('resize', this._resizeEventListener);
+    
+    if(this._loaded) {
+      if(this._to_animate) {
+        this._clock = null;
+        this._renderer.setAnimationLoop(null);
+      }
     }
   }
 
@@ -600,7 +610,6 @@ export class Floor3dCard extends LitElement {
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
 
-      window.addEventListener('resize', this._resizeCanvasDebounce.bind(this));
       this._content.addEventListener('dblclick', this._performAction.bind(this));
       this._content.addEventListener('touchstart', this._performAction.bind(this));
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
@@ -625,6 +634,8 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
+      
+      this._loaded = true;
     }
   }
 
