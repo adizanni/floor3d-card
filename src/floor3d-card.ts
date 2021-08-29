@@ -103,7 +103,9 @@ export class Floor3dCard extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
     
-    window.addEventListener('resize', this._resizeEventListener);
+    if(this._ispanel() || this._issidebar()) {
+      window.addEventListener('resize', this._resizeEventListener);
+    }
     
     if(this._loaded) {
       if(this._to_animate) {
@@ -111,7 +113,9 @@ export class Floor3dCard extends LitElement {
         this._renderer.setAnimationLoop(() => this._rotateobjects());
       }
       
-      this._resizeCanvas();
+      if(this._ispanel() || this._issidebar()) {
+        this._resizeCanvas();
+      }
     }
   }
   
@@ -203,6 +207,28 @@ export class Floor3dCard extends LitElement {
     const panel: [] = root.getElementsByTagName('HUI-PANEL-VIEW');
 
     if (panel.length == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  
+  private _issidebar(): boolean {
+    let root: any = document.querySelector('home-assistant');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('home-assistant-main');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('app-drawer-layout partial-panel-resolver');
+    root = (root && root.shadowRoot) || root;
+    root = root && root.querySelector('ha-panel-lovelace');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('hui-root');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('ha-app-layout');
+
+    const sidebar: [] = root.getElementsByTagName('HUI-SIDEBAR-VIEW');
+
+    if (sidebar.length == 0) {
       return false;
     } else {
       return true;
