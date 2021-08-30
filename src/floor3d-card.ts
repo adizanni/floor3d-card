@@ -55,7 +55,6 @@ export class Floor3dCard extends LitElement {
   private _modelZ?: number;
   private _to_animate: boolean;
 
-  private _canvas_id: string;
   private _states?: string[];
   private _color?: number[][];
   private _initialmaterial?: THREE.Material[][];
@@ -75,6 +74,9 @@ export class Floor3dCard extends LitElement {
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
+  private _resizeEventListener: EventListener;
+  private _zIndexInterval: number;
+  private _cardObscured: boolean;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
   private _progress?: HTMLElement;
@@ -84,6 +86,7 @@ export class Floor3dCard extends LitElement {
   private _object_ids?: Floor3dCardConfig[] = [];
 
   private _hass?: HomeAssistant;
+  private _haShadowRoot: any;
   private _card_id: string;
   private _ambient_light: THREE.AmbientLight;
   private _direction_light: THREE.DirectionalLight;
@@ -93,9 +96,11 @@ export class Floor3dCard extends LitElement {
 
   constructor() {
     super();
-
+    
     this._loaded = false;
-    this._canvas_id = '3d_canvas';
+    this._cardObscured = false;
+    this._resizeEventListener = () => this._resizeCanvasDebounce();
+    this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._card_id = 'ha-card-1';
     console.log('New Card');
   }
@@ -103,18 +108,37 @@ export class Floor3dCard extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
     
-    if(this._to_animate) {
-      this._clock = new THREE.Clock();
-      this._renderer.setAnimationLoop(() => this._rotateobjects());
+    if(this._ispanel() || this._issidebar()) {
+      window.addEventListener('resize', this._resizeEventListener);
+    }
+    
+    if(this._loaded) {
+      this._zIndexInterval = window.setInterval(() => {
+        this._zIndexChecker();
+      }, 250);
+    
+      if(this._to_animate) {
+        this._clock = new THREE.Clock();
+        this._renderer.setAnimationLoop(() => this._rotateobjects());
+      }
+      
+      if(this._ispanel() || this._issidebar()) {
+        this._resizeCanvas();
+      }
     }
   }
   
   public disconnectedCallback(): void {
     super.disconnectedCallback();
     
-    if(this._to_animate) {
-      this._clock = null;
-      this._renderer.setAnimationLoop(null);
+    window.removeEventListener('resize', this._resizeEventListener);
+    window.clearInterval(this._zIndexInterval);
+    
+    if(this._loaded) {
+      if(this._to_animate) {
+        this._clock = null;
+        this._renderer.setAnimationLoop(null);
+      }
     }
   }
 
@@ -193,6 +217,28 @@ export class Floor3dCard extends LitElement {
     const panel: [] = root.getElementsByTagName('HUI-PANEL-VIEW');
 
     if (panel.length == 0) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  
+  private _issidebar(): boolean {
+    let root: any = document.querySelector('home-assistant');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('home-assistant-main');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('app-drawer-layout partial-panel-resolver');
+    root = (root && root.shadowRoot) || root;
+    root = root && root.querySelector('ha-panel-lovelace');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('hui-root');
+    root = root && root.shadowRoot;
+    root = root && root.querySelector('ha-app-layout');
+
+    const sidebar: [] = root.getElementsByTagName('HUI-SIDEBAR-VIEW');
+
+    if (sidebar.length == 0) {
       return false;
     } else {
       return true;
@@ -305,6 +351,63 @@ export class Floor3dCard extends LitElement {
       );
     }
   }
+  
+  private _zIndexChecker(): void {
+    let centerX = (this._card.getBoundingClientRect().left + this._card.getBoundingClientRect().right) / 2;
+    let centerY = (this._card.getBoundingClientRect().top + this._card.getBoundingClientRect().bottom) / 2;
+    let topElement = this._haShadowRoot.elementFromPoint(centerX, centerY);
+    
+    if(topElement != null) {
+      let topZIndex = this._getZIndex(topElement.shadowRoot.firstElementChild);
+      let myZIndex = this._getZIndex(this._card);
+      
+      if(myZIndex != topZIndex) {
+        if(!this._cardObscured) {
+          this._cardObscured = true;
+          
+          if(this._to_animate) {
+            console.log("Canvas Obscured; stopping animation");
+            this._clock = null;
+            this._renderer.setAnimationLoop(null);
+          }
+        }
+      }
+      else {
+        if(this._cardObscured) {
+          this._cardObscured = false;
+          
+          if(this._to_animate) {
+            console.log("Canvas visible again; starting animation");
+            this._clock = new THREE.Clock();
+            this._renderer.setAnimationLoop(() => this._rotateobjects());
+          }
+        }
+      }
+    }
+  }
+  
+  private _getZIndex(toCheck: any): string {
+    let returnVal: string;
+    
+    returnVal = getComputedStyle(toCheck).getPropertyValue('--dialog-z-index');
+    if(returnVal == '') {
+      returnVal = getComputedStyle(toCheck).getPropertyValue('z-index');
+    }
+    
+    if(returnVal == '' || returnVal == 'auto') {
+      if(toCheck.parentNode.constructor.name == 'ShadowRoot') {
+        return this._getZIndex(toCheck.parentNode.host);
+      }
+      else if(toCheck.parentNode.constructor.name == 'HTMLDocument') {
+        return '0';
+      }
+      else {
+        return this._getZIndex(toCheck.parentNode);
+      }
+    }
+    
+    return returnVal;
+  }
 
   private _resizeCanvasDebounce(): void {
     window.clearTimeout(this.resizeTimeout);
@@ -325,7 +428,7 @@ export class Floor3dCard extends LitElement {
       this._renderer.setSize(
         this._renderer.domElement.parentElement.clientWidth,
         this._renderer.domElement.parentElement.clientHeight,
-        true,
+        !this._issidebar(),
       );
       this._renderer.render(this._scene, this._camera);
     }
@@ -600,7 +703,6 @@ export class Floor3dCard extends LitElement {
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
 
-      window.addEventListener('resize', this._resizeCanvasDebounce.bind(this));
       this._content.addEventListener('dblclick', this._performAction.bind(this));
       this._content.addEventListener('touchstart', this._performAction.bind(this));
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
@@ -625,6 +727,12 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
+      
+      this._zIndexInterval = window.setInterval(() => {
+        this._zIndexChecker();
+      }, 250);
+      
+      this._loaded = true;
     }
   }
 
