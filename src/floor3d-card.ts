@@ -96,7 +96,7 @@ export class Floor3dCard extends LitElement {
 
   constructor() {
     super();
-    
+
     this._loaded = false;
     this._cardObscured = false;
     this._resizeEventListener = () => this._resizeCanvasDebounce();
@@ -104,38 +104,38 @@ export class Floor3dCard extends LitElement {
     this._card_id = 'ha-card-1';
     console.log('New Card');
   }
-  
+
   public connectedCallback(): void {
     super.connectedCallback();
-    
-    if(this._ispanel() || this._issidebar()) {
+
+    if (this._ispanel() || this._issidebar()) {
       window.addEventListener('resize', this._resizeEventListener);
     }
-    
-    if(this._loaded) {
+
+    if (this._loaded) {
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
       }, 250);
-    
-      if(this._to_animate) {
+
+      if (this._to_animate) {
         this._clock = new THREE.Clock();
         this._renderer.setAnimationLoop(() => this._rotateobjects());
       }
-      
-      if(this._ispanel() || this._issidebar()) {
+
+      if (this._ispanel() || this._issidebar()) {
         this._resizeCanvas();
       }
     }
   }
-  
+
   public disconnectedCallback(): void {
     super.disconnectedCallback();
-    
+
     window.removeEventListener('resize', this._resizeEventListener);
     window.clearInterval(this._zIndexInterval);
-    
-    if(this._loaded) {
-      if(this._to_animate) {
+
+    if (this._loaded) {
+      if (this._to_animate) {
         this._clock = null;
         this._renderer.setAnimationLoop(null);
       }
@@ -222,7 +222,7 @@ export class Floor3dCard extends LitElement {
       return true;
     }
   }
-  
+
   private _issidebar(): boolean {
     let root: any = document.querySelector('home-assistant');
     root = root && root.shadowRoot;
@@ -351,21 +351,21 @@ export class Floor3dCard extends LitElement {
       );
     }
   }
-  
+
   private _zIndexChecker(): void {
     let centerX = (this._card.getBoundingClientRect().left + this._card.getBoundingClientRect().right) / 2;
     let centerY = (this._card.getBoundingClientRect().top + this._card.getBoundingClientRect().bottom) / 2;
     let topElement = this._haShadowRoot.elementFromPoint(centerX, centerY);
-    
-    if(topElement != null) {
+
+    if (topElement != null) {
       let topZIndex = this._getZIndex(topElement.shadowRoot.firstElementChild);
       let myZIndex = this._getZIndex(this._card);
-      
-      if(myZIndex != topZIndex) {
-        if(!this._cardObscured) {
+
+      if (myZIndex != topZIndex) {
+        if (!this._cardObscured) {
           this._cardObscured = true;
-          
-          if(this._to_animate) {
+
+          if (this._to_animate) {
             console.log("Canvas Obscured; stopping animation");
             this._clock = null;
             this._renderer.setAnimationLoop(null);
@@ -373,10 +373,10 @@ export class Floor3dCard extends LitElement {
         }
       }
       else {
-        if(this._cardObscured) {
+        if (this._cardObscured) {
           this._cardObscured = false;
-          
-          if(this._to_animate) {
+
+          if (this._to_animate) {
             console.log("Canvas visible again; starting animation");
             this._clock = new THREE.Clock();
             this._renderer.setAnimationLoop(() => this._rotateobjects());
@@ -385,27 +385,27 @@ export class Floor3dCard extends LitElement {
       }
     }
   }
-  
+
   private _getZIndex(toCheck: any): string {
     let returnVal: string;
-    
+
     returnVal = getComputedStyle(toCheck).getPropertyValue('--dialog-z-index');
-    if(returnVal == '') {
+    if (returnVal == '') {
       returnVal = getComputedStyle(toCheck).getPropertyValue('z-index');
     }
-    
-    if(returnVal == '' || returnVal == 'auto') {
-      if(toCheck.parentNode.constructor.name == 'ShadowRoot') {
+
+    if (returnVal == '' || returnVal == 'auto') {
+      if (toCheck.parentNode.constructor.name == 'ShadowRoot') {
         return this._getZIndex(toCheck.parentNode.host);
       }
-      else if(toCheck.parentNode.constructor.name == 'HTMLDocument') {
+      else if (toCheck.parentNode.constructor.name == 'HTMLDocument') {
         return '0';
       }
       else {
         return this._getZIndex(toCheck.parentNode);
       }
     }
-    
+
     return returnVal;
   }
 
@@ -727,11 +727,11 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
-      
+
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
       }, 250);
-      
+
       this._loaded = true;
     }
   }
@@ -784,6 +784,46 @@ export class Floor3dCard extends LitElement {
       },
     );
     console.log('Material loaded end');
+  }
+
+  private _add_rotating_object(entity: Floor3dCardConfig, index: number): void {
+
+    let rotate_group = new THREE.Group
+
+    if (entity.door.hinge) {
+
+      const _foundobject: THREE.Object3D = this._scene.getObjectByName(entity.door.hinge);
+
+      pivotobject =
+    }
+
+    this._object_ids[index].objects.forEach((element) => {
+
+      const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+      if (_foundobject) {
+
+        rotate_group.add(_foundobject);
+
+      }
+
+    });
+
+
+    const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+    if (_foundobject) {
+      (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
+      let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
+      this._objposition[i] = [vec.x, vec.y, vec.z];
+      if (entity.type3d == 'rotate') {
+        this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
+        this._round_per_seconds.push(entity.rotate.round_per_second);
+        this._axis_to_rotate.push(entity.rotate.axis);
+        this._rotation_state.push(0);
+        this._rotation_index.push(i);
+      }
+    }
+
+
   }
 
   private _add3dObjects(): void {
@@ -1075,45 +1115,45 @@ export class Floor3dCard extends LitElement {
     return pivot;
 
   }
-  
+
   private _rotatecalc(entity: Floor3dCardConfig, i: number) {
-    
+
     let j = this._rotation_index.indexOf(i);
-    
+
     //1 if the entity is on, 0 if the entity is off
     this._rotation_state[j] = (this._states[i] == 'on' ? 1 : 0);
-    
+
     //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
     //into a decimal and store it as the rotation state
-    if(this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
+    if (this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
       this._rotation_state[j] = this._hass.states[entity.entity].attributes['percentage'] / 100;
     }
-    
+
     //If the entity is on and it is reversed, set the rotation state to the negative value of itself
-    if(
-      this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['direction'] && 
+    if (
+      this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['direction'] &&
       this._hass.states[entity.entity].attributes['direction'] == 'reverse'
     ) {
       this._rotation_state[j] = 0 - this._rotation_state[j];
     }
-    
+
     //If every rotating entity is stopped, disable animation
-    if(this._rotation_state.every(item => item === 0)) {
-      if(this._to_animate) {
+    if (this._rotation_state.every(item => item === 0)) {
+      if (this._to_animate) {
         this._to_animate = false;
         this._clock = null;
         this._renderer.setAnimationLoop(null);
       }
     }
-    
+
     //Otherwise, start an animation loop
-    else if(!this._to_animate) {
+    else if (!this._to_animate) {
       this._to_animate = true;
       this._clock = new THREE.Clock();
       this._renderer.setAnimationLoop(() => this._rotateobjects());
     }
   }
-  
+
   private _rotateobjects() {
     let moveBy = this._clock.getDelta() * Math.PI * 2;
 
@@ -1372,7 +1412,7 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';'}`}
+      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';' }`}
         id="${this._card_id}">
       </ha-card>
     `;

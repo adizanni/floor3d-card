@@ -38,6 +38,9 @@ export interface Floor3dCardConfig {
   doortype: string;
   side: string;
   direction: string;
+  degrees: number;
+  hinge: string;
+  pane: string;
   text: any;
   gesture: any;
   rotate: any;

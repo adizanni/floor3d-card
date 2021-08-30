@@ -1555,6 +1555,30 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="outer">outer</paper-item>
                                 </paper-listbox>
                               </paper-dropdown-menu>
+                              <paper-input
+                                editable
+                                label="Degrees"
+                                .value=${config.door.degrees ? config.door.degrees : ''}
+                                .configObject=${config.door}
+                                .configAttribute=${'degrees'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Pane object"
+                                .value=${config.door.pane ? config.door.pane : ''}
+                                .configObject=${config.door}
+                                .configAttribute=${'pane'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Hinge object"
+                                .value=${config.door.hinge ? config.door.hinge : ''}
+                                .configObject=${config.door}
+                                .configAttribute=${'hinge'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
                             `
                           : ''}
                       </div>
