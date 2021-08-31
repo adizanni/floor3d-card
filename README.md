@@ -144,7 +144,7 @@ For **show** example config:
 ```yaml
 entities
   - entity: <a binary sensor entity id>
-    type3d: hide
+    type3d: show
     object_id: <an object_id in the model you want to hide if condition is true>
     show:
       state: <the state of the entity triggering the showing of the object: ex 'off'>
