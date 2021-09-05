@@ -787,19 +787,19 @@ export class Floor3dCard extends LitElement {
   }
 
   private _add_rotating_object(entity: Floor3dCardConfig, index: number): void {
-
+    //TODO: Fix up this function
     let rotate_group = new THREE.Group
 
     if (entity.door.hinge) {
 
       const _foundobject: THREE.Object3D = this._scene.getObjectByName(entity.door.hinge);
 
-      pivotobject =
+      //pivotobject =
     }
 
-    this._object_ids[index].objects.forEach((element) => {
+    this._object_ids[index].objects.forEach((/*element*/) => {
 
-      const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+      const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[index].objects[0].object_id);
       if (_foundobject) {
 
         rotate_group.add(_foundobject);
@@ -809,17 +809,17 @@ export class Floor3dCard extends LitElement {
     });
 
 
-    const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
+    const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[index].objects[0].object_id);
     if (_foundobject) {
       (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
       let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
-      this._objposition[i] = [vec.x, vec.y, vec.z];
+      this._objposition[index] = [vec.x, vec.y, vec.z];
       if (entity.type3d == 'rotate') {
-        this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
+        this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[index]));
         this._round_per_seconds.push(entity.rotate.round_per_second);
         this._axis_to_rotate.push(entity.rotate.axis);
         this._rotation_state.push(0);
-        this._rotation_index.push(i);
+        this._rotation_index.push(index);
       }
     }
 
