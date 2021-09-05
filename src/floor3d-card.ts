@@ -72,8 +72,9 @@ export class Floor3dCard extends LitElement {
   private _rotation_index: number[] = [];
   private _clock?: THREE.Clock;
 
+  private _eval: Function;
   private _firstcall?: boolean;
-  private resizeTimeout?: number;
+  private _resizeTimeout?: number;
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _cardObscured: boolean;
@@ -101,7 +102,9 @@ export class Floor3dCard extends LitElement {
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => {this._resizeCanvasDebounce()});
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
+    this._eval = eval;
     this._card_id = 'ha-card-1';
+    
     console.log('New Card');
   }
 
@@ -397,8 +400,8 @@ export class Floor3dCard extends LitElement {
   }
 
   private _resizeCanvasDebounce(): void {
-    window.clearTimeout(this.resizeTimeout);
-    this.resizeTimeout = window.setTimeout(() => {
+    window.clearTimeout(this._resizeTimeout);
+    this._resizeTimeout = window.setTimeout(() => {
       this._resizeCanvas();
     }, 50);
   }
@@ -431,7 +434,7 @@ export class Floor3dCard extends LitElement {
 
         if (trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]' && trimmed.includes('$entity')) {
           const normal = trimmed.slice(3, -3).replace(/\$entity/g, state);
-          state = eval(normal);
+          state = this._eval(normal);
         }
       }
       return state;
