@@ -74,7 +74,7 @@ export class Floor3dCard extends LitElement {
 
   private _firstcall?: boolean;
   private resizeTimeout?: number;
-  private _resizeEventListener: EventListener;
+  private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -99,7 +99,7 @@ export class Floor3dCard extends LitElement {
 
     this._loaded = false;
     this._cardObscured = false;
-    this._resizeEventListener = () => this._resizeCanvasDebounce();
+    this._resizeObserver = new ResizeObserver(() => {this._resizeCanvasDebounce()});
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._card_id = 'ha-card-1';
     console.log('New Card');
@@ -108,11 +108,11 @@ export class Floor3dCard extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
-    if (this._ispanel() || this._issidebar()) {
-      window.addEventListener('resize', this._resizeEventListener);
-    }
-
     if (this._loaded) {
+      if (this._ispanel() || this._issidebar()) {
+        this._resizeObserver.observe(this._card);
+      }
+      
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
       }, 250);
@@ -131,7 +131,7 @@ export class Floor3dCard extends LitElement {
   public disconnectedCallback(): void {
     super.disconnectedCallback();
 
-    window.removeEventListener('resize', this._resizeEventListener);
+    this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
 
     if (this._loaded) {
@@ -400,7 +400,7 @@ export class Floor3dCard extends LitElement {
     window.clearTimeout(this.resizeTimeout);
     this.resizeTimeout = window.setTimeout(() => {
       this._resizeCanvas();
-    }, 250);
+    }, 50);
   }
 
   private _resizeCanvas(): void {
@@ -714,11 +714,13 @@ export class Floor3dCard extends LitElement {
       //first render
       this._render();
       this._resizeCanvas();
-
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
       }, 250);
-
+      if (this._ispanel() || this._issidebar()) {
+        this._resizeObserver.observe(this._card);
+      }
+      
       this._loaded = true;
     }
   }
