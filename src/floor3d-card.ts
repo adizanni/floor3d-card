@@ -287,19 +287,6 @@ export class Floor3dCard extends LitElement {
     this._renderer.render(this._scene, this._camera);
   }
 
-  private _showObjectName(e: any): void {
-    //double click on object to show the name
-    const mouse: THREE.Vector2 = new THREE.Vector2();
-    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
-    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
-    const raycaster: THREE.Raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, this._camera);
-    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
-    if (intersects.length > 0 && intersects[0].object.name != '') {
-      window.prompt('Object:', intersects[0].object.name);
-    }
-  }
-
   private _performAction(e: any): void {
     //double click on object to show the name
     const mouse: THREE.Vector2 = new THREE.Vector2();
@@ -1412,7 +1399,7 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';' }`}
+      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';' }`}
         id="${this._card_id}">
       </ha-card>
     `;
