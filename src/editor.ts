@@ -1704,6 +1704,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               </paper-dropdown-menu>
                               <paper-input
                                 editable
+                                label="Hinge-pivot object "
+                                .value=${config.rotate.hinge ? config.rotate.hinge : ''}
+                                .configObject=${config.rotate}
+                                .configAttribute=${'hinge'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
                                 label="Round per seconds (2 or less recommended)"
                                 .value=${config.rotate.round_per_second ? config.rotate.round_per_second : ''}
                                 .configObject=${config.rotate}

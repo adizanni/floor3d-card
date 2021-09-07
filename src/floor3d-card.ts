@@ -22,7 +22,7 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
-import { BooleanKeyframeTrack, DirectionalLightHelper, Group, Material, Mesh, Vector3 } from 'three';
+import { BooleanKeyframeTrack, Box3, DirectionalLightHelper, Group, LessEqualStencilFunc, Material, Mesh, Vector3 } from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -54,6 +54,7 @@ export class Floor3dCard extends LitElement {
   private _modelY?: number;
   private _modelZ?: number;
   private _to_animate: boolean;
+  private _bboxmodel: THREE.Object3D;
 
   private _states?: string[];
   private _color?: number[][];
@@ -65,16 +66,23 @@ export class Floor3dCard extends LitElement {
   private _unit_of_measurement?: string[];
   private _loaded?: boolean;
   private _objposition: number[][];
+  private _slidingdoorposition: THREE.Vector3[][];
   private _objects_to_rotate: THREE.Group[] = [];
+  private _pivot: THREE.Vector3[] = [];
+  private _degrees: number[] = [];
+  private _axis_for_door: THREE.Vector3[] = [];
   private _axis_to_rotate: string[] = [];
   private _round_per_seconds: number[] = [];
   private _rotation_state: number[] = [];
   private _rotation_index: number[] = [];
   private _clock?: THREE.Clock;
+  private _slidingdoor: THREE.Group[] = [];
 
+
+  private _eval: Function;
   private _firstcall?: boolean;
-  private resizeTimeout?: number;
-  private _resizeEventListener: EventListener;
+  private _resizeTimeout?: number;
+  private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -99,20 +107,21 @@ export class Floor3dCard extends LitElement {
 
     this._loaded = false;
     this._cardObscured = false;
-    this._resizeEventListener = () => this._resizeCanvasDebounce();
+    this._resizeObserver = new ResizeObserver(() => { this._resizeCanvasDebounce() });
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
+    this._eval = eval;
     this._card_id = 'ha-card-1';
+
     console.log('New Card');
   }
 
   public connectedCallback(): void {
     super.connectedCallback();
 
-    if (this._ispanel() || this._issidebar()) {
-      window.addEventListener('resize', this._resizeEventListener);
-    }
-
     if (this._loaded) {
+      if (this._ispanel() || this._issidebar()) {
+        this._resizeObserver.observe(this._card);
+      }
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
       }, 250);
@@ -131,7 +140,7 @@ export class Floor3dCard extends LitElement {
   public disconnectedCallback(): void {
     super.disconnectedCallback();
 
-    window.removeEventListener('resize', this._resizeEventListener);
+    this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
 
     if (this._loaded) {
@@ -287,19 +296,6 @@ export class Floor3dCard extends LitElement {
     this._renderer.render(this._scene, this._camera);
   }
 
-  private _showObjectName(e: any): void {
-    //double click on object to show the name
-    const mouse: THREE.Vector2 = new THREE.Vector2();
-    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
-    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
-    const raycaster: THREE.Raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, this._camera);
-    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
-    if (intersects.length > 0 && intersects[0].object.name != '') {
-      window.prompt('Object:', intersects[0].object.name);
-    }
-  }
-
   private _performAction(e: any): void {
     //double click on object to show the name
     const mouse: THREE.Vector2 = new THREE.Vector2();
@@ -410,10 +406,10 @@ export class Floor3dCard extends LitElement {
   }
 
   private _resizeCanvasDebounce(): void {
-    window.clearTimeout(this.resizeTimeout);
-    this.resizeTimeout = window.setTimeout(() => {
+    window.clearTimeout(this._resizeTimeout);
+    this._resizeTimeout = window.setTimeout(() => {
       this._resizeCanvas();
-    }, 250);
+    }, 50);
   }
 
   private _resizeCanvas(): void {
@@ -444,7 +440,7 @@ export class Floor3dCard extends LitElement {
 
         if (trimmed.substring(0, 3) === '[[[' && trimmed.slice(-3) === ']]]' && trimmed.includes('$entity')) {
           const normal = trimmed.slice(3, -3).replace(/\$entity/g, state);
-          state = eval(normal);
+          state = this._eval(normal);
         }
       }
       return state;
@@ -646,9 +642,20 @@ export class Floor3dCard extends LitElement {
 
   private _onLoaded3DModel(object: THREE.Object3D): void {
     // Object Loaded Event: last root object passed to the function
+
     console.log('Object loaded start');
+
+
+    let model_array = [];
+
+    this._bboxmodel = object;
+    this._scene.add(this._bboxmodel);
+
     this._content.innerText = '2/2: 100%';
-    const box: THREE.Box3 = new THREE.Box3().setFromObject(object);
+
+    this._scene.add(new THREE.AxesHelper(300));
+    const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
+
     if (this._config.camera_position) {
       this._camera.position.set(
         this._config.camera_position.x,
@@ -664,21 +671,24 @@ export class Floor3dCard extends LitElement {
       this._camera.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
       this._direction_light.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
     }
-    this._modelX = object.position.x = -(box.max.x - box.min.x) / 2;
-    this._modelY = object.position.y = -box.min.y;
-    this._modelZ = object.position.z = -(box.max.z - box.min.z) / 2;
+
+
+    this._modelX = this._bboxmodel.position.x = -(box.max.x - box.min.x) / 2;
+    this._modelY = this._bboxmodel.position.y = -box.min.y;
+    this._modelZ = this._bboxmodel.position.z = -(box.max.z - box.min.z) / 2;
 
     if (this._config.shadow) {
       if (this._config.shadow == 'yes') {
         console.log('Shadow On');
         this._renderer.shadowMap.enabled = true;
-        object.traverse(this._setShadow.bind(this));
+        this._bboxmodel.traverse(this._setShadow.bind(this));
       } else {
         console.log('Shadow Off');
         this._renderer.shadowMap.enabled = false;
       }
     }
-    this._scene.add(object);
+
+
     if (this._config.camera_rotate) {
       this._camera.rotation.set(
         this._config.camera_rotate.x,
@@ -691,8 +701,8 @@ export class Floor3dCard extends LitElement {
         this._config.camera_rotate.z,
       );
     } else {
-      this._camera.lookAt(object.position);
-      this._direction_light.lookAt(object.position);
+      this._camera.lookAt(box.max.multiplyScalar(0.5));
+      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
     }
     this._add3dObjects();
     console.log('Object loaded end');
@@ -732,6 +742,10 @@ export class Floor3dCard extends LitElement {
         this._zIndexChecker();
       }, 250);
 
+      if (this._ispanel() || this._issidebar()) {
+        this._resizeObserver.observe(this._card);
+      }
+
       this._loaded = true;
     }
   }
@@ -743,22 +757,6 @@ export class Floor3dCard extends LitElement {
   }
 
   private _setShadow(object: THREE.Object3D): void {
-    /*
-    if (object.name.includes('wall') || object.name.toLowerCase().includes('door')) {
-      object.receiveShadow = true;
-      object.castShadow = true;
-      return;
-    }
-    if (object.name.includes('room')) {
-      object.receiveShadow = true;
-      return;
-    }
-    if (object.name.toLowerCase().includes('light')) {
-      object.receiveShadow = true;
-      object.castShadow = false;
-      return;
-    }
-    */
     object.receiveShadow = true;
     object.castShadow = true;
     return;
@@ -786,68 +784,189 @@ export class Floor3dCard extends LitElement {
     console.log('Material loaded end');
   }
 
-  private _add_rotating_object(entity: Floor3dCardConfig, index: number): void {
-
-    let rotate_group = new THREE.Group
-
-    if (entity.door.hinge) {
-
-      const _foundobject: THREE.Object3D = this._scene.getObjectByName(entity.door.hinge);
-
-      pivotobject =
-    }
-
-    this._object_ids[index].objects.forEach((element) => {
-
-      const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
-      if (_foundobject) {
-
-        rotate_group.add(_foundobject);
-
-      }
-
-    });
-
-
-    const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
-    if (_foundobject) {
-      (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
-      let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
-      this._objposition[i] = [vec.x, vec.y, vec.z];
-      if (entity.type3d == 'rotate') {
-        this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
-        this._round_per_seconds.push(entity.rotate.round_per_second);
-        this._axis_to_rotate.push(entity.rotate.axis);
-        this._rotation_state.push(0);
-        this._rotation_index.push(i);
-      }
-    }
-
-
-  }
-
   private _add3dObjects(): void {
     // Add-Modify the objects bound to the entities in the card config
     console.log('Add Objects Start');
     if (this._states && this._config.entities) {
       this._objposition = [];
+      this._slidingdoorposition = [];
       this._config.entities.forEach((entity, i) => {
         this._objposition.push([0, 0, 0]);
+        this._pivot.push(null);
+        this._axis_for_door.push(null);
+        this._degrees.push(0);
+        this._slidingdoor.push(null);
+        this._slidingdoorposition.push([]);
         if (entity.entity !== '') {
-          if (entity.type3d == 'door' || entity.type3d == 'rotate') {
-            const _foundobject: THREE.Object3D = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
-            if (_foundobject) {
-              (_foundobject as THREE.Mesh).geometry.computeBoundingBox();
-              let vec: Vector3 = (_foundobject as THREE.Mesh).geometry.boundingBox.min;
-              this._objposition[i] = [vec.x, vec.y, vec.z];
-              if (entity.type3d == 'rotate') {
-                this._objects_to_rotate.push(this._centerrotateobj((_foundobject as THREE.Mesh), this._objposition[i]));
-                this._round_per_seconds.push(entity.rotate.round_per_second);
-                this._axis_to_rotate.push(entity.rotate.axis);
-                this._rotation_state.push(0);
-                this._rotation_index.push(i);
-              }
+          if (entity.type3d == 'rotate') {
+            //console.log("Start Add Rotate Object");
+            this._round_per_seconds.push(entity.rotate.round_per_second);
+            this._axis_to_rotate.push(entity.rotate.axis);
+            this._rotation_state.push(0);
+            this._rotation_index.push(i);
+            let bbox: THREE.Box3;
+            let hinge: any;
+            if (entity.rotate.hinge) {
+              hinge = this._scene.getObjectByName(entity.rotate.hinge);
+            } else {
+              hinge = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
             }
+            bbox = new THREE.Box3().setFromObject(hinge);
+            this._pivot[i] = new THREE.Vector3;
+            this._pivot[i].subVectors(bbox.max, bbox.min).multiplyScalar(0.5);
+            this._pivot[i].add(bbox.min);
+
+            this._object_ids[i].objects.forEach(element => {
+
+              let _obj: any = this._scene.getObjectByName(element.object_id);
+              this._centerobjecttopivot(_obj, this._pivot[i]);
+              _obj.geometry.applyMatrix4(
+                new THREE.Matrix4().makeTranslation(
+                  -(this._pivot[i].x),
+                  -(this._pivot[i].y),
+                  -(this._pivot[i].z)
+                )
+              );
+
+            });
+            //console.log("End Add Rotate Object");
+          }
+          if (entity.type3d == 'door') {
+            if (entity.door.doortype == "swing") {
+              //console.log("Start Add Door Swing");
+              let position = new THREE.Vector3();
+              if (entity.door.hinge) {
+                let hinge: THREE.Mesh = this._scene.getObjectByName(entity.door.hinge) as THREE.Mesh;
+                hinge.geometry.computeBoundingBox();
+                let boundingBox = hinge.geometry.boundingBox;
+                position.subVectors(boundingBox.max, boundingBox.min);
+                switch (Math.max(position.x, position.y, position.z)) {
+                  case position.x:
+                    this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                    break;
+                  case position.z:
+                    this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                    break;
+                  case position.y:
+                  default:
+                    this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                }
+                position.multiplyScalar(0.5);
+                position.add(boundingBox.min);
+                position.applyMatrix4(hinge.matrixWorld);
+              } else {
+
+                let pane: THREE.Mesh;
+
+                if (entity.door.pane) {
+                  pane = this._scene.getObjectByName(entity.door.pane) as THREE.Mesh;
+                } else {
+                  pane = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id) as THREE.Mesh;
+                }
+
+                pane.geometry.computeBoundingBox();
+                let boundingBox = pane.geometry.boundingBox;
+                position.subVectors(boundingBox.max, boundingBox.min);
+                if (entity.door.side) {
+
+                  switch (entity.door.side) {
+
+                    case "up":
+                      position.x = position.x / 2;
+                      position.z = position.z / 2;
+                      position.y = position.y;
+                      if (position.x > position.z) {
+                        this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                      } else {
+                        this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                      }
+                      break;
+                    case "down":
+                      position.x = position.x / 2;
+                      position.z = position.z / 2;
+                      position.y = 0;
+                      if (position.x > position.z) {
+                        this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                      } else {
+                        this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                      }
+                      break;
+                    case "left":
+                      if (position.x > position.z) {
+
+                        position.x = 0;
+                        position.z = position.z / 2;
+
+                      } else {
+
+                        position.z = 0;
+                        position.x = position.x / 2;
+
+                      }
+                      this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                      position.y = 0;
+                      break;
+                    case "right":
+                      if (position.x > position.z) {
+
+                        position.z = position.z / 2;
+
+                      } else {
+
+                        position.x = position.x / 2;
+
+                      }
+                      this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                      position.y = 0;
+                      break;
+                  }
+
+                }
+                position.add(boundingBox.min);
+                position.applyMatrix4(pane.matrixWorld);
+
+              }
+
+              this._pivot[i] = position;
+              this._degrees[i] = (entity.door.degrees) ? (entity.door.degrees) : 90;
+              this._object_ids[i].objects.forEach(element => {
+
+                let _obj: any = this._scene.getObjectByName(element.object_id);
+
+                this._centerobjecttopivot(_obj, this._pivot[i]);
+
+                _obj.geometry.applyMatrix4(
+                  new THREE.Matrix4().makeTranslation(
+                    -(this._pivot[i].x),
+                    -(this._pivot[i].y),
+                    -(this._pivot[i].z)
+                  )
+                );
+
+              });
+
+              //console.log("End Add Door Swing");
+            } else if (entity.door.doortype == "slide") {
+
+              //console.log("Start Add Door Slide");
+
+              this._object_ids[i].objects.forEach((element) => {
+                let _obj: any = this._scene.getObjectByName(element.object_id);
+                let objbbox = new THREE.Box3().setFromObject(_obj);
+                this._slidingdoorposition[i].push(objbbox.min);
+                this._centerobjecttopivot(_obj, objbbox.min);
+                _obj.geometry.applyMatrix4(
+                  new THREE.Matrix4().makeTranslation(
+                    -(objbbox.min.x),
+                    -(objbbox.min.y),
+                    -(objbbox.min.z)
+                  )
+                );
+              });
+
+              //console.log("End Add Door Slide");
+            }
+
           }
           if (entity.type3d == 'light') {
             // Add Virtual Light Objects
@@ -859,28 +978,29 @@ export class Floor3dCard extends LitElement {
                 const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 700, 2);
                 let x: number, y: number, z: number;
 
-                x = (box.max.x - box.min.x) / 2 + box.min.x + this._modelX;
-                z = (box.max.z - box.min.z) / 2 + box.min.z + this._modelZ;
-                y = (box.max.y - box.min.y) / 2 + box.min.y + this._modelY;
+                x = (box.max.x - box.min.x) / 2 + box.min.x;
+                z = (box.max.z - box.min.z) / 2 + box.min.z;
+                y = (box.max.y - box.min.y) / 2 + box.min.y;
                 if (entity.light.vertical_alignment) {
                   switch (entity.light.vertical_alignment) {
                     case 'top':
-                      y = box.max.y + this._modelY;
+                      y = box.max.y;
                       break;
                     case 'middle':
-                      y = (box.max.y - box.min.y) / 2 + box.min.y + this._modelY;
+                      y = (box.max.y - box.min.y) / 2 + box.min.y;
                       break;
                     case 'bottom':
-                      y = box.min.y + this._modelY;
+                      y = box.min.y;
                       break;
                   }
                 }
+
+                this._bboxmodel.add(light);
                 light.position.set(x, y, z);
                 this._setNoShadowLight(_foundobject);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
                 light.castShadow = true;
                 light.name = element.object_id + '_light';
-                this._scene.add(light);
                 //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
               }
             });
@@ -1074,10 +1194,10 @@ export class Floor3dCard extends LitElement {
     if (door) {
       if (item.door.doortype) {
         if (item.door.doortype == 'swing') {
-          this._rotatedoor(door, item.door.side, item.door.direction, this._objposition[i], this._states[i]);
+          this._rotatedoorpivot(item, i);
           return;
         } else if (item.door.doortype == 'slide') {
-          this._translatedoor(door, item.door.side, this._states[i]);
+          this._translatedoor(item, i, this._states[i]);
           return;
         }
       }
@@ -1085,36 +1205,60 @@ export class Floor3dCard extends LitElement {
 
   }
 
-  private _centerrotateobj(_obj: THREE.Mesh, pos: number[]): THREE.Group {
+  private _centerobjecttopivot(object: THREE.Mesh, pivot: THREE.Vector3) {
 
-    let initialworldposition = new THREE.Vector3;
-    _obj.getWorldPosition(initialworldposition);
-
-    let relativeposition = new THREE.Vector3(pos[0], pos[1], pos[2]);
-    let finalposition = initialworldposition.add(relativeposition);
-
-    _obj.geometry.center(); // this re-sets the mesh position
-    _obj.position.multiplyScalar(- 1);
-
-    let pivot: THREE.Group = new THREE.Group();
-    pivot.add(_obj);
-    this._scene.add(pivot);
-
-    let size = new THREE.Vector3;
-
-    _obj.geometry.boundingBox.getSize(size);
-
-    let translate: THREE.Vector3 = new THREE.Vector3();
-
-    translate.y = size.y / 2;
-    translate.z = size.z / 2;
-    translate.x = size.x / 2;
-
-    pivot.position.set(finalposition.x + translate.x, finalposition.y + translate.y, finalposition.z + translate.z);
-
-    return pivot;
+    object.applyMatrix4(
+      new THREE.Matrix4().makeTranslation(
+        -(pivot.x),
+        -(pivot.y),
+        -(pivot.z)
+      )
+    );
+    object.position.copy(pivot);
 
   }
+
+  private _rotatedoorpivot(entity: Floor3dCardConfig, index: number) {
+
+    this._object_ids[index].objects.forEach(element => {
+
+      let _obj: any = this._scene.getObjectByName(element.object_id);
+
+      //this._centerobjecttopivot(_obj, this._pivot[index]);
+
+      if (this._states[index] == "on") {
+        if (entity.door.direction == "inner") {
+          //_obj.rotateOnAxis(this._axis_for_door[index], -Math.PI * this._degrees[index] / 180);
+
+          if (this._axis_for_door[index].y == 1) {
+            _obj.rotation.y = -Math.PI * this._degrees[index] / 180;
+          } else if (this._axis_for_door[index].x == 1) {
+            _obj.rotation.x = -Math.PI * this._degrees[index] / 180;
+          } else if (this._axis_for_door[index].z == 1) {
+            _obj.rotation.z = -Math.PI * this._degrees[index] / 180;
+          }
+        } else if (entity.door.direction == "outer") {
+          //_obj.rotateOnAxis(this._axis_for_door[index], Math.PI * this._degrees[index] / 180);
+          if (this._axis_for_door[index].y == 1) {
+            _obj.rotation.y = Math.PI * this._degrees[index] / 180;
+          } else if (this._axis_for_door[index].x == 1) {
+            _obj.rotation.x = Math.PI * this._degrees[index] / 180;
+          } else if (this._axis_for_door[index].z == 1) {
+            _obj.rotation.z = Math.PI * this._degrees[index] / 180;
+          }
+        }
+
+      } else {
+        _obj.rotation.x = 0;
+        _obj.rotation.y = 0;
+        _obj.rotation.z = 0;
+      }
+
+    });
+
+
+  }
+
 
   private _rotatecalc(entity: Floor3dCardConfig, i: number) {
 
@@ -1159,140 +1303,56 @@ export class Floor3dCard extends LitElement {
 
     this._rotation_state.forEach((state, index) => {
       if (state != 0) {
-        this._objects_to_rotate[index].rotation[this._axis_to_rotate[index]] += this._round_per_seconds[index] * state * moveBy;
+        this._object_ids[this._rotation_index[index]].objects.forEach(element => {
+          let _obj = this._scene.getObjectByName(element.object_id);
+          if (_obj) {
+            switch (this._axis_to_rotate[index]) {
+              case "x":
+                _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
+                break;
+              case "y":
+                _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
+                break;
+              case "z":
+                _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
+                break;
+            }
+          }
+
+        });
       }
     });
 
     this._renderer.render(this._scene, this._camera);
   }
 
-  private _rotatedoor(_obj: THREE.Mesh, side: string, direction: string, pos: number[], _doorstate: string) {
 
-    _obj.geometry.computeBoundingBox();
+  private _translatedoor(item: Floor3dCardConfig, index: number, doorstate: string) {
 
-    let size: Vector3 = new THREE.Vector3();
-    let center: Vector3 = new THREE.Vector3();
-
-    _obj.geometry.boundingBox.getSize(size);
-    _obj.geometry.center();
-    _obj.geometry.boundingBox.getCenter(center);
-
-    let translate: THREE.Vector3 = new THREE.Vector3();
-
-    translate.y = size.y / 2;
-    translate.z = size.z / 2;
-    translate.x = size.x / 2;
-
-    if (_doorstate == 'on') {
-      if (direction == 'inner') {
-        if (side == 'left' || side == 'right') {
-          _obj.rotation.y = -Math.PI / 2;
-          translate.x += 0;
-          if (size.x > size.z) {
-            if (side == 'right') {
-              translate.z += -size.x;
-              //translate.x += 0;
-              translate.x += +size.z;
-            } else if (side = 'left') {
-              translate.z += 0;
-              translate.x += 0;
-            }
-          } else {
-            if (side == 'right') {
-              translate.x += +size.z;
-              //translate.z += 0;
-              translate.z += -size.x;
-            } else if (side = 'left') {
-              translate.z += 0;
-              translate.x += 0;
-            }
-
-          }
-        } else if (side == 'up' || side == 'down') {
-          translate.y += +0;
-          if (size.x > size.z) {
-            if (side == 'up') {
-              translate.z += +size.y;
-            } else if (side == 'down') {
-              translate.z += 0;
-            }
-            _obj.rotation.x = -Math.PI / 2;
-          } else {
-            if (side == 'up') {
-              translate.x += +size.y;
-            } else if (side == 'down') {
-              translate.x += 0;
-            }
-            _obj.rotation.z = -Math.PI / 2;
-          }
-        }
-      } else if (direction == 'outer') {
-        if (side == 'left' || side == 'right') {
-          _obj.rotation.y = +Math.PI / 2;
-          translate.x += 0;
-          if (size.x > size.z) {
-            if (side == 'right') {
-              translate.x += -size.z;
-              //translate.x += 0;
-              translate.z += size.x;
-            } else if (side = 'left') {
-              translate.z += 0;
-              translate.x += 0;
-            }
-          } else {
-            if (side == 'right') {
-              translate.x += -size.z;
-              //translate.z += 0;
-              translate.z += +size.x;
-            } else if (side = 'left') {
-              translate.z += 0;
-              translate.x += 0;
-            }
-          }
-        } else if (side == 'up' || side == 'down') {
-          if (size.x > size.z) {
-            if (side == 'up') {
-              translate.z += +size.y;
-            } else if (side == 'down') {
-              translate.z += 0;
-            }
-            _obj.rotation.x = +Math.PI / 2;
-          } else {
-            if (side == 'up') {
-              translate.x += +size.y;
-            } else if (side == 'down') {
-              translate.x += 0;
-            }
-            _obj.rotation.z = +Math.PI / 2;
-          }
-        }
-      }
-
-    } else {
-      _obj.rotation.y = 0;
-      _obj.rotation.x = 0;
-      _obj.rotation.z = 0;
-    }
-
-    _obj.geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
-    _obj.position.set(pos[0], pos[1], pos[2]);
-  }
-
-  private _translatedoor(_obj: THREE.Mesh, side: string, doorstate: string) {
-
+    //console.log("Translate Door Start");
 
     let translate: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
     let size: Vector3 = new THREE.Vector3();
     let center: Vector3 = new THREE.Vector3();
 
-    _obj.geometry.computeBoundingBox();
-    _obj.geometry.boundingBox.getSize(size);
+    let pane = this._scene.getObjectByName(item.door.pane);
+
+    if (!pane) {
+      pane = this._scene.getObjectByName(this._object_ids[index].objects[0].object_id);
+    }
+    let bbox = new THREE.Box3().setFromObject(pane);
+
+    size.subVectors(bbox.max, bbox.min);
 
     if (doorstate == 'off') {
-      _obj.position.set(0, 0, 0);
+      this._object_ids[index].objects.forEach((element, j) => {
+        let _obj: any = this._scene.getObjectByName(element.object_id);
+        _obj.position.set(this._slidingdoorposition[index][j].x, this._slidingdoorposition[index][j].y, this._slidingdoorposition[index][j].z);
+      });
+
     } else if (doorstate == 'on') {
-      if (side == 'left') {
+      if (item.door.side == 'left') {
         if (size.x > size.z) {
           translate.z += 0;
           translate.x += -size.x;
@@ -1302,7 +1362,7 @@ export class Floor3dCard extends LitElement {
           translate.x += 0;
           translate.y += 0;
         }
-      } else if (side == 'right') {
+      } else if (item.door.side == 'right') {
         if (size.x > size.z) {
           translate.z += 0;
           translate.x += +size.x;
@@ -1312,16 +1372,26 @@ export class Floor3dCard extends LitElement {
           translate.x += 0;
           translate.y += 0
         }
-      } else if (side == 'down') {
+      } else if (item.door.side == 'down') {
         translate.y += -size.y;
         translate.x += 0;
         translate.z += 0;
-      } else if (side == 'up') {
+      } else if (item.door.side == 'up') {
         translate.y += +size.y;
         translate.x += 0;
         translate.z += 0;
       }
-      _obj.position.set(translate.x, translate.y, translate.z);
+      this._object_ids[index].objects.forEach((element) => {
+        let _obj: any = this._scene.getObjectByName(element.object_id);
+        _obj.applyMatrix4(
+          new THREE.Matrix4().makeTranslation(
+            (translate.x),
+            (translate.y),
+            (translate.z)
+          )
+        );
+      });
+
     }
   }
 
@@ -1412,7 +1482,7 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'width: auto; height: ' + htmlHeight + ';' }`}
+      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';'}`}
         id="${this._card_id}">
       </ha-card>
     `;
