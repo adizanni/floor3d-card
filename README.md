@@ -217,7 +217,39 @@ entities:
       pane: the object_id of the pane (main component) of the door/window
       degrees: the degrees of the door opening
 ```
-a door/window object/entity is rotated by the sepcified degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You can use the object group to list the moving objects of the door. If you do that you can now select the hinge object or the pane object. When you select the hinge object only the direction parameter is used. Time allowing I will try to do a tutorial. It is getting complex.....
+a door/window object/entity is rotated by the sepcified degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You can use the object group to list the moving objects of the door. If you do that you can now select the hinge object or the pane object. When you select the hinge object only the direction parameter is used as the side and axix of rotation are bound to the hinge position and shape. Time allowing I will try to do a tutorial. It is getting complex.....
+
+Example of configuration for a window (Double French Window) exported using the ExportToHass plugin:
+
+![image](https://user-images.githubusercontent.com/35622920/132490828-37eed144-d86b-4ef0-93ec-4be5d8131da5.png)
+
+The entity section:
+```yaml
+  - entity: your_domain.your_door_entity
+    object_id: <WindowDiningRoomLeft>
+    type3d: door
+    door:
+      doortype: swing
+      direction: inner
+      degrees: '50'
+      hinge: WindowDiningRoomLeft_4
+```
+
+And the related object group:
+
+```yaml
+  - object_group: WindowDiningRoomLeft
+    objects:
+      - object_id: WindowDiningRoomLeft_7
+      - object_id: WindowDiningRoomLeft_6
+      - object_id: WindowDiningRoomLeft_5
+```
+
+Result:
+
+![image](https://user-images.githubusercontent.com/35622920/132490500-b6b40948-5f5b-4127-9d8e-5ae580c1e880.png)
+
+![image](https://user-images.githubusercontent.com/35622920/132490620-0dcf2614-4b28-40e5-ab9e-d01453e37d90.png)
 
 ## Rotate
 
