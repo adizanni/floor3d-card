@@ -653,7 +653,7 @@ export class Floor3dCard extends LitElement {
 
     this._content.innerText = '2/2: 100%';
 
-    this._scene.add(new THREE.AxesHelper(300));
+    //this._scene.add(new THREE.AxesHelper(300));
     const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
 
     if (this._config.camera_position) {
