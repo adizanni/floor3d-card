@@ -208,13 +208,48 @@ For **door** example config:
 entities:
   - entity: <a on/off  entity>
     type3d: door
-    object_id: <an object id representing the panel of a door: object_groups not supported yet>
+    object_id: <an object or object_group id representing the door>
     door:
       doortype: <'slide' for sliding doors/windows, 'swing' for swinging doors windows>
       side: 'up', 'down', 'left' and 'right', the border of the door that is the axis of rotation
       direction: 'inner' and 'outer', the direction of rotation
+      hinge: the object_id of the door/window hinge
+      pane: the object_id of the pane (main component) of the door/window
+      degrees: the degrees of the door opening
 ```
-a door/window object/entity is rotated by 90 degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You will notice that complex doors have many sub objects (ex. handles). Today you can only select one object that is going to be rotated (you will probably select the main door / window pane). I'm going to do a tutorial to explain how to build a door in sweethome3d that will act realistically (either using my plugin https://github.com/adizanni/ExportToHASS or updating the obj file). **Be aware, in this first version the door works only if the panel has a square angle with the model axis**  
+a door/window object/entity is rotated by the sepcified degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You can use the object group to list the moving objects of the door. If you do that you can now select the hinge object or the pane object. When you select the hinge object only the direction parameter is used as the side and axix of rotation are bound to the hinge position and shape. Time allowing I will try to do a tutorial. It is getting complex.....
+
+Example of configuration for a window (Double French Window) exported using the ExportToHass plugin:
+
+![image](https://user-images.githubusercontent.com/35622920/132490828-37eed144-d86b-4ef0-93ec-4be5d8131da5.png)
+
+The entity section:
+```yaml
+  - entity: your_domain.your_door_entity
+    object_id: <WindowDiningRoomLeft>
+    type3d: door
+    door:
+      doortype: swing
+      direction: inner
+      degrees: '50'
+      hinge: WindowDiningRoomLeft_4
+```
+
+And the related object group:
+
+```yaml
+  - object_group: WindowDiningRoomLeft
+    objects:
+      - object_id: WindowDiningRoomLeft_7
+      - object_id: WindowDiningRoomLeft_6
+      - object_id: WindowDiningRoomLeft_5
+```
+
+Result:
+
+![image](https://user-images.githubusercontent.com/35622920/132490500-b6b40948-5f5b-4127-9d8e-5ae580c1e880.png)
+
+![image](https://user-images.githubusercontent.com/35622920/132490620-0dcf2614-4b28-40e5-ab9e-d01453e37d90.png)
 
 ## Rotate
 
@@ -223,12 +258,14 @@ For **rotate** example config:
 entities:
   - entity: <a on/off  entity>
     type3d: rotate
-    object_id: <an object id representing the object to be rotated>
+    object_id: <an object or object group id representing the thing to be rotated>
     rotate:
       axis: <'x', 'y' and 'z', along which axis the object should rotate>
       round_per_seconds: 1-4, speed of rotation. Use a negative number to spin the other direction.
+      percentage:
+      hinge: the object acting as a pivot when you use an object group to represent the moving parts.
 ```
-an object to rotate (animation) when the associated entity will be 'on'. Be advised that for the first release the object will rotate using the center as point of rotation. Center being defined as the center of the bounding box of the object. For fans, if the fan object is not centered in the rotation axis you will see strange revolution animations. 
+an object to rotate (animation) when the associated entity will be 'on'. If you use an object group and you specify the hinge, all moving parts in the group will rotate aroung the hinge center point. 
 
 ## Object group example
 
