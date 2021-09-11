@@ -219,6 +219,24 @@ entities:
 ```
 a door/window object/entity is rotated by the sepcified degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You can use the object group to list the moving objects of the door. If you do that you can now select the hinge object or the pane object. When you select the hinge object only the direction parameter is used as the side and axix of rotation are bound to the hinge position and shape. Time allowing I will try to do a tutorial. It is getting complex.....
 
+Different cases here:
+
+For a Swing door:
+
+| Type | Direction | Side | Degrees | Comment
+| ---------------------- | --------- | ------- | ------ | --------------
+| hinge object specified | x |  | x | -
+| pane object specified | x | x | x | -
+| no object specified | x | x | x | the object_id is taken as a pane or the first object of the group
+
+For a slide door (only pane object):
+
+| Type | Direction | Side | Percentage | Comment
+| ---------------------- | --------- | ------- | ------ | --------------
+| pane object specified | x | x | x | -
+| no pane object specified | x | x | x | the object_id is taken as a pane or the first object of the group
+
+
 Example of configuration for a window (Double French Window) exported using the ExportToHass plugin:
 
 ![image](https://user-images.githubusercontent.com/35622920/132490828-37eed144-d86b-4ef0-93ec-4be5d8131da5.png)
