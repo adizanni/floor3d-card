@@ -1345,6 +1345,15 @@ export class Floor3dCard extends LitElement {
 
     size.subVectors(bbox.max, bbox.min);
 
+    let percentage: number;
+
+    if (item.door.percentage) {
+      percentage = item.door.percentage;
+    }
+    else {
+      percentage = 100;
+    }
+
     if (doorstate == 'off') {
       this._object_ids[index].objects.forEach((element, j) => {
         let _obj: any = this._scene.getObjectByName(element.object_id);
@@ -1355,29 +1364,29 @@ export class Floor3dCard extends LitElement {
       if (item.door.side == 'left') {
         if (size.x > size.z) {
           translate.z += 0;
-          translate.x += -size.x;
+          translate.x += -size.x * percentage / 100;
           translate.y = 0
         } else {
-          translate.z += -size.z;
+          translate.z += -size.z * percentage / 100;
           translate.x += 0;
           translate.y += 0;
         }
       } else if (item.door.side == 'right') {
         if (size.x > size.z) {
           translate.z += 0;
-          translate.x += +size.x;
+          translate.x += +size.x * percentage / 100;
           translate.y += 0;
         } else {
-          translate.z += +size.z;
+          translate.z += +size.z * percentage / 100;
           translate.x += 0;
           translate.y += 0
         }
       } else if (item.door.side == 'down') {
-        translate.y += -size.y;
+        translate.y += -size.y * percentage / 100;
         translate.x += 0;
         translate.z += 0;
       } else if (item.door.side == 'up') {
-        translate.y += +size.y;
+        translate.y += +size.y * percentage / 100;
         translate.x += 0;
         translate.z += 0;
       }

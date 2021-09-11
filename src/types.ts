@@ -39,6 +39,7 @@ export interface Floor3dCardConfig {
   side: string;
   direction: string;
   degrees: number;
+  percentage: number;
   hinge: string;
   pane: string;
   text: any;

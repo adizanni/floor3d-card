@@ -1557,10 +1557,18 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               </paper-dropdown-menu>
                               <paper-input
                                 editable
-                                label="Degrees"
+                                label="Degrees (for Swing)"
                                 .value=${config.door.degrees ? config.door.degrees : ''}
                                 .configObject=${config.door}
                                 .configAttribute=${'degrees'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Percentage open (for slide)"
+                                .value=${config.door.percentage ? config.door.percentage : ''}
+                                .configObject=${config.door}
+                                .configAttribute=${'percentage'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input
