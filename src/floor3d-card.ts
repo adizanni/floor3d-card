@@ -64,19 +64,18 @@ export class Floor3dCard extends LitElement {
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
   private _unit_of_measurement?: string[];
-  private _loaded?: boolean;
   private _objposition: number[][];
   private _slidingdoorposition: THREE.Vector3[][];
-  private _objects_to_rotate: THREE.Group[] = [];
-  private _pivot: THREE.Vector3[] = [];
-  private _degrees: number[] = [];
-  private _axis_for_door: THREE.Vector3[] = [];
-  private _axis_to_rotate: string[] = [];
-  private _round_per_seconds: number[] = [];
-  private _rotation_state: number[] = [];
-  private _rotation_index: number[] = [];
+  private _objects_to_rotate: THREE.Group[];
+  private _pivot: THREE.Vector3[];
+  private _degrees: number[];
+  private _axis_for_door: THREE.Vector3[];
+  private _axis_to_rotate: string[];
+  private _round_per_seconds: number[];
+  private _rotation_state: number[];
+  private _rotation_index: number[];
   private _clock?: THREE.Clock;
-  private _slidingdoor: THREE.Group[] = [];
+  private _slidingdoor: THREE.Group[];
 
 
   private _eval: Function;
@@ -84,6 +83,8 @@ export class Floor3dCard extends LitElement {
   private _resizeTimeout?: number;
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
+  private _performActionListener: EventListener;
+  private _changeListener: EventListener;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
@@ -105,9 +106,10 @@ export class Floor3dCard extends LitElement {
   constructor() {
     super();
 
-    this._loaded = false;
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => { this._resizeCanvasDebounce() });
+    this._performActionListener = (evt) => this._performAction(evt);
+    this._changeListener = () => this._render();
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
     this._card_id = 'ha-card-1';
@@ -118,7 +120,7 @@ export class Floor3dCard extends LitElement {
   public connectedCallback(): void {
     super.connectedCallback();
 
-    if (this._loaded) {
+    if (this._modelready) {
       if (this._ispanel() || this._issidebar()) {
         this._resizeObserver.observe(this._card);
       }
@@ -143,7 +145,7 @@ export class Floor3dCard extends LitElement {
     this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
 
-    if (this._loaded) {
+    if (this._modelready) {
       if (this._to_animate) {
         this._clock = null;
         this._renderer.setAnimationLoop(null);
@@ -203,10 +205,18 @@ export class Floor3dCard extends LitElement {
   }
 
   public rerender(): void {
+    this._content.removeEventListener('dblclick', this._performActionListener);
+    this._content.removeEventListener('touchstart', this._performActionListener);
+    this._controls.removeEventListener('change', this._changeListener);
+    this._renderer.setAnimationLoop(null);
+    this._resizeObserver.disconnect();
+    window.clearInterval(this._zIndexInterval);
+    
     this._renderer.domElement.remove();
     this._renderer = null;
 
     this._states = null;
+    this.hass = this._hass;
     this.display3dmodel();
   }
 
@@ -713,11 +723,11 @@ export class Floor3dCard extends LitElement {
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
 
-      this._content.addEventListener('dblclick', this._performAction.bind(this));
-      this._content.addEventListener('touchstart', this._performAction.bind(this));
+      this._content.addEventListener('dblclick', this._performActionListener);
+      this._content.addEventListener('touchstart', this._performActionListener);
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
-      this._controls.addEventListener('change', this._render.bind(this));
+      this._controls.addEventListener('change', this._changeListener);
       this._renderer.setPixelRatio(window.devicePixelRatio);
       // ambient and directional light
 
@@ -745,8 +755,6 @@ export class Floor3dCard extends LitElement {
       if (this._ispanel() || this._issidebar()) {
         this._resizeObserver.observe(this._card);
       }
-
-      this._loaded = true;
     }
   }
 
@@ -788,8 +796,18 @@ export class Floor3dCard extends LitElement {
     // Add-Modify the objects bound to the entities in the card config
     console.log('Add Objects Start');
     if (this._states && this._config.entities) {
+      this._round_per_seconds = [];
+      this._axis_to_rotate = [];
+      this._rotation_state = [];
+      this._rotation_index = [];
+      this._pivot = [];
+      this._axis_for_door = [];
+      this._degrees = [];
+      this._slidingdoor = [];
       this._objposition = [];
       this._slidingdoorposition = [];
+      this._to_animate = false;
+      
       this._config.entities.forEach((entity, i) => {
         this._objposition.push([0, 0, 0]);
         this._pivot.push(null);
