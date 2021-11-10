@@ -1366,6 +1366,16 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'lumens'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
+                              <paper-input
+                                editable
+                                label="Shadow"
+                                .value=${config.light.shadow
+                                  ? config.light.shadow
+                                  : ""}
+                                .configObject=${config.light}
+                                .configAttribute=${"shadow"}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
                               <paper-dropdown-menu
                                 label="Light Vertical Alignment"
                                 @selected-item-changed=${this._valueChanged}
@@ -1434,6 +1444,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .value=${config.text.font ? config.text.font : ''}
                                 .configObject=${config.text}
                                 .configAttribute=${'font'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Attribute"
+                                .value=${config.text.attribute ? config.text.attribute : ''}
+                                .configObject=${config.text}
+                                .configAttribute=${'attribute'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input

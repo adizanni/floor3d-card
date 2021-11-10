@@ -64,6 +64,7 @@ export class Floor3dCard extends LitElement {
   private _lights?: string[];
   private _canvas?: HTMLCanvasElement[];
   private _unit_of_measurement?: string[];
+  private _text?: string[];
   private _objposition: number[][];
   private _slidingdoorposition: THREE.Vector3[][];
   private _objects_to_rotate: THREE.Group[];
@@ -102,6 +103,7 @@ export class Floor3dCard extends LitElement {
   private _point_light: THREE.PointLight;
   _helper: THREE.DirectionalLightHelper;
   _modelready: boolean;
+  private _maxtextureimage: number;
 
   constructor() {
     super();
@@ -211,7 +213,7 @@ export class Floor3dCard extends LitElement {
     this._renderer.setAnimationLoop(null);
     this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
-    
+
     this._renderer.domElement.remove();
     this._renderer = null;
 
@@ -471,11 +473,25 @@ export class Floor3dCard extends LitElement {
         this._brightness = [];
         this._lights = [];
         this._canvas = [];
+        this._text = [];
 
         this._config.entities.forEach((entity) => {
           if (entity.entity !== '') {
             this._states.push(this._statewithtemplate(entity));
             this._canvas.push(null);
+            if (entity.type3d == 'text') {
+              if (entity.text.attribute) {
+                if (hass.states[entity.entity].attributes[entity.text.attribute]) {
+                  this._text.push(hass.states[entity.entity].attributes[entity.text.attribute]);
+                } else {
+                  this._text.push('');
+                }
+              } else {
+                this._text.push(this._statewithtemplate(entity))
+              }
+            } else {
+              this._text.push('');
+            }
             if (entity.type3d == 'light') {
               this._lights.push(entity.object_id + '_light');
             } else {
@@ -511,7 +527,6 @@ export class Floor3dCard extends LitElement {
         this._config.entities.forEach((entity, i) => {
           if (entity.entity !== '') {
             let state = this._statewithtemplate(entity);
-
             if (entity.type3d == 'light') {
               let toupdate = false;
               if (this._states[i] !== state) {
@@ -547,6 +562,28 @@ export class Floor3dCard extends LitElement {
                 this._updatelight(entity, i);
                 torerender = true;
               }
+            } else if (entity.type3d == 'text') {
+              let toupdate = false;
+              if (entity.text.attribute) {
+                if (hass.states[entity.entity].attributes[entity.text.attribute]) {
+                  if (this._text[i] != hass.states[entity.entity].attributes[entity.text.attribute]) {
+                    this._text[i] = hass.states[entity.entity].attributes[entity.text.attribute];
+                    toupdate = true;
+                  }
+                } else {
+                  this._text[i] = '';
+                  toupdate = true;
+                }
+              } else {
+                if (this._text[i] != this._statewithtemplate(entity)) {
+                  this._text[i] = this._statewithtemplate(entity);
+                  toupdate = true;
+                }
+              }
+              if (this._canvas[i] && toupdate) {
+                this._updatetext(entity, this._text[i], this._canvas[i], this._unit_of_measurement[i]);
+                torerender = true;
+              }
             } else if (entity.type3d == 'rotate') {
               this._states[i] = state;
               this._rotatecalc(entity, i);
@@ -564,11 +601,6 @@ export class Floor3dCard extends LitElement {
               } else if (entity.type3d == 'door') {
                 this._updatedoor(entity, i);
                 torerender = true;
-              } else if (entity.type3d == 'text') {
-                if (this._canvas[i]) {
-                  this._updatetext(entity, this._states[i], this._canvas[i], this._unit_of_measurement[i]);
-                  torerender = true;
-                }
               }
             }
           }
@@ -598,6 +630,13 @@ export class Floor3dCard extends LitElement {
     this._scene.add(this._direction_light);
     this._scene.add(this._ambient_light);
     this._renderer = new THREE.WebGLRenderer({ antialias: true });
+    this._maxtextureimage = this._renderer.context.getParameter(
+      this._renderer.context.MAX_TEXTURE_IMAGE_UNITS
+    );
+    console.log("Max Texture Image Units: " + this._maxtextureimage);
+    console.log(
+      "Max Texture Image Units: number of lights casting shadow should be less than the above number"
+    );
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
@@ -807,7 +846,7 @@ export class Floor3dCard extends LitElement {
       this._objposition = [];
       this._slidingdoorposition = [];
       this._to_animate = false;
-      
+
       this._config.entities.forEach((entity, i) => {
         this._objposition.push([0, 0, 0]);
         this._pivot.push(null);
@@ -1017,7 +1056,11 @@ export class Floor3dCard extends LitElement {
                 light.position.set(x, y, z);
                 this._setNoShadowLight(_foundobject);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
-                light.castShadow = true;
+                if (entity.light.shadow == "no") {
+                  light.castShadow = false;
+                } else {
+                  light.castShadow = true;
+                }
                 light.name = element.object_id + '_light';
                 //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
               }
@@ -1050,7 +1093,7 @@ export class Floor3dCard extends LitElement {
           } else if (entity.type3d == 'door') {
             this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
-            this._canvas[i] = this._createTextCanvas(entity, this._states[i], this._unit_of_measurement[i]);
+            this._canvas[i] = this._createTextCanvas(entity, this._text[i], this._unit_of_measurement[i]);
           } else if (entity.type3d == 'rotate') {
             this._rotatecalc(entity, i);
           }

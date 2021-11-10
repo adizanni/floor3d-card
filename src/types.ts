@@ -14,6 +14,7 @@ export interface Floor3dCardConfig {
   path: string;
   name: string;
   font: string;
+  attribute: string;
   objfile: string;
   mtlfile: string;
   objectlist: string;
