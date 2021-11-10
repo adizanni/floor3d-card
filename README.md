@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
-Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. Be advised it is still an alfa version; it requires a bit of manual installation actions and related troubleshooting. I'm working at a more official and easy to setup version using card templates projects.
+Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. 
 
 |Demo [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)   | Tutorial [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)  |
 |---|---|
@@ -117,6 +117,7 @@ entities:
     object_id: <an object id in the 3D model you want to postion the light on>
     light:
       lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
+      shadow: <'no', if you do not want this light to case a shadow. This is to cope with the limit of max lights casting shadow in a model>
 ```
 
 light_name is the name of the light object that will be created in the model to do the actual illumination.
@@ -181,6 +182,7 @@ entities:
       font: <name of the font text ex:'verdana'>
       textbgcolor: <background color for the text. ex: '#000000' or 'black'>
       textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
+      attribute: the optional attribute of the entity you want to show on the object
       .......
 ```
 
