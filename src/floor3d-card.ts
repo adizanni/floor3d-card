@@ -484,10 +484,10 @@ export class Floor3dCard extends LitElement {
                 if (hass.states[entity.entity].attributes[entity.text.attribute]) {
                   this._text.push(hass.states[entity.entity].attributes[entity.text.attribute]);
                 } else {
-                  this._text.push('');
+                  this._text.push(this._statewithtemplate(entity));
                 }
               } else {
-                this._text.push(this._statewithtemplate(entity))
+                this._text.push(this._statewithtemplate(entity));
               }
             } else {
               this._text.push('');
@@ -1078,6 +1078,24 @@ export class Floor3dCard extends LitElement {
               j = j + 1;
             });
           }
+          if (entity.type3d == 'text') {
+            // Clone object to print the text
+            this._object_ids[i].objects.forEach((element) => {
+
+              let _foundobject: any = this._scene.getObjectByName(element.object_id);
+
+              let box: THREE.Box3 = new THREE.Box3();
+              box.setFromObject(_foundobject);
+
+
+              let _newobject = _foundobject.clone();
+
+              //(_newobject as Mesh).scale.set(1.005, 1.005, 1.005);
+              _newobject.name = "f3dobj_" + _foundobject.name;
+              this._bboxmodel.add(_newobject);
+
+            });
+          }
         }
       });
       this._config.entities.forEach((entity, i) => {
@@ -1114,7 +1132,8 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updateTextCanvas(entity: Floor3dCardConfig, canvas: HTMLCanvasElement, text: string): void {
-    const _foundobject: any = this._scene.getObjectByName(entity.object_id);
+
+    const _foundobject: any = this._scene.getObjectByName("f3dobj_" + entity.object_id);
 
     const ctx = canvas.getContext('2d');
 
@@ -1154,12 +1173,26 @@ export class Floor3dCard extends LitElement {
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.repeat.set(1, 1);
-    const material = new THREE.MeshBasicMaterial({
-      map: texture,
-    });
+
+
     if (_foundobject instanceof Mesh) {
-      (_foundobject as Mesh).material = material;
+
+      if (((_foundobject as Mesh).material as THREE.MeshBasicMaterial).name.startsWith("f3dmat")) {
+        ((_foundobject as Mesh).material as THREE.MeshBasicMaterial).map = texture;
+      } else {
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true
+        });
+        material.name = "f3dmat" + _foundobject.name;
+
+        (_foundobject as Mesh).material = material;
+
+
+      }
+
     }
+
   }
 
   private _TemperatureToRGB(t: number): number[] {
@@ -1552,7 +1585,7 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';'}`}
+      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';' }`}
         id="${this._card_id}">
       </ha-card>
     `;
