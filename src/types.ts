@@ -23,6 +23,7 @@ export interface Floor3dCardConfig {
   globalLightPower: string;
   shadow: string;
   entities: any;
+  lock_camera: string;
   tap_action?: ActionConfig;
   double_tap_action?: ActionConfig;
   entity: string;

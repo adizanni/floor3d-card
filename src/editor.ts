@@ -657,7 +657,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-          ? html`
+        ? html`
               <div class="value-container">
                 <paper-input
                   editable
@@ -665,6 +665,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .value="${config.style ? config.style : ''}"
                   .configObject=${config}
                   .configAttribute=${'style'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Lock Camera"
+                  .value="${config.lock_camera ? config.lock_camera : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'lock_camera'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <paper-input

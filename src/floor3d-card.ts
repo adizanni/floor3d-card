@@ -212,7 +212,9 @@ export class Floor3dCard extends LitElement {
   public rerender(): void {
     this._content.removeEventListener('dblclick', this._performActionListener);
     this._content.removeEventListener('touchstart', this._performActionListener);
-    this._controls.removeEventListener('change', this._changeListener);
+    if (this._config.lock_camera != 'yes') {
+      this._controls.removeEventListener('change', this._changeListener);
+    }
     this._renderer.setAnimationLoop(null);
     this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
@@ -790,7 +792,9 @@ export class Floor3dCard extends LitElement {
       this._content.addEventListener('touchstart', this._performActionListener);
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
-      this._controls.addEventListener('change', this._changeListener);
+      if (this._config.lock_camera != 'yes') {
+        this._controls.addEventListener('change', this._changeListener);
+      }
       this._renderer.setPixelRatio(window.devicePixelRatio);
       // ambient and directional light
 
@@ -1609,7 +1613,7 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';' }`}
+      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';'}`}
         id="${this._card_id}">
       </ha-card>
     `;
