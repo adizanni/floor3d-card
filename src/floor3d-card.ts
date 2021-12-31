@@ -10,6 +10,7 @@ import {
   handleAction,
   LovelaceCardEditor,
   getLovelace,
+  fireEvent,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 import './editor';
 import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray, createObjectGroupConfigArray } from './helpers';
@@ -85,6 +86,7 @@ export class Floor3dCard extends LitElement {
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _performActionListener: EventListener;
+  private _fireventListener: EventListener;
   private _changeListener: EventListener;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -111,6 +113,7 @@ export class Floor3dCard extends LitElement {
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => { this._resizeCanvasDebounce() });
     this._performActionListener = (evt) => this._performAction(evt);
+    this._fireventListener = (evt) => this._firevent(evt);
     this._changeListener = () => this._render();
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
@@ -306,6 +309,27 @@ export class Floor3dCard extends LitElement {
     this._direction_light.position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
     this._direction_light.rotation.set(this._camera.rotation.x, this._camera.rotation.y, this._camera.rotation.z);
     this._renderer.render(this._scene, this._camera);
+  }
+
+  private _firevent(e: any): void {
+    //double click on object to show the name
+    const mouse: THREE.Vector2 = new THREE.Vector2();
+    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
+    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
+    const raycaster: THREE.Raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this._camera);
+    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
+    if (intersects.length > 0 && intersects[0].object.name != '') {
+      this._config.entities.forEach((entity, i) => {
+        for (let j = 0; j < this._object_ids[i].objects.length; j++) {
+          if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
+            fireEvent(this, "hass-more-info", { entityId: entity.entity });
+            return;
+          }
+          break;
+        }
+      });
+    }
   }
 
   private _performAction(e: any): void {
@@ -761,7 +785,7 @@ export class Floor3dCard extends LitElement {
       console.log('Show canvas');
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
-
+      this._content.addEventListener('click', this._fireventListener);
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
