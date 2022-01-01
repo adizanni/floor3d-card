@@ -24,6 +24,7 @@ export interface Floor3dCardConfig {
   shadow: string;
   entities: any;
   lock_camera: string;
+  more_info: string;
   tap_action?: ActionConfig;
   double_tap_action?: ActionConfig;
   entity: string;

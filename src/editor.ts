@@ -677,6 +677,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
+                  label="More Info (no dblclick)"
+                  .value="${config.more_info ? config.more_info : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'more_info'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
                   label="Background Color"
                   .value="${config.backgroundColor ? config.backgroundColor : ''}"
                   .configObject=${config}

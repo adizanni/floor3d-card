@@ -787,7 +787,9 @@ export class Floor3dCard extends LitElement {
       console.log('Show canvas');
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
-      this._content.addEventListener('click', this._fireventListener);
+      if (this._config.more_info == 'yes') {
+        this._content.addEventListener('click', this._fireventListener);
+      }
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
