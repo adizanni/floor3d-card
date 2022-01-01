@@ -56,6 +56,7 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | overlay          | string | no           | 'yes' if you want to show an overlay panel for displaying data on the objects on click                                                                                     |
 | click            | string | no           | 'yes' if you want to enable the click event. This will automatically disable the double click, you can manage the click behaviour at entity level via the action parameter |
 | lock_camera      | string | no           | 'yes' to stop the zoom and rotate camera actions on the model                                                                                                              |
+| overlay\_<style> | string | various      | allow to manage the aspect of the overlay panel (colors, fonts, etc.)                                                                                                      |
 
 For each entity in the entities list you need to specify the following options:
 
