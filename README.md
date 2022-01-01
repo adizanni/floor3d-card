@@ -2,16 +2,16 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
-Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states. 
+Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states.
 
-|Demo [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0)   | Tutorial [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)  |
-|---|---|
+| Demo [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0) | Tutorial [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY) |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 
 ## Installation
 
 The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
-You can also  download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/latest/floor3d-card.js) and upload it to your www home assistant folder
+You can also download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/latest/floor3d-card.js) and upload it to your www home assistant folder
 
 It's **required** to load this card as `module`.
 
@@ -21,59 +21,62 @@ It's **required** to load this card as `module`.
 ```
 
 ## Model Design and Installation
+
 Use a 3D modeling software. As you have to model your home I would suggest this software (the one I tested): http://www.sweethome3d.com/.
 Model your home with all needed objects and furniture (I will post here some hints on how to better design your home for best results with the custom card).
 For further instruction I assume you will use SweetHome3D.
 At the end of your modeling, you need to export the files in obj format using '3D View \ Export to OBJ format ...', specify the folder where you want to store the output (be careful there are multiple files)
 Copy the full set of files (minimum is the .obj file and .mtl file) to a sub folder of /config/www in Home assistant.
 Be aware that when you remove objects from the model the object ids get reassigned: This means that after a modification and re-export of your model it is possible you need to redo the bindings with the new object names. The new feature (https://github.com/adizanni/floor3d-card/issues/7) is now available in this repository https://github.com/adizanni/ExportToHASS. It is a new plugin for Sweethome3D. It is still very experimental, use at your own risk, and please follow the instructions.
-It could be also good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids). 
+It could be also good practice to make the objects invisble instead of removing them (not yet tested if this solution preserves the objects ids).
 
 If you want to have an object that groups together other objects (ex a mannequin is composed by 100s of objects you want to treat it as one), you can follow this trick: https://community.home-assistant.io/t/live-3d-floor-plan-with-interactive-objects/301549/78?u=adizanni.
 
-
 Based on some feedback there are some open issues which I will try to fix, please follow these rules if you want things to go smooth:
 
-- Place the upper left corner of your 2D floor model at 0,0 coordinates otherwise the camera setting will work weirdly (due to calculation on the coordinates that I need to fix) 
+- Place the upper left corner of your 2D floor model at 0,0 coordinates otherwise the camera setting will work weirdly (due to calculation on the coordinates that I need to fix)
 
-When you are finished,  configure a new card (either in panel mode or regular) with the following options:
+When you are finished, configure a new card (either in panel mode or regular) with the following options:
 
 ## Options
 
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| type | string | **Required** | `custom:floor3d-card`.
-| name | string | Floor 3d | the name of the card.
-| entities | array | none | list of enitities to bind to 3D model objects.
-| object_groups | array | none | list of object groups to apply grouped entity bindings.
-| style | string | none | the style that will be applied to the canvas element of the card.
-| path | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.
-| objfile | string | **Required** | object file name (.obj) Waterfront format.
-| mtlfile | string | **Required** | material file name (.mtl) Waterfront format.
-| backgroundColor | string | '#aaaaaa' | canvas background color
-| globalLightPower  | float | 0.3 | intensity of the light illuminating the full scene it can also the name of a numeric sensor
-| shadow | string | no | 'yes' if lights cast shadow on object. This is  realistic but impacts performances. By default wall, floors and objects with "door" in the name, receives and cast shadows
-
+| Name             | Type   | Default      | Description                                                                                                                                                                |
+| ---------------- | ------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| type             | string | **Required** | `custom:floor3d-card`.                                                                                                                                                     |
+| name             | string | Floor 3d     | the name of the card.                                                                                                                                                      |
+| entities         | array  | none         | list of enitities to bind to 3D model objects.                                                                                                                             |
+| object_groups    | array  | none         | list of object groups to apply grouped entity bindings.                                                                                                                    |
+| style            | string | none         | the style that will be applied to the canvas element of the card.                                                                                                          |
+| path             | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.                                                                                                     |
+| objfile          | string | **Required** | object file name (.obj) Waterfront format.                                                                                                                                 |
+| mtlfile          | string | **Required** | material file name (.mtl) Waterfront format.                                                                                                                               |
+| backgroundColor  | string | '#aaaaaa'    | canvas background color                                                                                                                                                    |
+| globalLightPower | float  | 0.3          | intensity of the light illuminating the full scene it can also the name of a numeric sensor                                                                                |
+| shadow           | string | no           | 'yes' if lights cast shadow on object. This is realistic but impacts performances. By default wall, floors and objects with "door" in the name, receives and cast shadows  |
+| overlay          | string | no           | 'yes' if you want to show an overlay panel for displaying data on the objects on click                                                                                     |
+| click            | string | no           | 'yes' if you want to enable the click event. This will automatically disable the double click, you can manage the click behaviour at entity level via the action parameter |
+| lock_camera      | string | no           | 'yes' to stop the zoom and rotate camera actions on the model                                                                                                              |
 
 For each entity in the entities list you need to specify the following options:
 
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| entity | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture 
-| entity_template | string | none | a JavaScript template formatted as follow: [[[ template ]]]. Template is a valid Javascript command. With $entity you specify  the state of the entity
-| object_id | string | **Required** | the name of the object in the model to biind to your entity.
-| type3d | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture, door, rotate
+| Name            | Type   | Default      | Description                                                                                                                                                                                                                                                                                         |
+| --------------- | ------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| entity          | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture                                                                                                                                                               |
+| entity_template | string | none         | a JavaScript template formatted as follow: [[[ template]]]. Template is a valid Javascript command. With $entity you specify the state of the entity                                                                                                                                                |
+| action          | string | none         | on-click behaviour: it can be 'more-info' to open the more-info dialog for the entity associated to the clicked objec; it can be 'overlay' to display the state of the entity in the ovelay panel; it can be 'default' to do the same action that used to be associated to the double click action. |
+| object_id       | string | **Required** | the name of the object in the model to biind to your entity.                                                                                                                                                                                                                                        |
+| type3d          | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture, door, rotate                                                                                                                                                                                                             |
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
 
 For each object_group in object_groups:
 
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| object_group | string | **Required** | your object group name to be referenced by the entity field via <object_group> reference (braces <> have to wrap the object_group name)
-| objects | array | **Required** | the list of object_ids in your group.
+| Name         | Type   | Default      | Description                                                                                                                             |
+| ------------ | ------ | ------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| object_group | string | **Required** | your object group name to be referenced by the entity field via <object_group> reference (braces <> have to wrap the object_group name) |
+| objects      | array  | **Required** | the list of object_ids in your group.                                                                                                   |
 
-The objects array contains a list of 
+The objects array contains a list of
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
@@ -81,20 +84,21 @@ The objects array contains a list of
 ### Client Side Javascript template example
 
 ```yaml
-  - entity: sensor.temperature
-    type3d: color
-    colorcondition:
-      - color: red
-        state: hot
-    object_id: your_object
-    entity_template: '[[[ if ($entity > 25) { "hot" } else { "cool" } ]]]'
-
+- entity: sensor.temperature
+  type3d: color
+  colorcondition:
+    - color: red
+      state: hot
+  object_id: your_object
+  entity_template: '[[[ if ($entity > 25) { "hot" } else { "cool" } ]]]'
 ```
+
 The example above shows a potential usage of the Client Side Javascript template example. If the state of the entity is greater than 25, the templated state of the entity will be 'hot' thus the object 'your_object' will become red
 
 ## Camera Rotation and Camera Position
 
 For **camera rotation and position** recording config:
+
 ```yaml
 camera_position:
   x: <x coordinate of the recorded camera positioon>
@@ -105,11 +109,13 @@ camera_rotate:
   y: <y coordinate of the recorded camera rotation>
   z: <z coordinate of the recorded camera rotation>
 ```
-When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates. 
+
+When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates.
 
 ## Lights
 
 For **light** example config:
+
 ```yaml
 entities:
   - entity: <a light entity id>
@@ -128,6 +134,7 @@ A double click on the light object will toggle the light (so far the events in i
 ## Hide
 
 For **hide** example config:
+
 ```yaml
 entities
   - entity: <a binary sensor entity id>
@@ -142,6 +149,7 @@ Hide behavour: the object_id will be hidden when the state of the bound entity w
 ## Show
 
 For **show** example config:
+
 ```yaml
 entities
   - entity: <a binary sensor entity id>
@@ -156,10 +164,11 @@ Show behavour: the object_id will be visible when the state of the bound entity 
 ## Color
 
 For **color** example config:
+
 ```yaml
 entities:
   - entity: <a discrete sensor entity id>
-    type3d: color 
+    type3d: color
     object_id: <the object id in the 3D model that has to change color based on the state of the entity>
     colorcondition:
       - color: <color to paint if condition for the entity id in the stat to be true, it can be in Hex, html or rgb format (ex. '#ff0000' or 'red' or '255, 0, 0' >
@@ -172,6 +181,7 @@ Color behavour: the object_id will be painted in the color when the state of the
 ## Text
 
 For **text** example config:
+
 ```yaml
 entities:
   - entity: <a numeric or text sensor entity id>
@@ -191,6 +201,7 @@ Text behaviour: the object_id representing the plane object (ex. mirror; picture
 ## Gesture
 
 For **gesture** (action) example config:
+
 ```yaml
 entities:
   - entity: <an actionable entity>
@@ -200,12 +211,14 @@ entities:
       domain: <the domain of the service to call>
       service: <the service to call>
 ```
+
 when you double click on the object, the domain.service is called with data { entity_id: entity }
 (so far the iOS and Android events are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
 
 ## Door
 
 For **door** example config:
+
 ```yaml
 entities:
   - entity: <a on/off  entity>
@@ -219,50 +232,51 @@ entities:
       pane: the object_id of the pane (main component) of the door/window
       degrees: the degrees of the door opening
 ```
+
 a door/window object/entity is rotated by the sepcified degrees (swing) or slid (slide) along the axis defined in 'side' and the direction defined in 'direction'. You can use the object group to list the moving objects of the door. If you do that you can now select the hinge object or the pane object. When you select the hinge object only the direction parameter is used as the side and axix of rotation are bound to the hinge position and shape. Time allowing I will try to do a tutorial. It is getting complex.....
 
 Different cases here:
 
 For a Swing door:
 
-| Type | Direction | Side | Degrees | Comment
-| ---------------------- | --------- | ------- | ------ | --------------
-| hinge object specified | x |  | x | -
-| pane object specified | x | x | x | -
-| no object specified | x | x | x | the object_id is taken as a pane or the first object of the group
+| Type                   | Direction | Side | Degrees | Comment                                                           |
+| ---------------------- | --------- | ---- | ------- | ----------------------------------------------------------------- |
+| hinge object specified | x         |      | x       | -                                                                 |
+| pane object specified  | x         | x    | x       | -                                                                 |
+| no object specified    | x         | x    | x       | the object_id is taken as a pane or the first object of the group |
 
 For a slide door (only pane object):
 
-| Type | Direction | Side | Percentage | Comment
-| ---------------------- | --------- | ------- | ------ | --------------
-| pane object specified | x | x | x | -
-| no pane object specified | x | x | x | the object_id is taken as a pane or the first object of the group
-
+| Type                     | Direction | Side | Percentage | Comment                                                           |
+| ------------------------ | --------- | ---- | ---------- | ----------------------------------------------------------------- |
+| pane object specified    | x         | x    | x          | -                                                                 |
+| no pane object specified | x         | x    | x          | the object_id is taken as a pane or the first object of the group |
 
 Example of configuration for a window (Double French Window) exported using the ExportToHass plugin:
 
 ![image](https://user-images.githubusercontent.com/35622920/132490828-37eed144-d86b-4ef0-93ec-4be5d8131da5.png)
 
 The entity section:
+
 ```yaml
-  - entity: your_domain.your_door_entity
-    object_id: <WindowDiningRoomLeft>
-    type3d: door
-    door:
-      doortype: swing
-      direction: inner
-      degrees: '50'
-      hinge: WindowDiningRoomLeft_4
+- entity: your_domain.your_door_entity
+  object_id: <WindowDiningRoomLeft>
+  type3d: door
+  door:
+    doortype: swing
+    direction: inner
+    degrees: '50'
+    hinge: WindowDiningRoomLeft_4
 ```
 
 And the related object group:
 
 ```yaml
-  - object_group: WindowDiningRoomLeft
-    objects:
-      - object_id: WindowDiningRoomLeft_7
-      - object_id: WindowDiningRoomLeft_6
-      - object_id: WindowDiningRoomLeft_5
+- object_group: WindowDiningRoomLeft
+  objects:
+    - object_id: WindowDiningRoomLeft_7
+    - object_id: WindowDiningRoomLeft_6
+    - object_id: WindowDiningRoomLeft_5
 ```
 
 Result:
@@ -274,6 +288,7 @@ Result:
 ## Rotate
 
 For **rotate** example config:
+
 ```yaml
 entities:
   - entity: <a on/off  entity>
@@ -285,7 +300,8 @@ entities:
       percentage:
       hinge: the object acting as a pivot when you use an object group to represent the moving parts.
 ```
-an object to rotate (animation) when the associated entity will be 'on'. If you use an object group and you specify the hinge, all moving parts in the group will rotate aroung the hinge center point. 
+
+an object to rotate (animation) when the associated entity will be 'on'. If you use an object group and you specify the hinge, all moving parts in the group will rotate aroung the hinge center point.
 
 ## Object group example
 
@@ -302,8 +318,6 @@ object_groups:
       - object_id: lamp_base_20
       - object_id: lamp_bulb_1
 ```
-
-
 
 ### Example
 
@@ -333,10 +347,6 @@ backgroundColor: '#000001'
 globalLightPower: 0.4
 ```
 
-
 ### To Do
 
 Project General Availability (https://github.com/adizanni/floor3d-card/projects/1)
-
-
-

@@ -74,6 +74,13 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       show: false,
     };
 
+    const overlayOptions = {
+      icon: 'checkbox-multiple-blank-outline',
+      name: 'Overlay',
+      secondary: 'Overlay settings.',
+      show: false,
+    };
+
     const colorOptions = {
       icon: 'format-color-fill',
       name: 'Color',
@@ -208,6 +215,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           secondary: 'Customize the global appearance and behavior settings',
           show: false,
         },
+        overlay: {
+          icon: 'checkbox-multiple-blank-outline',
+          name: 'Overlay',
+          secondary: 'Customize the overlay appearance and behavior settings',
+          show: false,
+        }
       };
     }
 
@@ -252,11 +265,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected render(): TemplateResult | void {
+    const show = this._config.overlay ? (this._config.overlay == "yes") : false;
     return html`
       <div class="sub-category" style="display: flex; flex-direction: row; align-items: left;">
         <ha-icon @click=${this._config_changed} icon="mdi:refresh" class="ha-icon-large"> </ha-icon>
       </div>
-      ${this._createModelElement()} ${this._createAppearanceElement()} ${this._createEntitiesElement()}
+      ${this._createModelElement()} ${this._createAppearanceElement()} ${show ? html` ${this._createOverlayElement()} ` : ``} ${this._createEntitiesElement()}
       ${this._createObjectGroupsElement()}
     `;
   }
@@ -639,6 +653,99 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
+  private _createOverlayElement(): TemplateResult {
+    if (!this.hass) {
+      return html``;
+    }
+    const config: any = this._config;
+    const index = null;
+    const options = this._options.overlay;
+    return html`
+      <div class="category" id="card">
+        <div class="sub-category" @click=${this._toggleThing} .options=${options} .optionsTarget=${this._options}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+            <div class="title">${options.name}</div>
+            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
+          </div>
+          <div class="secondary">${options.secondary}</div>
+        </div>
+        ${options.show
+        ? html`
+              <div class="value-container">
+                <paper-input
+                  editable
+                  label="Overlay Background color"
+                  .value="${config.overlay_bgcolor ? config.overlay_bgcolor : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_bgcolor'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Overlay Foreground color"
+                  .value="${config.overlay_fgcolor ? config.overlay_fgcolor : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_fgcolor'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-dropdown-menu
+                  label="Overlay Alignment"
+                  @selected-item-changed=${this._valueChanged}
+                  .configObject=${config}
+                  .configAttribute=${'overlay_alignment'}
+                  .ignoreNull=${true}
+                >
+                  <paper-listbox
+                    slot="dropdown-content"
+                    attr-for-selected="item-name"
+                    selected="${config.overlay_alignment ? config.overlay_alignment: null}"
+                  >
+                    <paper-item item-name="top-left">top-left</paper-item>
+                    <paper-item item-name="top-right">top-right</paper-item>
+                    <paper-item item-name="bottom-left">bottom-left</paper-item>
+                    <paper-item item-name="bottom-right">bottom-right</paper-item>
+                  </paper-listbox>
+                </paper-dropdown-menu>
+                <paper-input
+                  editable
+                  label="Overlay Width %"
+                  .value="${config.overlay_width ? config.overlay_width : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_width'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Overlay Height %"
+                  .value="${config.overlay_height ? config.overlay_height : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_height'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Overlay Font"
+                  .value="${config.overlay_font ? config.overlay_font : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_font'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Overlay Font size"
+                  .value="${config.overlay_fontsize ? config.overlay_fontsize : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay_fontsize'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+              </div>
+            `
+          : ''}
+      </div>
+    `;
+  }
+
   private _createAppearanceElement(): TemplateResult {
     if (!this.hass) {
       return html``;
@@ -677,10 +784,18 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
-                  label="More Info (no dblclick)"
-                  .value="${config.more_info ? config.more_info : ''}"
+                  label="Click (no dblclick)"
+                  .value="${config.click ? config.click : ''}"
                   .configObject=${config}
-                  .configAttribute=${'more_info'}
+                  .configAttribute=${'click'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Overlay"
+                  .value="${config.overlay ? config.overlay : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'overlay'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <paper-input
@@ -872,6 +987,24 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .configObject=${config}
                     @value-changed=${this._valueChanged}
                   ></paper-input>
+                  <paper-dropdown-menu
+                    label="Action"
+                    @selected-item-changed=${this._valueChanged}
+                    .optionTgt=${this._options.entities.options.entities[index].options}
+                    .configObject=${config}
+                    .configAttribute=${'action'}
+                    .ignoreNull=${true}
+                  >
+                    <paper-listbox
+                      slot="dropdown-content"
+                      attr-for-selected="item-name"
+                      selected="${config.action ? config.action : null}"
+                    >
+                      <paper-item item-name="more-info">more-info</paper-item>
+                      <paper-item item-name="overlay">overlay</paper-item>
+                      <paper-item item-name="default">default</paper-item>
+                  </paper-listbox>
+                  </paper-dropdown-menu>
                   <paper-dropdown-menu
                     label="3D Type"
                     @selected-item-changed=${this._typeChanged}
@@ -1406,7 +1539,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 >
                                   <paper-item item-name="bottom">bottom</paper-item>
                                   <paper-item item-name="middle">middle</paper-item>
-                                  <paper-item item-name="hide">top</paper-item>
+                                  <paper-item item-name="top">top</paper-item>
                                 </paper-listbox>
                               </paper-dropdown-menu>
                             `

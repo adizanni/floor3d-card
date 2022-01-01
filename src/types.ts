@@ -24,7 +24,16 @@ export interface Floor3dCardConfig {
   shadow: string;
   entities: any;
   lock_camera: string;
-  more_info: string;
+  click: string;
+  action: string;
+  overlay: string;
+  overlay_bgcolor: string;
+  overlay_fgcolor: string;
+  overlay_alignment: string;
+  overlay_width: string;
+  overlay_height: string;
+  overlay_font: string;
+  overlay_fontsize: string;
   tap_action?: ActionConfig;
   double_tap_action?: ActionConfig;
   entity: string;

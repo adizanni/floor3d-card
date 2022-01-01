@@ -96,7 +96,7 @@ export class Floor3dCard extends LitElement {
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
   private _object_ids?: Floor3dCardConfig[] = [];
-
+  private _overlay: HTMLDivElement;
   private _hass?: HomeAssistant;
   private _haShadowRoot: any;
   private _card_id: string;
@@ -212,9 +212,8 @@ export class Floor3dCard extends LitElement {
   public rerender(): void {
     this._content.removeEventListener('dblclick', this._performActionListener);
     this._content.removeEventListener('touchstart', this._performActionListener);
-    if (this._config.lock_camera != 'yes') {
-      this._controls.removeEventListener('change', this._changeListener);
-    }
+    this._controls.removeEventListener('change', this._changeListener);
+
     this._renderer.setAnimationLoop(null);
     this._resizeObserver.disconnect();
     window.clearInterval(this._zIndexInterval);
@@ -313,20 +312,43 @@ export class Floor3dCard extends LitElement {
     this._renderer.render(this._scene, this._camera);
   }
 
-  private _firevent(e: any): void {
-    //double click on object to show the name
+  private _getintersect(e: any): THREE.Intersection[] {
     const mouse: THREE.Vector2 = new THREE.Vector2();
     mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
     mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
     const raycaster: THREE.Raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, this._camera);
     const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
+    return intersects;
+  }
+
+  private _firevent(e: any): void {
+    //double click on object to show the name
+    const intersects = this._getintersect(e);
     if (intersects.length > 0 && intersects[0].object.name != '') {
       this._config.entities.forEach((entity, i) => {
         for (let j = 0; j < this._object_ids[i].objects.length; j++) {
           if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
-            fireEvent(this, "hass-more-info", { entityId: entity.entity });
-            return;
+            if (this._config.entities[i].action) {
+              switch (this._config.entities[i].action) {
+                case "more-info":
+                  fireEvent(this, "hass-more-info", { entityId: entity.entity });
+                  break;
+                case "overlay":
+                  if (this._overlay) {
+                    this._overlay.textContent = entity.entity + ": " + this._hass.states[entity.entity].state
+                  }
+                  break;
+                case "default":
+                default:
+                  this._defaultaction(intersects);
+              }
+              return;
+            }
+            else {
+              this._defaultaction(intersects);
+              return;
+            }
           }
           break;
         }
@@ -334,14 +356,8 @@ export class Floor3dCard extends LitElement {
     }
   }
 
-  private _performAction(e: any): void {
-    //double click on object to show the name
-    const mouse: THREE.Vector2 = new THREE.Vector2();
-    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
-    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
-    const raycaster: THREE.Raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, this._camera);
-    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
+  private _defaultaction(intersects: THREE.Intersection[]): void {
+
     if (intersects.length > 0 && intersects[0].object.name != '') {
       if (getLovelace().editMode) {
         window.prompt('Object:', intersects[0].object.name);
@@ -384,6 +400,17 @@ export class Floor3dCard extends LitElement {
         ' }',
       );
     }
+  }
+
+  private _performAction(e: any): void {
+    //double click on object to show the name
+    const mouse: THREE.Vector2 = new THREE.Vector2();
+    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
+    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
+    const raycaster: THREE.Raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this._camera);
+    const intersects = this._getintersect(e);
+    this._defaultaction(intersects);
   }
 
   private _zIndexChecker(): void {
@@ -787,17 +814,89 @@ export class Floor3dCard extends LitElement {
       console.log('Show canvas');
       this._content.innerText = '';
       this._content.appendChild(this._renderer.domElement);
-      if (this._config.more_info == 'yes') {
+      if (this._config.click == 'yes') {
         this._content.addEventListener('click', this._fireventListener);
       }
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
+
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
-      if (this._config.lock_camera != 'yes') {
-        this._controls.addEventListener('change', this._changeListener);
+      this._controls.addEventListener('change', this._changeListener);
+      if (this._config.lock_camera == 'yes') {
+        this._controls.enableRotate = false;
+        this._controls.enableZoom = false;
+      }
+      if (this._config.overlay == 'yes') {
+        console.log("Start config Overlay");
+        const overlay = document.createElement('div');
+        overlay.id = 'overlay';
+        overlay.className = 'overlay';
+        overlay.style.setProperty("position", "absolute");
+        if (this._config.overlay_alignment) {
+          switch (this._config.overlay_alignment) {
+            case 'top-left':
+              overlay.style.setProperty("top", "0px");
+              overlay.style.setProperty("left", "0px");
+              break;
+            case 'top-right':
+              overlay.style.setProperty("top", "0px");
+              overlay.style.setProperty("right", "0px");
+              break;
+            case 'bottom-left':
+              overlay.style.setProperty("bottom", "0px");
+              overlay.style.setProperty("left", "0px");
+              break;
+            case 'bottom-right':
+              overlay.style.setProperty("bottom", "0px");
+              overlay.style.setProperty("right", "0px");
+              break;
+            default:
+              overlay.style.setProperty("top", "0px");
+              overlay.style.setProperty("left", "0px");
+          }
+        }
+        if (this._config.overlay_width) {
+          overlay.style.setProperty("width", this._config.overlay_width + '%');
+        }
+        else {
+          overlay.style.setProperty("width", "33%");
+        }
+        if (this._config.overlay_height) {
+          overlay.style.setProperty("height", this._config.overlay_height + '%');
+        }
+        else {
+          overlay.style.setProperty("height", "20%");
+        }
+        if (this._config.overlay_bgcolor) {
+          overlay.style.setProperty("background-color", this._config.overlay_bgcolor);
+        }
+        else {
+          overlay.style.setProperty("background-color", "transparent");
+        }
+        if (this._config.overlay_fgcolor) {
+          overlay.style.setProperty("color", this._config.overlay_fgcolor);
+        }
+        else {
+          overlay.style.setProperty("color", "black");
+        }
+        if (this._config.overlay_font) {
+          overlay.style.fontFamily = this._config.overlay_font;
+        }
+        if (this._config.overlay_fontsize) {
+          overlay.style.fontSize = this._config.overlay_fontsize;
+        }
+
+        overlay.style.setProperty("overflow", "hidden");
+        overlay.style.setProperty("white-space", "nowrap");
+        overlay.style.setProperty("z-index", "999");
+        (this._renderer.domElement.parentNode as HTMLElement).style.setProperty("position", "relative");
+        this._renderer.domElement.parentNode.appendChild(overlay);
+        this._overlay = overlay;
+        console.log("End config Overlay");
       }
       this._renderer.setPixelRatio(window.devicePixelRatio);
+
       // ambient and directional light
 
       if (this._hass.states[this._config.globalLightPower]) {
@@ -1615,8 +1714,8 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + ';'}`}
-        id="${this._card_id}">
+      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
+      + '; position: relative;' }`} id="${this._card_id}">
       </ha-card>
     `;
   }
