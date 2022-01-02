@@ -113,6 +113,44 @@ camera_rotate:
 
 When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates.
 
+## Overlay and action
+
+You first put overlay yes in the Appearance section of the card visual editor. Then a few other Overlay parameters appear to customize the overlay: alignment, size, fonts, colors, etc.
+All this will create a panel that will sit on top of the model canvas.
+You will also have to put the click parameter to yes for it to work.
+Then in each entity you have the action parameter; this tells what to do when you click on the object associated to the entity.
+If action = overlay for an entity, it means that when you click on it, it will display the name and state of the entity inside the overlay.
+
+Example:
+
+```yaml
+........
+overlay: 'yes'
+overlay_bgcolor: transparent
+.........
+click: 'yes'
+entities:
+  - entity: <your_entity>
+    object_id: <your_object_id>
+    action: overlay
+    .........
+```
+
+When you click on the object, the entity name and state will appear in the overlay panel
+
+In this other example the click will trigger the pop of the more-info dialog (overlay not needed):
+
+```yaml
+
+.........
+click: 'yes'
+entities:
+  - entity: <your_entity>
+    object_id: <your_object_id>
+    action: more-info
+    .........
+```
+
 ## Lights
 
 For **light** example config:
