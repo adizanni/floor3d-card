@@ -151,6 +151,18 @@ entities:
     .........
 ```
 
+## Camera
+
+For camera, example config:
+  
+```yaml
+entities
+  - entity: camera.<camera name>
+    type3d: camera
+    object_id: <an object_id in the model you want to associate with the camera>
+```
+there are no specific parameters. Double clicking on the object will show a pop-up dialog with the camera picture.
+  
 ## Lights
 
 For **light** example config:
