@@ -1,6 +1,9 @@
 # floor3d-card
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+[![GitHub Release][releases-shield]][releases]
+[![Community Forum][forum-shield]][forum]
+[![License][license-shield]](LICENSE.md)
 
 Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states.
 
