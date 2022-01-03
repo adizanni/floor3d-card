@@ -1026,6 +1026,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="door">door</paper-item>
                       <paper-item item-name="rotate">rotate</paper-item>
                       <paper-item item-name="gesture">gesture</paper-item>
+                      <paper-item item-name="camera">camera</paper-item>
                     </paper-listbox>
                   </paper-dropdown-menu>
                   ${!this._objects

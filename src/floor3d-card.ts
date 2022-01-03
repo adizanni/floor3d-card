@@ -363,7 +363,7 @@ export class Floor3dCard extends LitElement {
         window.prompt('Object:', intersects[0].object.name);
       } else {
         this._config.entities.forEach((entity, i) => {
-          if (entity.type3d == 'light' || entity.type3d == 'gesture') {
+          if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
             for (let j = 0; j < this._object_ids[i].objects.length; j++) {
               if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
                 if (entity.type3d == 'light') {
@@ -374,6 +374,10 @@ export class Floor3dCard extends LitElement {
                   this._hass.callService(entity.gesture.domain, entity.gesture.service, {
                     entity_id: entity.entity,
                   });
+                }
+                else if (entity.type3d == 'camera') {
+                  fireEvent(this, "hass-more-info", { entityId: entity.entity });
+                  //this._hass.states[entity.entity].attributes["entity_picture"]
                 }
                 break;
               }
@@ -675,14 +679,14 @@ export class Floor3dCard extends LitElement {
     } else {
       this._scene.background = new THREE.Color('#aaaaaa');
     }
-    this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 99999999);
+    this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
     this._ambient_light = new THREE.AmbientLight(0xffffff, 0.5);
     this._direction_light = new THREE.DirectionalLight(0xffffff, 0.5);
     this._direction_light.matrixAutoUpdate = true;
     this._direction_light.castShadow = false;
     this._scene.add(this._direction_light);
     this._scene.add(this._ambient_light);
-    this._renderer = new THREE.WebGLRenderer({ antialias: true });
+    this._renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     this._maxtextureimage = this._renderer.context.getParameter(
       this._renderer.context.MAX_TEXTURE_IMAGE_UNITS
     );
@@ -1715,7 +1719,7 @@ export class Floor3dCard extends LitElement {
 
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-      + '; position: relative;' }`} id="${this._card_id}">
+        + '; position: relative;'}`} id="${this._card_id}">
       </ha-card>
     `;
   }
