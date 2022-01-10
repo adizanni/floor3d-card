@@ -669,6 +669,7 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+
   protected display3dmodel(): void {
     //load the model into the GL Renderer
     console.log('Start Build Renderer');
@@ -697,6 +698,7 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
+
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
       const lastChar = path.substr(-1);
@@ -760,28 +762,6 @@ export class Floor3dCard extends LitElement {
     this._content.innerText = '2/2: 100%';
 
     //this._scene.add(new THREE.AxesHelper(300));
-    const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
-
-    if (this._config.camera_position) {
-      this._camera.position.set(
-        this._config.camera_position.x,
-        this._config.camera_position.y,
-        this._config.camera_position.z,
-      );
-      this._direction_light.position.set(
-        this._config.camera_position.x,
-        this._config.camera_position.y,
-        this._config.camera_position.z,
-      );
-    } else {
-      this._camera.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
-      this._direction_light.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
-    }
-
-
-    this._modelX = this._bboxmodel.position.x = -(box.max.x - box.min.x) / 2;
-    this._modelY = this._bboxmodel.position.y = -box.min.y;
-    this._modelZ = this._bboxmodel.position.z = -(box.max.z - box.min.z) / 2;
 
     if (this._config.shadow) {
       if (this._config.shadow == 'yes') {
@@ -795,21 +775,6 @@ export class Floor3dCard extends LitElement {
     }
 
 
-    if (this._config.camera_rotate) {
-      this._camera.rotation.set(
-        this._config.camera_rotate.x,
-        this._config.camera_rotate.y,
-        this._config.camera_rotate.z,
-      );
-      this._direction_light.rotation.set(
-        this._config.camera_rotate.x,
-        this._config.camera_rotate.y,
-        this._config.camera_rotate.z,
-      );
-    } else {
-      this._camera.lookAt(box.max.multiplyScalar(0.5));
-      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
-    }
     this._add3dObjects();
     console.log('Object loaded end');
 
@@ -827,10 +792,19 @@ export class Floor3dCard extends LitElement {
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
       this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
       this._controls.addEventListener('change', this._changeListener);
+      this._renderer.setPixelRatio(window.devicePixelRatio);
+
+      this._setCamera();
+
       if (this._config.lock_camera == 'yes') {
+/*
         this._controls.enableRotate = false;
         this._controls.enableZoom = false;
+        this._controls.enablePan = false;
+*/
+        this._controls.enabled = false
       }
+
       if (this._config.overlay == 'yes') {
         console.log("Start config Overlay");
         const overlay = document.createElement('div');
@@ -893,13 +867,16 @@ export class Floor3dCard extends LitElement {
 
         overlay.style.setProperty("overflow", "hidden");
         overlay.style.setProperty("white-space", "nowrap");
-        overlay.style.setProperty("z-index", "999");
+        if (this._getZIndex(this._renderer.domElement.parentNode)) {
+          overlay.style.setProperty("z-index", (Number(this._getZIndex(this._renderer.domElement.parentNode)) + 1).toString(10));
+        } else {
+          overlay.style.setProperty("z-index", "999");
+        }
         (this._renderer.domElement.parentNode as HTMLElement).style.setProperty("position", "relative");
         this._renderer.domElement.parentNode.appendChild(overlay);
         this._overlay = overlay;
         console.log("End config Overlay");
       }
-      this._renderer.setPixelRatio(window.devicePixelRatio);
 
       // ambient and directional light
 
@@ -928,6 +905,54 @@ export class Floor3dCard extends LitElement {
         this._resizeObserver.observe(this._card);
       }
     }
+  }
+
+  private _setCamera(): void {
+
+    const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
+
+    this._modelX = this._bboxmodel.position.x = -(box.max.x - box.min.x) / 2;
+    this._modelY = this._bboxmodel.position.y = -box.min.y;
+    this._modelZ = this._bboxmodel.position.z = -(box.max.z - box.min.z) / 2;
+
+
+
+    if (this._config.camera_position) {
+      this._camera.position.set(
+        this._config.camera_position.x,
+        this._config.camera_position.y,
+        this._config.camera_position.z,
+      );
+      this._direction_light.position.set(
+        this._config.camera_position.x,
+        this._config.camera_position.y,
+        this._config.camera_position.z,
+      );
+    } else {
+      this._camera.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
+      this._direction_light.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
+    }
+
+
+    if (this._config.camera_rotate) {
+      this._camera.rotation.set(
+        this._config.camera_rotate.x,
+        this._config.camera_rotate.y,
+        this._config.camera_rotate.z,
+      );
+      this._direction_light.rotation.set(
+        this._config.camera_rotate.x,
+        this._config.camera_rotate.y,
+        this._config.camera_rotate.z,
+      );
+    } else {
+      this._camera.lookAt(box.max.multiplyScalar(0.5));
+      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
+    }
+
+    this._camera.updateProjectionMatrix()
+
+
   }
 
   private _setNoShadowLight(object: THREE.Object3D): void {
@@ -1713,13 +1738,10 @@ export class Floor3dCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
 
-    let htmlHeight: string;
-    if (this._ispanel()) htmlHeight = 'calc(100vh - var(--header-height))';
-    else htmlHeight = 'auto';
-
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-        + '; position: relative;'}`} id="${this._card_id}">
+      <ha-card tabindex="0" .style=${`${this._config.style || ' overflow: hidden; ' ||
+        ((this._ispanel()) ? 'height: calc(100vh - var(--header-height));' : '') ||  ' position: relative;' }`}
+        id="${this._card_id}">
       </ha-card>
     `;
   }
