@@ -838,6 +838,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .configAttribute=${'camera_rotate'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
+                <paper-input
+                  editable
+                  label="Camera Target"
+                  .value=${config.camera_target ? config.camera_target : ''}
+                  .configObject=${config}
+                  .configAttribute=${'camera_target'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
               </div>
             `
           : ''}

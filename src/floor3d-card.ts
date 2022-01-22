@@ -350,7 +350,6 @@ export class Floor3dCard extends LitElement {
               return;
             }
           }
-          break;
         }
       });
     }
@@ -401,6 +400,13 @@ export class Floor3dCard extends LitElement {
         this._camera.rotation.y +
         ', z: ' +
         this._camera.rotation.z +
+        ' }\n' +
+        'camera_target: { x: ' +
+        this._controls.target.x +
+        ', y: ' +
+        this._controls.target.y +
+        ', z: ' +
+        this._controls.target.z +
         ' }',
       );
     }
@@ -452,7 +458,12 @@ export class Floor3dCard extends LitElement {
   }
 
   private _getZIndex(toCheck: any): string {
+
     let returnVal: string;
+
+    if (toCheck == null) {
+      returnVal = '0';
+    }
 
     returnVal = getComputedStyle(toCheck).getPropertyValue('--dialog-z-index');
     if (returnVal == '') {
@@ -460,17 +471,21 @@ export class Floor3dCard extends LitElement {
     }
 
     if (returnVal == '' || returnVal == 'auto') {
-      if (toCheck.parentNode.constructor.name == 'ShadowRoot') {
-        return this._getZIndex(toCheck.parentNode.host);
-      }
-      else if (toCheck.parentNode.constructor.name == 'HTMLDocument') {
-        return '0';
+      if (toCheck.parentNode.constructor != null) {
+        if (toCheck.parentNode.constructor.name == 'ShadowRoot') {
+          return this._getZIndex(toCheck.parentNode.host);
+        }
+        else if (toCheck.parentNode.constructor.name == 'HTMLDocument') {
+          return '0';
+        }
+        else {
+          return this._getZIndex(toCheck.parentNode);
+        }
       }
       else {
-        return this._getZIndex(toCheck.parentNode);
+        returnVal = '0';
       }
     }
-
     return returnVal;
   }
 
@@ -786,16 +801,22 @@ export class Floor3dCard extends LitElement {
       if (this._config.click == 'yes') {
         this._content.addEventListener('click', this._fireventListener);
       }
+
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
 
       this._setCamera();
 
       this._controls = new OrbitControls(this._camera, this._renderer.domElement);
-      this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
-      this._controls.addEventListener('change', this._changeListener);
+
       this._renderer.setPixelRatio(window.devicePixelRatio);
 
+      this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
+      this._controls.addEventListener('change', this._changeListener);
+
+      this._setLookAt();
+
+      this._controls.update()
 
       if (this._config.lock_camera == 'yes') {
         /*
@@ -806,78 +827,8 @@ export class Floor3dCard extends LitElement {
         this._controls.enabled = false
       }
 
-      if (this._config.overlay == 'yes') {
-        console.log("Start config Overlay");
-        const overlay = document.createElement('div');
-        overlay.id = 'overlay';
-        overlay.className = 'overlay';
-        overlay.style.setProperty("position", "absolute");
-        if (this._config.overlay_alignment) {
-          switch (this._config.overlay_alignment) {
-            case 'top-left':
-              overlay.style.setProperty("top", "0px");
-              overlay.style.setProperty("left", "0px");
-              break;
-            case 'top-right':
-              overlay.style.setProperty("top", "0px");
-              overlay.style.setProperty("right", "0px");
-              break;
-            case 'bottom-left':
-              overlay.style.setProperty("bottom", "0px");
-              overlay.style.setProperty("left", "0px");
-              break;
-            case 'bottom-right':
-              overlay.style.setProperty("bottom", "0px");
-              overlay.style.setProperty("right", "0px");
-              break;
-            default:
-              overlay.style.setProperty("top", "0px");
-              overlay.style.setProperty("left", "0px");
-          }
-        }
-        if (this._config.overlay_width) {
-          overlay.style.setProperty("width", this._config.overlay_width + '%');
-        }
-        else {
-          overlay.style.setProperty("width", "33%");
-        }
-        if (this._config.overlay_height) {
-          overlay.style.setProperty("height", this._config.overlay_height + '%');
-        }
-        else {
-          overlay.style.setProperty("height", "20%");
-        }
-        if (this._config.overlay_bgcolor) {
-          overlay.style.setProperty("background-color", this._config.overlay_bgcolor);
-        }
-        else {
-          overlay.style.setProperty("background-color", "transparent");
-        }
-        if (this._config.overlay_fgcolor) {
-          overlay.style.setProperty("color", this._config.overlay_fgcolor);
-        }
-        else {
-          overlay.style.setProperty("color", "black");
-        }
-        if (this._config.overlay_font) {
-          overlay.style.fontFamily = this._config.overlay_font;
-        }
-        if (this._config.overlay_fontsize) {
-          overlay.style.fontSize = this._config.overlay_fontsize;
-        }
 
-        overlay.style.setProperty("overflow", "hidden");
-        overlay.style.setProperty("white-space", "nowrap");
-        if (this._getZIndex(this._renderer.domElement.parentNode)) {
-          overlay.style.setProperty("z-index", (Number(this._getZIndex(this._renderer.domElement.parentNode)) + 1).toString(10));
-        } else {
-          overlay.style.setProperty("z-index", "999");
-        }
-        (this._renderer.domElement.parentNode as HTMLElement).style.setProperty("position", "relative");
-        this._renderer.domElement.parentNode.appendChild(overlay);
-        this._overlay = overlay;
-        console.log("End config Overlay");
-      }
+      this._getOverlay();
 
       // ambient and directional light
 
@@ -908,6 +859,93 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+  private _getOverlay(): void {
+
+    if (this._config.overlay == 'yes') {
+      console.log("Start config Overlay");
+      const overlay = document.createElement('div');
+      overlay.id = 'overlay';
+      overlay.className = 'overlay';
+      overlay.style.setProperty("position", "absolute");
+      if (this._config.overlay_alignment) {
+        switch (this._config.overlay_alignment) {
+          case 'top-left':
+            overlay.style.setProperty("top", "0px");
+            overlay.style.setProperty("left", "0px");
+            break;
+          case 'top-right':
+            overlay.style.setProperty("top", "0px");
+            overlay.style.setProperty("right", "0px");
+            break;
+          case 'bottom-left':
+            overlay.style.setProperty("bottom", "0px");
+            overlay.style.setProperty("left", "0px");
+            break;
+          case 'bottom-right':
+            overlay.style.setProperty("bottom", "0px");
+            overlay.style.setProperty("right", "0px");
+            break;
+          default:
+            overlay.style.setProperty("top", "0px");
+            overlay.style.setProperty("left", "0px");
+        }
+      }
+      if (this._config.overlay_width) {
+        overlay.style.setProperty("width", this._config.overlay_width + '%');
+      }
+      else {
+        overlay.style.setProperty("width", "33%");
+      }
+      if (this._config.overlay_height) {
+        overlay.style.setProperty("height", this._config.overlay_height + '%');
+      }
+      else {
+        overlay.style.setProperty("height", "20%");
+      }
+
+      if (this._config.overlay_bgcolor) {
+        overlay.style.setProperty("background-color", this._config.overlay_bgcolor);
+      }
+      else {
+        overlay.style.setProperty("background-color", "transparent");
+      }
+      if (this._config.overlay_fgcolor) {
+        overlay.style.setProperty("color", this._config.overlay_fgcolor);
+      }
+      else {
+        overlay.style.setProperty("color", "black");
+      }
+      if (this._config.overlay_font) {
+        overlay.style.fontFamily = this._config.overlay_font;
+      }
+      if (this._config.overlay_fontsize) {
+        overlay.style.fontSize = this._config.overlay_fontsize;
+      }
+
+      overlay.style.setProperty("overflow", "hidden");
+      overlay.style.setProperty("white-space", "nowrap");
+      console.log("z-index start");
+      let zindex = "";
+
+      try {
+        zindex = this._getZIndex(this._renderer.domElement.parentNode);
+      } catch (error) {
+        console.log(error);
+      }
+
+      if (zindex) {
+        overlay.style.setProperty("z-index", (Number(zindex) + 1).toString(10));
+      } else {
+        overlay.style.setProperty("z-index", "999");
+      }
+
+      (this._renderer.domElement.parentNode as HTMLElement).style.setProperty("position", "relative");
+      this._renderer.domElement.parentNode.appendChild(overlay);
+      this._overlay = overlay;
+      console.log("End config Overlay");
+    }
+
+  }
   private _setCamera(): void {
 
     const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
@@ -947,13 +985,28 @@ export class Floor3dCard extends LitElement {
         this._config.camera_rotate.z,
       );
     } else {
-      this._camera.lookAt(box.max.multiplyScalar(0.5));
-      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
+      this._camera.rotation.set(0, 0, 0);
+      this._direction_light.rotation.set(0, 0, 0);
     }
 
     this._camera.updateProjectionMatrix()
+  }
 
+  private _setLookAt(): void {
 
+    const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
+
+    if (this._config.camera_target) {
+      this._controls.target.set(
+        this._config.camera_target.x,
+        this._config.camera_target.y,
+        this._config.camera_target.z,
+      );
+    } else {
+      this._camera.lookAt(box.max.multiplyScalar(0.5));
+      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
+    }
+    this._camera.updateProjectionMatrix()
   }
 
   private _setNoShadowLight(object: THREE.Object3D): void {
@@ -1745,7 +1798,7 @@ export class Floor3dCard extends LitElement {
 
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-        + '; position: relative;'}`} id="${this._card_id}">
+      + '; position: relative;' }`} id="${this._card_id}">
       </ha-card>
     `;
   }

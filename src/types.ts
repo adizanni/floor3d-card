@@ -65,6 +65,7 @@ export interface Floor3dCardConfig {
   textfgcolor: string;
   camera_position: any;
   camera_rotate: any;
+  camera_target: any;
   x: number;
   y: number;
   z: number;
