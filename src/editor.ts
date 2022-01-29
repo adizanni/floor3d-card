@@ -189,7 +189,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           icon: 'group',
           name: 'Object Groups',
           secondary: 'Manage card Object Groups.',
-          show: true,
+          show: false,
           options: {
             object_groups: this._entityOptionsGroupArray,
           },
@@ -198,7 +198,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           icon: 'tune',
           name: 'Entities',
           secondary: 'Manage card entities.',
-          show: true,
+          show: false,
           options: {
             entities: this._entityOptionsArray,
           },
@@ -784,6 +784,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
+                  label="Header"
+                  .value="${config.header ? config.header : ''}"
+                  .configObject=${config}
+                  .configAttribute=${'header'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
                   label="Click (no dblclick)"
                   .value="${config.click ? config.click : ''}"
                   .configObject=${config}
@@ -1056,9 +1064,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           .configObject=${config}
                           .ignoreNull=${true}
                         >
-                          <paper-listbox slot="dropdown-content" .selected=${this._objects.indexOf(config.object_id)}>
+                          <paper-listbox slot="dropdown-content" attr-for-selected="value" .selected=${config.object_id}>
                             ${this._objects.map((object_id) => {
-                              return html` <paper-item>${object_id}</paper-item> `;
+                              return html` <paper-item value="${object_id}">${object_id}</paper-item> `;
+                            })}
+                            ${this._configObjectArray.map((object_group) => {
+                              return html` <paper-item value="${"<"+object_group.object_group+">"}">${"<"+object_group.object_group+">"}</paper-item> `;
                             })}
                           </paper-listbox>
                         </paper-dropdown-menu>

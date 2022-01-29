@@ -78,7 +78,8 @@ export class Floor3dCard extends LitElement {
   private _rotation_index: number[];
   private _clock?: THREE.Clock;
   private _slidingdoor: THREE.Group[];
-
+  private _overlay_entity: string;
+  private _overlay_state: string;
 
   private _eval: Function;
   private _firstcall?: boolean;
@@ -293,8 +294,17 @@ export class Floor3dCard extends LitElement {
         this._content.style.alignContent = 'center';
         this._card.appendChild(this._content);
       }
+
       if (!this._ispanel()) {
-        (this._card as any).header = this._config.name ? this._config.name : 'Floor 3d';
+
+        const show_header = this._config.header ? this._config.header : 'yes';
+
+        if (show_header == 'yes') {
+          (this._card as any).header = this._config.name ? this._config.name : 'Floor 3d';
+        } else {
+          (this._card as any).header = "";
+        }
+
       }
 
       if (this._content && !this._renderer) {
@@ -336,7 +346,7 @@ export class Floor3dCard extends LitElement {
                   break;
                 case "overlay":
                   if (this._overlay) {
-                    this._overlay.textContent = entity.entity + ": " + this._hass.states[entity.entity].state
+                    this._setoverlaycontent(entity.entity);
                   }
                   break;
                 case "default":
@@ -353,6 +363,15 @@ export class Floor3dCard extends LitElement {
         }
       });
     }
+  }
+
+  private _setoverlaycontent(entity_id: string): void {
+
+    this._overlay_entity = entity_id;
+    const name = this._hass.states[entity_id].attributes["friendly_name"] ? this._hass.states[entity_id].attributes["friendly_name"] : entity_id;
+    this._overlay.textContent = name + ": " + this._hass.states[entity_id].state
+    this._overlay_state = this._hass.states[entity_id].state
+
   }
 
   private _defaultaction(intersects: THREE.Intersection[]): void {
@@ -596,6 +615,17 @@ export class Floor3dCard extends LitElement {
 
       if (this._renderer && this._modelready) {
         let torerender = false;
+        if (this._config.overlay) {
+          if (this._config.overlay == 'yes') {
+            if (this._overlay_entity) {
+              if (this._overlay_state) {
+                if (this._overlay_state != hass.states[this._overlay_entity].state) {
+                  this._setoverlaycontent(this._overlay_entity);
+                }
+              }
+            }
+          }
+        }
         this._config.entities.forEach((entity, i) => {
           if (entity.entity !== '') {
             let state = this._statewithtemplate(entity);
@@ -1345,6 +1375,8 @@ export class Floor3dCard extends LitElement {
 
   private _updateTextCanvas(entity: Floor3dCardConfig, canvas: HTMLCanvasElement, text: string): void {
 
+    //Manages the update of the text entities according to their configuration and the new text of the entity state
+
     const _foundobject: any = this._scene.getObjectByName("f3dobj_" + entity.object_id);
 
     const ctx = canvas.getContext('2d');
@@ -1489,7 +1521,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updatedoor(item: Floor3dCardConfig, i: number): void {
-    // perform action of door objects
+    // perform action on door objects
 
     const _obj: any = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
 
@@ -1513,6 +1545,8 @@ export class Floor3dCard extends LitElement {
 
   private _centerobjecttopivot(object: THREE.Mesh, pivot: THREE.Vector3) {
 
+    //Center a Mesh  along is defined pivot point
+
     object.applyMatrix4(
       new THREE.Matrix4().makeTranslation(
         -(pivot.x),
@@ -1526,6 +1560,7 @@ export class Floor3dCard extends LitElement {
 
   private _rotatedoorpivot(entity: Floor3dCardConfig, index: number) {
 
+    //For a swing door, rotate the objects along the configured axis and the degrees of opening
     this._object_ids[index].objects.forEach(element => {
 
       let _obj: any = this._scene.getObjectByName(element.object_id);
@@ -1636,6 +1671,7 @@ export class Floor3dCard extends LitElement {
   private _translatedoor(item: Floor3dCardConfig, index: number, doorstate: string) {
 
     //console.log("Translate Door Start");
+    //For a slide door, translate the objects according to the configured directions and percentage of opening
 
     let translate: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
@@ -1798,7 +1834,7 @@ export class Floor3dCard extends LitElement {
 
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-      + '; position: relative;' }`} id="${this._card_id}">
+        + '; position: relative;'}`} id="${this._card_id}">
       </ha-card>
     `;
   }

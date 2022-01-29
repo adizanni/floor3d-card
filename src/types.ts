@@ -19,6 +19,7 @@ export interface Floor3dCardConfig {
   mtlfile: string;
   objectlist: string;
   style: string;
+  header: string;
   backgroundColor: string;
   globalLightPower: string;
   shadow: string;
