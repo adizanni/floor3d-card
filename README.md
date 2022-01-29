@@ -97,7 +97,7 @@ The objects array contains a list of
 
 The example above shows a potential usage of the Client Side Javascript template example. If the state of the entity is greater than 25, the templated state of the entity will be 'hot' thus the object 'your_object' will become red
 
-## Camera Rotation and Camera Position
+## Camera Rotation, Camera Position and Camera direction
 
 For **camera rotation and position** recording config:
 
@@ -110,6 +110,10 @@ camera_rotate:
   x: <x coordinate of the recorded camera rotation>
   y: <y coordinate of the recorded camera rotation>
   z: <z coordinate of the recorded camera rotation>
+ camera_target:
+  x: <x coordinate of the recorded camera target>
+  y: <y coordinate of the recorded camera target>
+  z: <z coordinate of the recorded camera target>
 ```
 
 When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates.
