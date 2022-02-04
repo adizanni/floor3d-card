@@ -605,7 +605,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.show
           ? html`
               <div class="value-container">
-                <ha-file-upload> </ha-file-upload>
+                <ha-file-upload>
+                </ha-file-upload>
                 <paper-input
                   editable
                   label="Name"
@@ -836,6 +837,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .value=${config.camera_position ? config.camera_position : ''}
                   .configObject=${config}
                   .configAttribute=${'camera_position'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Show Axes"
+                  .value=${config.show_axes ? config.show_axes : ''}
+                  .configObject=${config}
+                  .configAttribute=${'show_axes'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <paper-input
@@ -1543,6 +1552,22 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   : ""}
                                 .configObject=${config.light}
                                 .configAttribute=${"shadow"}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Light Direction"
+                                .value=${config.light.light_direction ? config.light.light_direction : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'light_direction'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Light Target (object)"
+                                .value=${config.light.light_target ? config.light.light_target : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'light_target'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-dropdown-menu

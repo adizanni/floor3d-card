@@ -484,12 +484,17 @@ export class Floor3dCard extends LitElement {
       returnVal = '0';
     }
 
+    if (toCheck.parentNode == null) {
+      return '0';
+    }
+
     returnVal = getComputedStyle(toCheck).getPropertyValue('--dialog-z-index');
     if (returnVal == '') {
       returnVal = getComputedStyle(toCheck).getPropertyValue('z-index');
     }
 
     if (returnVal == '' || returnVal == 'auto') {
+
       if (toCheck.parentNode.constructor != null) {
         if (toCheck.parentNode.constructor.name == 'ShadowRoot') {
           return this._getZIndex(toCheck.parentNode.host);
@@ -806,7 +811,11 @@ export class Floor3dCard extends LitElement {
 
     this._content.innerText = '2/2: 100%';
 
-    //this._scene.add(new THREE.AxesHelper(300));
+    if (this._config.show_axes) {
+      if (this._config.show_axes == 'yes') {
+        this._scene.add(new THREE.AxesHelper(300));
+      }
+    }
 
     if (this._config.shadow) {
       if (this._config.shadow == 'yes') {
@@ -1274,12 +1283,15 @@ export class Floor3dCard extends LitElement {
               if (_foundobject) {
                 const box: THREE.Box3 = new THREE.Box3();
                 box.setFromObject(_foundobject);
-                const light: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 700, 2);
+
+                let light = new THREE.Light();
+
                 let x: number, y: number, z: number;
 
                 x = (box.max.x - box.min.x) / 2 + box.min.x;
                 z = (box.max.z - box.min.z) / 2 + box.min.z;
                 y = (box.max.y - box.min.y) / 2 + box.min.y;
+
                 if (entity.light.vertical_alignment) {
                   switch (entity.light.vertical_alignment) {
                     case 'top':
@@ -1294,8 +1306,47 @@ export class Floor3dCard extends LitElement {
                   }
                 }
 
-                this._bboxmodel.add(light);
-                light.position.set(x, y, z);
+
+                if (entity.light.light_target || entity.light.light_direction) {
+                  const slight: THREE.SpotLight = new THREE.SpotLight(new THREE.Color('#ffffff'), 0, 700, Math.PI / 10, 0.5, 1);
+                  this._bboxmodel.add(slight);
+                  let target = new THREE.Object3D;
+                  this._bboxmodel.add(target);
+                  slight.position.set(x, y, z);
+                  if (entity.light.light_direction) {
+                    target.position.set(x + entity.light.light_direction.x, y + entity.light.light_direction.y, z + entity.light.light_direction.z);
+                  } else {
+                    const tobj: THREE.Object3D = this._scene.getObjectByName(entity.light.light_target);
+
+                    if (tobj) {
+
+                      const tbox: THREE.Box3 = new THREE.Box3();
+                      tbox.setFromObject(tobj);
+
+                      let tx: number, ty: number, tz: number;
+
+                      tx = (tbox.max.x - tbox.min.x) / 2 + tbox.min.x;
+                      tz = (tbox.max.z - tbox.min.z) / 2 + tbox.min.z;
+                      ty = (tbox.max.y - tbox.min.y) / 2 + tbox.min.y;
+
+                      target.position.set(tx, ty, tz);
+                    }
+                  }
+
+                  if (target) {
+                    slight.target = target;
+                  }
+
+                  light = slight;
+
+                } else {
+                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 700, 2);
+                  this._bboxmodel.add(plight);
+                  plight.position.set(x, y, z);
+                  light = plight;
+                }
+
+
                 this._setNoShadowLight(_foundobject);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
                 if (entity.light.shadow == "no") {

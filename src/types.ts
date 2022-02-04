@@ -49,6 +49,7 @@ export interface Floor3dCardConfig {
   light: any;
   door: any;
   doortype: string;
+  show_axes: string;
   side: string;
   direction: string;
   degrees: number;
@@ -67,6 +68,8 @@ export interface Floor3dCardConfig {
   camera_position: any;
   camera_rotate: any;
   camera_target: any;
+  light_direction: any;
+  light_target: string;
   x: number;
   y: number;
   z: number;
