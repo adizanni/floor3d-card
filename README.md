@@ -59,6 +59,7 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | click            | string | no           | 'yes' if you want to enable the click event. This will automatically disable the double click, you can manage the click behaviour at entity level via the action parameter |
 | lock_camera      | string | no           | 'yes' to stop the zoom and rotate camera actions on the model                                                                                                              |
 | show_axes        | string | no           | 'yes' to show the axes in the scene. It can help define the direction vector for the spotlight                                                                              |
+| sky              | string | no           | 'yes' to show a sky a ground and a sun to reproduce a photorealistic home representation with sun position determined by the sun.sun entity                                 |
 | overlay\_<style> | string | various      | allow to manage the aspect of the overlay panel (colors, fonts, etc.)                                                                                                      |
 
 For each entity in the entities list you need to specify the following options:
@@ -263,6 +264,32 @@ entities:
 
 Text behaviour: the object_id representing the plane object (ex. mirror; picture, tv screen, etc) will display the state text for the entity
 
+## Room
+
+For **room** example config:
+
+```yaml
+entities:
+  - entity: <an entity>
+    type3d: room
+    object_id: <a room object (generally the floor) with a name containing "room". >
+    room:
+      eleveation: <Number of cm going from the floor to the ceiling to set the parallelepiped height of the new room object>
+      transparency: <Percentage of transparency of the room object>
+      color: <color of the parallelipiped: ex: '#ff0000' or 'red'>
+      label: <yes or no, default no: shows a label with the state of the entity or attribute (see below)>
+      span: <percentage span of text in the object plane> (ex. 50%)
+      font: <name of the font text ex:'verdana'>
+      textbgcolor: <background color for the text. ex: '#000000' or 'black'>
+      textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
+      attribute: the optional attribute of the entity you want to show on the object
+
+```
+
+Room will draw a parallelipiped highlighting the room. Pretty static for the moment, it will become more dynamic with new parameters. It works with all room (floor) objects containing the word "room" in the object name. Rooms that have not a rectangular shape will have a paralllipiped anyway (not managing complex shapes).
+
+![image](https://user-images.githubusercontent.com/35622920/153704069-f0be858f-5453-4a7c-a592-2c33d44284d0.PNG)
+  
 ## Gesture
 
 For **gesture** (action) example config:
