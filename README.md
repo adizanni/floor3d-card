@@ -61,6 +61,7 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | show_axes        | string | no           | 'yes' to show the axes in the scene. It can help define the direction vector for the spotlight                                                                              |
 | sky              | string | no           | 'yes' to show a sky a ground and a sun to reproduce a photorealistic home representation with sun position determined by the sun.sun entity                                 |
 | overlay\_<style> | string | various      | allow to manage the aspect of the overlay panel (colors, fonts, etc.)                                                                                                      |
+**Note: with the introdction of the sky, the illumination will behave strangely when the sun will go above the ceiling. I've given the possibility to manage what I call a transparent slab. In sweethome3d put a transparent slab object (transparent box) on top of your floor and call it transparent_slab*. If you use my plugin (Export to HA) this will be managed by the card by stopping the sunlight to come through from the above **
 
 For each entity in the entities list you need to specify the following options:
 
