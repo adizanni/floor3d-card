@@ -58,7 +58,11 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | overlay          | string | no           | 'yes' if you want to show an overlay panel for displaying data on the objects on click                                                                                     |
 | click            | string | no           | 'yes' if you want to enable the click event. This will automatically disable the double click, you can manage the click behaviour at entity level via the action parameter |
 | lock_camera      | string | no           | 'yes' to stop the zoom and rotate camera actions on the model                                                                                                              |
+| show_axes        | string | no           | 'yes' to show the axes in the scene. It can help define the direction vector for the spotlight                                                                              |
+| sky              | string | no           | 'yes' to show a sky a ground and a sun to reproduce a photorealistic home representation with sun position determined by the sun.sun entity                                 |
 | overlay\_<style> | string | various      | allow to manage the aspect of the overlay panel (colors, fonts, etc.)                                                                                                      |
+
+**Note: with the introdction of the sky, the illumination will behave strangely when the sun will go above the ceiling. I've given the possibility to manage what I call a transparent slab. In sweethome3d put a transparent slab object (transparent box) on top of your floor and call it transparent_slab*. If you use my plugin (Export to HA) this will be managed by the card by stopping the sunlight to come through from the above **
 
 For each entity in the entities list you need to specify the following options:
 
@@ -119,6 +123,10 @@ camera_rotate:
 
 When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates.
 
+An image explaining the coordinate concepts:
+  
+![image](https://user-images.githubusercontent.com/35622920/152559923-c8762f2d-c8c6-4cd2-bbc8-8429b8fa7101.png)
+  
 ## Overlay and action
 
 You first put overlay yes in the Appearance section of the card visual editor. Then a few other Overlay parameters appear to customize the overlay: alignment, size, fonts, colors, etc.
@@ -181,6 +189,9 @@ entities:
     light:
       lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
       shadow: <'no', if you do not want this light to case a shadow. This is to cope with the limit of max lights casting shadow in a model>
+      vertical_alignment: <'top', 'middle', 'bottom', when you activate shadows it allows to avoid that the lamp itself block the light>
+      light_target: when this parameter is filled, the light becomes a spotlight, you need to put here the object_id of the target of the spot
+      light_direction: when this parameter is filled, the light becomes a spotlight, you put here the direction vector of the spotlight. It can only be changed in the code editor. in the format x: xxx, y: yyy, z: zzz. See coordinate explanation above
 ```
 
 light_name is the name of the light object that will be created in the model to do the actual illumination.
@@ -255,6 +266,32 @@ entities:
 
 Text behaviour: the object_id representing the plane object (ex. mirror; picture, tv screen, etc) will display the state text for the entity
 
+## Room
+
+For **room** example config:
+
+```yaml
+entities:
+  - entity: <an entity>
+    type3d: room
+    object_id: <a room object (generally the floor) with a name containing "room". >
+    room:
+      eleveation: <Number of cm going from the floor to the ceiling to set the parallelepiped height of the new room object>
+      transparency: <Percentage of transparency of the room object>
+      color: <color of the parallelipiped: ex: '#ff0000' or 'red'>
+      label: <yes or no, default no: shows a label with the state of the entity or attribute (see below)>
+      span: <percentage span of text in the object plane> (ex. 50%)
+      font: <name of the font text ex:'verdana'>
+      textbgcolor: <background color for the text. ex: '#000000' or 'black'>
+      textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
+      attribute: the optional attribute of the entity you want to show on the object
+
+```
+
+Room will draw a parallelipiped highlighting the room. Pretty static for the moment, it will become more dynamic with new parameters. It works with all room (floor) objects containing the word "room" in the object name. Rooms that have not a rectangular shape will have a paralllipiped anyway (not managing complex shapes).
+
+![image](https://user-images.githubusercontent.com/35622920/153704069-f0be858f-5453-4a7c-a592-2c33d44284d0.PNG)
+  
 ## Gesture
 
 For **gesture** (action) example config:
