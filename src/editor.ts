@@ -122,6 +122,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const roomOptions = {
+      icon: 'floor-plan',
+      name: 'Room',
+      secondary: 'Room options',
+      show: false,
+      visible: false,
+    };
+
     const textOptions = {
       icon: 'format-text',
       name: 'Text',
@@ -166,6 +174,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       options: {
         threed: { ...typeOptions },
         light: { ...lightOptions },
+        room: { ...roomOptions },
         color: { ...colorOptions },
         hide: { ...hideOptions },
         show: { ...showOptions },
@@ -499,7 +508,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         ${options.options.entities[index].show
           ? html`
               <div class="options">
-                ${this._createTypeElement(index)} ${this._createLightElement(index)}
+                ${this._createTypeElement(index)} ${this._createLightElement(index)} ${this._createRoomElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
                 ${this._createShowElement(index)} ${this._createTextElement(index)} ${this._createGestureElement(index)}
                 ${this._createDoorElement(index)} ${this._createRotateElement(index)}
@@ -833,18 +842,34 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
-                  label="Camera Position"
-                  .value=${config.camera_position ? config.camera_position : ''}
-                  .configObject=${config}
-                  .configAttribute=${'camera_position'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
                   label="Show Axes"
                   .value=${config.show_axes ? config.show_axes : ''}
                   .configObject=${config}
                   .configAttribute=${'show_axes'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Sky"
+                  .value=${config.sky ? config.sky : ''}
+                  .configObject=${config}
+                  .configAttribute=${'sky'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="North Direction {x: xxxx,z: zzzzzz }"
+                  .value=${config.north ? config.north : ''}
+                  .configObject=${config}
+                  .configAttribute=${'north'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
+                  label="Camera Position"
+                  .value=${config.camera_position ? config.camera_position : ''}
+                  .configObject=${config}
+                  .configAttribute=${'camera_position'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
                 <paper-input
@@ -1045,6 +1070,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     >
                       <paper-item item-name="light">light</paper-item>
                       <paper-item item-name="color">color</paper-item>
+                      <paper-item item-name="room">room</paper-item>
                       <paper-item item-name="hide">hide</paper-item>
                       <paper-item item-name="show">show</paper-item>
                       <paper-item item-name="text">text</paper-item>
@@ -1556,7 +1582,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               ></paper-input>
                               <paper-input
                                 editable
-                                label="Light Direction"
+                                label="Light Direction (spot)"
                                 .value=${config.light.light_direction ? config.light.light_direction : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'light_direction'}
@@ -1564,10 +1590,19 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               ></paper-input>
                               <paper-input
                                 editable
-                                label="Light Target (object)"
+                                label="Light Target Object (spot)"
                                 .value=${config.light.light_target ? config.light.light_target : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'light_target'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Angle degrees (spot)"
+                                .value=${config.light.angle ? config.light.angle : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'angle'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-dropdown-menu
@@ -1587,6 +1622,143 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="top">top</paper-item>
                                 </paper-listbox>
                               </paper-dropdown-menu>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createRoomElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.room;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'room' : false;
+    if (visible) {
+      config.room = { ...config.room };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="light">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Transparency"
+                                .value=${config.room.transparency ? config.room.transparency : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'transparency'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Color"
+                                .value=${config.room.color ? config.room.color : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'color'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Elevation (cm)"
+                                .value=${config.room.elevation ? config.room.elevation : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'elevation'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Label"
+                                .value=${config.room.label ? config.room.label : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'label'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Label Width (scaled cm)"
+                                .value=${config.room.width ? config.room.width : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'width'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Label Height (scaled cm)"
+                                .value=${config.room.height ? config.room.height : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'height'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Attribute"
+                                .value=${config.room.attribute ? config.room.attribute : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'attribute'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="font"
+                                .value=${config.room.font ? config.room.font : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'font'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Span percentage"
+                                .value=${config.room.span ? config.room.span : ''}
+                                .configObject=${config.room}
+                                .configAttribute=${'span'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Text Background Color"
+                                .value="${config.room.textbgcolor ? config.room.textbgcolor : ''}"
+                                .configObject=${config.room}
+                                .configAttribute=${'textbgcolor'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Text Foreground Color"
+                                .value="${config.room.textfgcolor ? config.room.textfgcolor : ''}"
+                                .configObject=${config.room}
+                                .configAttribute=${'textfgcolor'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
                             `
                           : ''}
                       </div>

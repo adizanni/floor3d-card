@@ -28,6 +28,8 @@ export interface Floor3dCardConfig {
   click: string;
   action: string;
   overlay: string;
+  width: number;
+  height: number;
   overlay_bgcolor: string;
   overlay_fgcolor: string;
   overlay_alignment: string;
@@ -49,7 +51,11 @@ export interface Floor3dCardConfig {
   light: any;
   door: any;
   doortype: string;
+  room: any;
+  elevation: number;
+  transparency: number;
   show_axes: string;
+  label: string;
   side: string;
   direction: string;
   degrees: number;
@@ -70,6 +76,9 @@ export interface Floor3dCardConfig {
   camera_target: any;
   light_direction: any;
   light_target: string;
+  radius: number;
+  sky: string;
+  north: any;
   x: number;
   y: number;
   z: number;

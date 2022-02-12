@@ -59,13 +59,17 @@ export class Floor3dCard extends LitElement {
 
   private _states?: string[];
   private _color?: number[][];
+  private _raycasting: THREE.Object3D[];
   private _initialmaterial?: THREE.Material[][];
   private _clonedmaterial?: THREE.Material[][];
   private _brightness?: number[];
   private _lights?: string[];
+  private _rooms?: string[];
+  private _sprites?: string[];
   private _canvas?: HTMLCanvasElement[];
   private _unit_of_measurement?: string[];
   private _text?: string[];
+  private _spritetext?: string[];
   private _objposition: number[][];
   private _slidingdoorposition: THREE.Vector3[][];
   private _objects_to_rotate: THREE.Group[];
@@ -101,8 +105,11 @@ export class Floor3dCard extends LitElement {
   private _hass?: HomeAssistant;
   private _haShadowRoot: any;
   private _card_id: string;
-  private _ambient_light: THREE.AmbientLight;
-  private _direction_light: THREE.DirectionalLight;
+  private _ambient_light: THREE.HemisphereLight;
+  private _torch: THREE.DirectionalLight;
+  private _torchTarget: THREE.Object3D;
+  private _sky: Sky;
+  private _sun: THREE.DirectionalLight;
   private _point_light: THREE.PointLight;
   _helper: THREE.DirectionalLightHelper;
   _modelready: boolean;
@@ -317,8 +324,11 @@ export class Floor3dCard extends LitElement {
 
   private _render(): void {
     //render the model
-    this._direction_light.position.set(this._camera.position.x, this._camera.position.y, this._camera.position.z);
-    this._direction_light.rotation.set(this._camera.rotation.x, this._camera.rotation.y, this._camera.rotation.z);
+    if (this._torch) {
+      this._torch.position.copy(this._camera.position);
+      this._torch.rotation.copy(this._camera.rotation);
+      this._camera.getWorldDirection(this._torch.target.position);
+    }
     this._renderer.render(this._scene, this._camera);
   }
 
@@ -328,7 +338,7 @@ export class Floor3dCard extends LitElement {
     mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
     const raycaster: THREE.Raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, this._camera);
-    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._scene.children, true);
+    const intersects: THREE.Intersection[] = raycaster.intersectObjects(this._raycasting, false);
     return intersects;
   }
 
@@ -432,14 +442,10 @@ export class Floor3dCard extends LitElement {
   }
 
   private _performAction(e: any): void {
-    //double click on object to show the name
-    const mouse: THREE.Vector2 = new THREE.Vector2();
-    mouse.x = (e.offsetX / this._content.clientWidth) * 2 - 1;
-    mouse.y = -(e.offsetY / this._content.clientHeight) * 2 + 1;
-    const raycaster: THREE.Raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, this._camera);
+
     const intersects = this._getintersect(e);
     this._defaultaction(intersects);
+
   }
 
   private _zIndexChecker(): void {
@@ -568,8 +574,11 @@ export class Floor3dCard extends LitElement {
         this._color = [];
         this._brightness = [];
         this._lights = [];
+        this._rooms = [];
+        this._sprites = [];
         this._canvas = [];
         this._text = [];
+        this._spritetext = [];
 
         this._config.entities.forEach((entity) => {
           if (entity.entity !== '') {
@@ -587,6 +596,23 @@ export class Floor3dCard extends LitElement {
               }
             } else {
               this._text.push('');
+            }
+            if (entity.type3d == 'room') {
+              this._rooms.push(entity.object_id + '_room');
+              this._sprites.push(entity.object_id + '_sprites');
+              if (entity.room.attribute) {
+                if (hass.states[entity.entity].attributes[entity.room.attribute]) {
+                  this._spritetext.push(hass.states[entity.entity].attributes[entity.room.attribute]);
+                } else {
+                  this._spritetext.push(this._statewithtemplate(entity));
+                }
+              } else {
+                this._spritetext.push(this._statewithtemplate(entity));
+              }
+            } else {
+              this._spritetext.push('');
+              this._rooms.push('');
+              this._sprites.push('');
             }
             if (entity.type3d == 'light') {
               this._lights.push(entity.object_id + '_light');
@@ -708,6 +734,29 @@ export class Floor3dCard extends LitElement {
               } else if (entity.type3d == 'door') {
                 this._updatedoor(entity, i);
                 torerender = true;
+              } else if (entity.type3d == 'room') {
+                let toupdate = false;
+                if (entity.room.attribute) {
+                  if (hass.states[entity.entity].attributes[entity.room.attribute]) {
+                  if (this._spritetext[i] != hass.states[entity.entity].attributes[entity.room.attribute]) {
+                    this._spritetext[i] = hass.states[entity.entity].attributes[entity.room.attribute];
+                    toupdate = true;
+                  }
+                } else {
+                  this._spritetext[i] = '';
+                  toupdate = true;
+                }
+              } else {
+                if (this._spritetext[i] != this._statewithtemplate(entity)) {
+                  this._spritetext[i] = this._statewithtemplate(entity);
+                  toupdate = true;
+                }
+              }
+              if (this._canvas[i] && toupdate) {
+                this._updateroom(entity, this._spritetext[i], this._unit_of_measurement[i],i);
+                torerender = true;
+              }
+                torerender = true;
               }
             }
           }
@@ -719,11 +768,177 @@ export class Floor3dCard extends LitElement {
     }
   }
 
+  private _initSky(): void {
+
+
+    const effectController = {
+      turbidity: 10,
+      rayleigh: 3,
+      mieCoefficient: 0.005,
+      mieDirectionalG: 0.7,
+      elevation: 15,
+      azimuth: 0,
+    };
+
+    //init sky
+    console.log("Init Sky");
+
+    this._sky = new Sky();
+    this._sky.scale.setScalar(100000);
+    this._scene.add(this._sky);
+
+    const uniforms = this._sky.material.uniforms;
+    uniforms['turbidity'].value = effectController.turbidity;
+    uniforms['rayleigh'].value = effectController.rayleigh;
+    uniforms['mieCoefficient'].value = effectController.mieCoefficient;
+    uniforms['mieDirectionalG'].value = effectController.mieDirectionalG;
+
+    // init ground
+
+    console.log("Init Ground");
+
+    const groundGeo = new THREE.PlaneGeometry(10000, 10000);
+    const groundMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    groundMat.color.setHSL(0.095, 1, 0.75);
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.position.y = - 5;
+    ground.rotation.x = - Math.PI / 2;
+    ground.receiveShadow = false;
+    ground.castShadow = false;
+    this._scene.add(ground);
+
+    // inti sun
+
+    console.log("Init Sun");
+
+    this._sun = new THREE.DirectionalLight(0xffffff, 1.0);
+    const sun = new THREE.Vector3();
+    this._scene.add(this._sun);
+
+
+    if (this._hass.states["sun.sun"].attributes['azimuth']) {
+      effectController.azimuth = Number(this._hass.states["sun.sun"].attributes['azimuth']);
+    }
+
+    if (this._hass.states["sun.sun"].attributes['elevation']) {
+      effectController.elevation = Number(this._hass.states["sun.sun"].attributes['elevation']);
+    }
+
+    let south: THREE.Vector3;
+
+    south = new THREE.Vector3();
+
+    if (this._config.north) {
+      south.x = -this._config.north.x;
+      south.z = -this._config.north.z;
+      south.y = 0;
+    } else {
+      south.x = 0;
+      south.z = 1;
+      south.y = 0;
+    }
+
+    let south_sphere: THREE.Spherical;
+
+    south_sphere = new THREE.Spherical();
+
+    south_sphere.setFromVector3(south);
+
+    south_sphere.phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
+
+    south_sphere.theta = THREE.MathUtils.degToRad(THREE.MathUtils.radToDeg(south_sphere.theta) - effectController.azimuth);
+
+    sun.setFromSphericalCoords(1, south_sphere.phi, south_sphere.theta);
+
+
+    if (sun.y < 0) {
+
+      this._sun.intensity = 0;
+
+    }
+
+    uniforms['sunPosition'].value.copy(sun);
+
+    this._sun.position.copy(sun.multiplyScalar(5000));
+
+    // sun directional light parameters
+    const d = 1000;
+
+    this._sun.shadow.camera
+    this._sun.castShadow = true;
+
+    this._sun.shadow.mapSize.width = 512;
+    this._sun.shadow.mapSize.height = 512;
+    this._sun.shadow.camera.near = 3000;
+    this._sun.shadow.camera.far = 7000
+
+    this._sun.shadow.camera.left = - d;
+    this._sun.shadow.camera.right = d;
+    this._sun.shadow.camera.top = d;
+    this._sun.shadow.camera.bottom = - d;
+
+    this._renderer.shadowMap.needsUpdate = true;
+
+    //FOR DEBUG: this._scene.add(new THREE.CameraHelper(this._sun.shadow.camera));
+
+  }
+
+  private _initTorch(): void {
+
+    this._torch = new THREE.DirectionalLight(0xffffff, 0.2);
+    this._torchTarget = new THREE.Object3D();
+
+    this._torch.target = this._torchTarget
+    this._torch.matrixAutoUpdate = true;
+    this._scene.add(this._torch);
+    this._scene.add(this._torchTarget);
+    this._torch.castShadow = false;
+
+    if (this._hass.states[this._config.globalLightPower]) {
+      if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
+        this._torch.intensity = Number(
+          this._hass.states[this._config.globalLightPower].state,
+        );
+      }
+    } else {
+      if (this._config.globalLightPower) {
+        this._torch.intensity = Number(this._config.globalLightPower);
+      }
+    }
+
+  }
+
+
+  private _initAmbient(): void {
+
+    this._ambient_light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
+    this._ambient_light.groundColor.setHSL(0.095, 1, 0.75);
+
+    this._scene.add(this._ambient_light);
+
+    if (this._hass.states[this._config.globalLightPower]) {
+      if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
+        this._ambient_light.intensity = Number(
+          this._hass.states[this._config.globalLightPower].state,
+        );
+      }
+    } else {
+      if (this._config.globalLightPower) {
+        this._ambient_light.intensity = Number(this._config.globalLightPower);
+      }
+    }
+
+  }
 
   protected display3dmodel(): void {
+
     //load the model into the GL Renderer
+
     console.log('Start Build Renderer');
     this._modelready = false;
+
+    //create and initialize scene and camera
+
     this._scene = new THREE.Scene();
     if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
       this._scene.background = new THREE.Color(this._config.backgroundColor);
@@ -731,12 +946,9 @@ export class Floor3dCard extends LitElement {
       this._scene.background = new THREE.Color('#aaaaaa');
     }
     this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
-    this._ambient_light = new THREE.AmbientLight(0xffffff, 0.5);
-    this._direction_light = new THREE.DirectionalLight(0xffffff, 0.5);
-    this._direction_light.matrixAutoUpdate = true;
-    this._direction_light.castShadow = false;
-    this._scene.add(this._direction_light);
-    this._scene.add(this._ambient_light);
+
+    // create and initialize renderer
+
     this._renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     this._maxtextureimage = this._renderer.context.getParameter(
       this._renderer.context.MAX_TEXTURE_IMAGE_UNITS
@@ -748,6 +960,14 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
+
+    //this._renderer.physicallyCorrectLights = true;
+    this._renderer.outputEncoding = THREE.sRGBEncoding;
+    this._renderer.shadowMap.type = THREE.BasicShadowMap;
+    this._renderer.toneMapping = THREE.LinearToneMapping;
+    this._renderer.toneMappingExposure = 0.3;
+    this._renderer.setClearColor(0x000000, 0.0);
+    this._renderer.shadowMap.autoUpdate = false;
 
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
@@ -828,6 +1048,21 @@ export class Floor3dCard extends LitElement {
       }
     }
 
+    //Exclude ceiling from raycasting
+
+    this._raycasting = [];
+
+    this._bboxmodel.traverse((child) => {
+
+      if (!child.name.includes("transparent_slab")) {
+        this._raycasting.push(child);
+      }
+      else {
+        console.log("Found slab");
+      }
+
+    } );
+
 
     this._add3dObjects();
     console.log('Object loaded end');
@@ -866,24 +1101,20 @@ export class Floor3dCard extends LitElement {
         this._controls.enabled = false
       }
 
+      if (this._config.sky) {
+        if (this._config.sky == 'yes') {
+          this._initSky();
+        }
+      }
+
+      if (!this._config.sky || (this._config.sky == 'no')) {
+        this._initTorch();
+      }
+
+      this._initAmbient();
 
       this._getOverlay();
 
-      // ambient and directional light
-
-      if (this._hass.states[this._config.globalLightPower]) {
-        if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
-          this._ambient_light.intensity = this._direction_light.intensity = Number(
-            this._hass.states[this._config.globalLightPower].state,
-          );
-        }
-      } else {
-        if (this._config.globalLightPower) {
-          this._ambient_light.intensity = this._direction_light.intensity = Number(this._config.globalLightPower);
-        } else {
-          this._ambient_light.intensity = this._direction_light.intensity = 0.5;
-        }
-      }
       //first render
       this._render();
       this._resizeCanvas();
@@ -985,6 +1216,8 @@ export class Floor3dCard extends LitElement {
     }
 
   }
+
+
   private _setCamera(): void {
 
     const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
@@ -1001,14 +1234,8 @@ export class Floor3dCard extends LitElement {
         this._config.camera_position.y,
         this._config.camera_position.z,
       );
-      this._direction_light.position.set(
-        this._config.camera_position.x,
-        this._config.camera_position.y,
-        this._config.camera_position.z,
-      );
     } else {
       this._camera.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
-      this._direction_light.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
     }
 
 
@@ -1018,14 +1245,8 @@ export class Floor3dCard extends LitElement {
         this._config.camera_rotate.y,
         this._config.camera_rotate.z,
       );
-      this._direction_light.rotation.set(
-        this._config.camera_rotate.x,
-        this._config.camera_rotate.y,
-        this._config.camera_rotate.z,
-      );
     } else {
       this._camera.rotation.set(0, 0, 0);
-      this._direction_light.rotation.set(0, 0, 0);
     }
 
     this._camera.updateProjectionMatrix()
@@ -1043,7 +1264,6 @@ export class Floor3dCard extends LitElement {
       );
     } else {
       this._camera.lookAt(box.max.multiplyScalar(0.5));
-      this._direction_light.lookAt(box.max.multiplyScalar(0.5));
     }
     this._camera.updateProjectionMatrix()
   }
@@ -1055,8 +1275,33 @@ export class Floor3dCard extends LitElement {
   }
 
   private _setShadow(object: THREE.Object3D): void {
+
     object.receiveShadow = true;
-    object.castShadow = true;
+
+    if (object.name.includes("transparent_slab")) {
+      object.castShadow = true;
+      return;
+    }
+    if (object instanceof Mesh) {
+      if (!Array.isArray((object as Mesh).material)) {
+        if (((object as Mesh).material as Material).opacity != 1) {
+          if ((object as Mesh).material instanceof THREE.MeshPhongMaterial) {
+            ((object as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
+          } else if ((object as Mesh).material instanceof THREE.MeshBasicMaterial) {
+            ((object as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+          }
+          object.castShadow = false;
+        } else {
+          object.castShadow = true;
+        }
+
+      } else {
+        object.castShadow = true;
+      }
+    } else
+    {
+      object.castShadow = true;
+    }
     return;
   }
 
@@ -1308,7 +1553,10 @@ export class Floor3dCard extends LitElement {
 
 
                 if (entity.light.light_target || entity.light.light_direction) {
-                  const slight: THREE.SpotLight = new THREE.SpotLight(new THREE.Color('#ffffff'), 0, 700, Math.PI / 10, 0.5, 1);
+
+                  const angle = (entity.light.angle) ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10 ;
+
+                  const slight: THREE.SpotLight = new THREE.SpotLight(new THREE.Color('#ffffff'), 0, 700, angle, 0.5, 1);
                   this._bboxmodel.add(slight);
                   let target = new THREE.Object3D;
                   this._bboxmodel.add(target);
@@ -1353,9 +1601,9 @@ export class Floor3dCard extends LitElement {
                   light.castShadow = false;
                 } else {
                   light.castShadow = true;
+                  light.shadow.bias = -0.0001;
                 }
                 light.name = element.object_id + '_light';
-                //this._updatelight(entity, this._states[i], this._lights[i], this._color[i], this._brightness[i]);
               }
             });
           }
@@ -1404,9 +1652,13 @@ export class Floor3dCard extends LitElement {
           } else if (entity.type3d == 'door') {
             this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
-            this._canvas[i] = this._createTextCanvas(entity, this._text[i], this._unit_of_measurement[i]);
+            this._canvas[i] = this._createTextCanvas(entity.text, this._text[i], this._unit_of_measurement[i]);
+            this._updatetext(entity,this._text[i],this._canvas[i], this._unit_of_measurement[i] )
           } else if (entity.type3d == 'rotate') {
             this._rotatecalc(entity, i);
+          } else if (entity.type3d == 'room') {
+            this._createroom(entity, i);
+            this._updateroom(entity, this._spritetext[i], this._unit_of_measurement[i], i);
           }
         }
       });
@@ -1416,7 +1668,115 @@ export class Floor3dCard extends LitElement {
 
   // manage all entity types
 
-  private _createTextCanvas(entity, text: string, uom: string): HTMLCanvasElement {
+  private _createroom(entity: Floor3dCardConfig, i: number): void {
+
+    // createroom
+
+    //console.log('Create Room')
+
+    const elevation: number = (entity.room.elevation) ? entity.room.elevation : 250;
+    const transparency: number = (entity.room.transparency) ? entity.room.transparency : 50;
+    const color: string = (entity.room.color) ? entity.room.color : '#ffffff';
+
+    const _foundroom: THREE.Object3D = this._scene.getObjectByName(entity.object_id);
+
+    if (_foundroom) {
+      if (_foundroom.name.includes("room") && _foundroom instanceof THREE.Mesh) {
+        const _roomMesh: THREE.Mesh = _foundroom as Mesh;
+
+        if (_roomMesh.geometry instanceof THREE.BufferGeometry) {
+          const _roomGeometry: THREE.BufferGeometry = _roomMesh.geometry as THREE.BufferGeometry;
+
+          _roomGeometry.computeBoundingBox();
+          const newRoomBox: THREE.Box3 = _roomGeometry.boundingBox;
+
+          const expansion : THREE.Vector3 = new THREE.Vector3(0, elevation/2, 0);
+          newRoomBox.expandByVector(expansion);
+
+          const dimensions = new THREE.Vector3().subVectors( newRoomBox.max, newRoomBox.min );
+          const newRoomGeometry: THREE.BoxBufferGeometry = new THREE.BoxBufferGeometry(dimensions.x-4, dimensions.y-4, dimensions.z-4);
+
+          const meshPosition = dimensions.addVectors(newRoomBox.min, newRoomBox.max).multiplyScalar(0.5);
+          // move new mesh center so it's aligned with the original object
+          meshPosition.y += elevation / 2 + 2;
+          meshPosition.x += 2;
+          meshPosition.z += 2;
+
+          const matrixmesh = new THREE.Matrix4().setPosition(meshPosition);
+          newRoomGeometry.applyMatrix4(matrixmesh);
+
+          const newRoomMaterial: THREE.MeshPhongMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff0000,
+            opacity: 0,
+            transparent: true,
+          });
+
+          newRoomMaterial.depthWrite = false;
+          newRoomMaterial.color.set(new THREE.Color(color));
+          newRoomMaterial.emissive.set(new THREE.Color(color));
+          newRoomMaterial.opacity = (100 - transparency) / 100;
+
+          newRoomMaterial.needsUpdate = true;
+
+          const newRoomMesh: THREE.Mesh = new THREE.Mesh(newRoomGeometry, newRoomMaterial);
+
+          newRoomMesh.name = this._rooms[i];
+
+          const newSprite: THREE.Sprite = new THREE.Sprite();
+
+          newSprite.name = this._sprites[i];
+
+          this._canvas[i] = this._createTextCanvas(entity.room, this._spritetext[i], this._unit_of_measurement[i]);
+
+          const sprite_width: number = (entity.room.width) ? entity.room.width : 200;
+          const sprite_height: number = (entity.room.height) ? entity.room.height : 200;
+          newSprite.scale.set(sprite_width, sprite_height, 5);
+
+          const matrixsprite = new THREE.Matrix4().setPosition(new THREE.Vector3(meshPosition.x,newRoomBox.max.y+(elevation / 2)+(sprite_height / 2), meshPosition.z));
+          newSprite.applyMatrix4(matrixsprite);
+
+          newSprite.visible = false;
+
+          if (entity.room.label) {
+            if (entity.room.label == 'yes') {
+              newSprite.visible = true;
+            }
+          }
+
+          this._bboxmodel.add(newSprite);
+          this._bboxmodel.add(newRoomMesh);
+
+        }
+
+      }
+    }
+
+    return;
+
+  }
+
+  private _updateroom(entity: Floor3dCardConfig, text: string, uom: string, i: number): void {
+
+    //update sprite text and other change conditions
+
+    const _roomMesh: THREE.Object3D = this._scene.getObjectByName(this._rooms[i]);
+    const _roomSprite: THREE.Object3D = this._scene.getObjectByName(this._sprites[i]);
+    const _roomCanvas: HTMLCanvasElement = this._canvas[i];
+
+
+    if (_roomMesh && entity) {
+
+      let roomsprite: THREE.Sprite = _roomSprite as THREE.Sprite;
+
+      this._updateTextCanvas(entity.room, _roomCanvas, text + uom);
+
+      this._applyTextCanvasSprite(_roomCanvas, roomsprite);
+
+    }
+  }
+
+  private _createTextCanvas(entity: Floor3dCardConfig, text: string, uom: string): HTMLCanvasElement {
+
     const canvas = document.createElement('canvas');
 
     this._updateTextCanvas(entity, canvas, text + uom);
@@ -1428,13 +1788,12 @@ export class Floor3dCard extends LitElement {
 
     //Manages the update of the text entities according to their configuration and the new text of the entity state
 
-    const _foundobject: any = this._scene.getObjectByName("f3dobj_" + entity.object_id);
 
     const ctx = canvas.getContext('2d');
 
     // Prepare the font to be able to measure
     let fontSize = 56;
-    ctx.font = `${fontSize}px ${entity.text.font ? entity.text.font : 'monospace'}`;
+    ctx.font = `${fontSize}px ${entity.font ? entity.font : 'monospace'}`;
 
     const textMetrics = ctx.measureText(text);
 
@@ -1442,8 +1801,8 @@ export class Floor3dCard extends LitElement {
     let height = fontSize;
 
     let perct = 1.0;
-    if (entity.text.span) {
-      perct = parseFloat(entity.text.span) / 100.0;
+    if (entity.span) {
+      perct = parseFloat(entity.span) / 100.0;
     }
     // Resize canvas to match text size
 
@@ -1455,22 +1814,29 @@ export class Floor3dCard extends LitElement {
     canvas.style.height = height + 'px';
 
     // Re-apply font since canvas is resized.
-    ctx.font = `${fontSize}px ${entity.text.font ? entity.text.font : 'monospace'}`;
+    ctx.font = `${fontSize}px ${entity.font ? entity.font : 'monospace'}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    ctx.fillStyle = entity.text.textbgcolor ? entity.text.textbgcolor : 'transparent';
+    ctx.fillStyle = entity.textbgcolor ? entity.textbgcolor : 'transparent';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    ctx.fillStyle = entity.text.textfgcolor ? entity.text.textfgcolor : 'white';
+    ctx.fillStyle = entity.textfgcolor ? entity.textfgcolor : 'white';
 
     ctx.fillText(text, width / 2, height / 2);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.repeat.set(1, 1);
+  }
 
+
+  private _applyTextCanvas(canvas: HTMLCanvasElement, object: THREE.Object3D) {
+
+    // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
+    const _foundobject: any = object;
 
     if (_foundobject instanceof Mesh) {
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.repeat.set(1, 1);
 
       if (((_foundobject as Mesh).material as THREE.MeshBasicMaterial).name.startsWith("f3dmat")) {
         ((_foundobject as Mesh).material as THREE.MeshBasicMaterial).map = texture;
@@ -1487,6 +1853,28 @@ export class Floor3dCard extends LitElement {
       }
 
     }
+
+  }
+
+  private _applyTextCanvasSprite(canvas: HTMLCanvasElement, object: THREE.Sprite) {
+
+    // put the canvas texture with the text on top of the Sprite object: consider merge with the applyTextCanvas
+
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.repeat.set(1, 1);
+
+      if (object.material.name.startsWith("f3dmat")) {
+        (object.material as THREE.SpriteMaterial).map = texture;
+      } else {
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true
+        });
+        material.name = "f3dmat" + object.name;
+
+        object.material = material;
+      }
 
   }
 
@@ -1533,8 +1921,15 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement, uom: string): void {
-    this._updateTextCanvas(_item, canvas, state + uom);
+
+    const _foundobject: any = this._scene.getObjectByName(_item.object_id);
+
+    if (_foundobject) {
+      this._updateTextCanvas(_item.text, canvas, state + uom);
+      this._applyTextCanvas(canvas,_foundobject)
+    }
   }
+
 
   private _updatelight(item: Floor3dCardConfig, i: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
@@ -1568,6 +1963,7 @@ export class Floor3dCard extends LitElement {
         light.intensity = 0;
         //light.color = new THREE.Color('#000000');
       }
+      this._renderer.shadowMap.needsUpdate = true;
     });
   }
 
@@ -1885,7 +2281,7 @@ export class Floor3dCard extends LitElement {
 
     return html`
       <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-        + '; position: relative;'}`} id="${this._card_id}">
+            + '; position: relative;'}`} id="${this._card_id}">
       </ha-card>
     `;
   }
