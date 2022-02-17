@@ -41,6 +41,7 @@ export interface Floor3dCardConfig {
   double_tap_action?: ActionConfig;
   entity: string;
   entity_template: string;
+  cover: any;
   type3d: string;
   object_id: string;
   object_groups: any;
@@ -51,11 +52,13 @@ export interface Floor3dCardConfig {
   light: any;
   door: any;
   doortype: string;
+  extralightmode: string;
   room: any;
   elevation: number;
   transparency: number;
-  show_axes: string;
+  show_axes: string; s
   label: string;
+  label_text: string;
   side: string;
   direction: string;
   degrees: number;

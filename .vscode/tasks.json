@@ -7,6 +7,13 @@
 			"problemMatcher": [],
 			"label": "npm: start",
 			"detail": "rollup -c --watch"
+		},
+		{
+			"type": "npm",
+			"script": "install",
+			"problemMatcher": [],
+			"label": "npm: install",
+			"detail": "install dependencies from package"
 		}
 	]
 }

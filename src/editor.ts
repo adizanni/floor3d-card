@@ -146,6 +146,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const coverOptions = {
+      icon: 'window-shutter',
+      name: 'Cover',
+      secondary: 'Cover options.',
+      show: false,
+      visible: false,
+    };
+
     const gestureOptions = {
       icon: 'gesture-tap',
       name: 'Gesture',
@@ -180,6 +188,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         show: { ...showOptions },
         text: { ...textOptions },
         door: { ...doorOptions },
+        cover: { ...coverOptions },
         rotate: { ...rotateOptions },
         gesture: { ...gestureOptions },
       },
@@ -511,7 +520,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ${this._createTypeElement(index)} ${this._createLightElement(index)} ${this._createRoomElement(index)}
                 ${this._createColorConditionElement(index)} ${this._createHideElement(index)}
                 ${this._createShowElement(index)} ${this._createTextElement(index)} ${this._createGestureElement(index)}
-                ${this._createDoorElement(index)} ${this._createRotateElement(index)}
+                ${this._createDoorElement(index)} ${this._createCoverElement(index)} ${this._createRotateElement(index)}
               </div>
             `
           : ''}
@@ -842,6 +851,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
+                  label="Extra Light Mode (impact performaces)"
+                  .value=${config.extralightmode ? config.extralightmode : ''}
+                  .configObject=${config}
+                  .configAttribute=${'extralightmode'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+                <paper-input
+                  editable
                   label="Show Axes"
                   .value=${config.show_axes ? config.show_axes : ''}
                   .configObject=${config}
@@ -1075,6 +1092,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="show">show</paper-item>
                       <paper-item item-name="text">text</paper-item>
                       <paper-item item-name="door">door</paper-item>
+                      <paper-item item-name="cover">cover</paper-item>
                       <paper-item item-name="rotate">rotate</paper-item>
                       <paper-item item-name="gesture">gesture</paper-item>
                       <paper-item item-name="camera">camera</paper-item>
@@ -1166,7 +1184,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _createColorConditionElement(index): TemplateResult {
     const options = this._options.entities.options.entities[index].options.color;
     const config = this._configArray[index];
-    const visible: boolean = config.type3d ? config.type3d === 'color' : false;
+    const visible: boolean = config.type3d ? ((config.type3d) === 'color' || (config.type3d === 'room')) : false;
     const arrayLength = config.colorcondition ? config.colorcondition.length : 0;
     return html`
       ${visible
@@ -1701,6 +1719,22 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'label'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
+                              <paper-dropdown-menu
+                                label="Label text (state or template)"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.room}
+                                .configAttribute=${'label_text'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.room.label_text ? config.room.label_text : null}"
+                                >
+                                  <paper-item item-name="state">state</paper-item>
+                                  <paper-item item-name="template">template</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
                               <paper-input
                                 class="value-number"
                                 type="number"
@@ -1971,6 +2005,75 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'hinge'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
+                            `
+                          : ''}
+                      </div>
+                    </div>
+                  `
+                : ''}
+            </div>
+          `
+        : ''}
+    `;
+  }
+
+  private _createCoverElement(index): TemplateResult {
+    const options = this._options.entities.options.entities[index].options.cover;
+    const config = this._configArray[index];
+    const visible: boolean = config.type3d ? config.type3d === 'cover' : false;
+    if (visible) {
+      config.cover = { ...config.cover };
+    }
+    return html`
+      ${visible
+        ? html`
+            <div class="category" id="cover">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.entities.options.entities[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="value">
+                      <div>
+                        ${index !== null
+                          ? html`
+                              <paper-input
+                                editable
+                                label="Pane object"
+                                .value=${config.cover.pane ? config.cover.pane : ''}
+                                .configObject=${config.cover}
+                                .configAttribute=${'pane'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-dropdown-menu
+                                label="Side"
+                                @selected-item-changed=${this._valueChanged}
+                                .configObject=${config.cover}
+                                .configAttribute=${'side'}
+                                .ignoreNull=${true}
+                              >
+                                <paper-listbox
+                                  slot="dropdown-content"
+                                  attr-for-selected="item-name"
+                                  selected="${config.cover.side ? config.cover.side : null}"
+                                >
+                                  <paper-item item-name="up">up</paper-item>
+                                  <paper-item item-name="down">down</paper-item>
+                                </paper-listbox>
+                              </paper-dropdown-menu>
                             `
                           : ''}
                       </div>
