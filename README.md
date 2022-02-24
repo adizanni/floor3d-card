@@ -1,4 +1,4 @@
-# floor3d-card
+# floor3d-card (aka Your Home Digital Twin)
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 
@@ -55,6 +55,7 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | header  | string | 'yes'    | if the header will be displayed or not                                                                                                                                                   |
 | globalLightPower | float  | 0.3          | intensity of the light illuminating the full scene it can also the name of a numeric sensor                                                                                |
 | shadow           | string | no           | 'yes' if lights cast shadow on object. This is realistic but impacts performances. By default wall, floors and objects with "door" in the name, receives and cast shadows  |
+| extralightmode   | string | no           | 'yes' to activate the extra light mode. In this mode the max number of light who cast shadow at the same time (max texture unit image) is limited to the light that are switched with performance penalties  |
 | overlay          | string | no           | 'yes' if you want to show an overlay panel for displaying data on the objects on click                                                                                     |
 | click            | string | no           | 'yes' if you want to enable the click event. This will automatically disable the double click, you can manage the click behaviour at entity level via the action parameter |
 | lock_camera      | string | no           | 'yes' to stop the zoom and rotate camera actions on the model                                                                                                              |
@@ -286,11 +287,16 @@ entities:
       textbgcolor: <background color for the text. ex: '#000000' or 'black'>
       textfgcolor: <foreground color for the text. ex: '#ffffff' or 'white'>
       attribute: the optional attribute of the entity you want to show on the object
+    colorcondition:
+      - color: <>
+        state: <>
 
 ```
 
 Room will draw a parallelipiped highlighting the room. Pretty static for the moment, it will become more dynamic with new parameters. It works with all room (floor) objects containing the word "room" in the object name. Rooms that have not a rectangular shape will have a paralllipiped anyway (not managing complex shapes).
 
+You can add a colorcondition section for rooms.
+  
 ![image](https://user-images.githubusercontent.com/35622920/153704069-f0be858f-5453-4a7c-a592-2c33d44284d0.PNG)
   
 ## Gesture
@@ -380,6 +386,25 @@ Result:
 
 ![image](https://user-images.githubusercontent.com/35622920/132490620-0dcf2614-4b28-40e5-ab9e-d01453e37d90.png)
 
+## Cover
+
+```yaml
+entities:
+  - entity: <cover.your_cover_entity>
+    type3d: cover
+    object_id: <object_id or group of the moving parts of the cover, the blades and base of a roller shutter>
+    cover:
+      pane: <object_id represents the moving parts that have to fully disappear when the cover is fully opened>
+      side: <up or down, direction of opening
+```
+
+It is an experimental implementation of cover entities.
+
+![image](https://user-images.githubusercontent.com/35622920/154579836-8cc59d3c-f8e1-439d-a088-58d514fcf170.png)
+                
+![image](https://user-images.githubusercontent.com/35622920/154579949-189ef2e4-bfc5-4701-8967-1811a8426d0c.png)
+                
+                
 ## Rotate
 
 For **rotate** example config:
