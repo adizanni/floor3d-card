@@ -49,8 +49,8 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | object_groups    | array  | none         | list of object groups to apply grouped entity bindings.                                                                                                                    |
 | style            | string | none         | the style that will be applied to the canvas element of the card.                                                                                                          |
 | path             | string | **Required** | path to the Waterforont obj (objects), mtl (material) and other files.                                                                                                     |
-| objfile          | string | **Required** | object file name (.obj) Waterfront format.                                                                                                                                 |
-| mtlfile          | string | **Required** | material file name (.mtl) Waterfront format.                                                                                                                               |
+| objfile          | string | **Required** | object file name (.obj) for Waterfront format or glb filenale for the binary (condensed) 3d format (still experimental).                                                                                                                                 |
+| mtlfile          | string | **Required** | material file name (.mtl) Waterfront format. Only relevant when objefile has obj extension (no glb)                                                                                                                               |
 | backgroundColor  | string | '#aaaaaa'    | canvas background color                                                                                                                                                    |
 | header  | string | 'yes'    | if the header will be displayed or not                                                                                                                                                   |
 | globalLightPower | float  | 0.3          | intensity of the light illuminating the full scene it can also the name of a numeric sensor                                                                                |
@@ -467,6 +467,12 @@ backgroundColor: '#000001'
 globalLightPower: 0.4
 ```
 
+### Working with levels (> v1.3.0)
+  
+If your Sweethome3d model has levels and you use the ExportToHass ([Download](https://github.com/adizanni/ExportToHASS/releases/latest/download/ExportToHASSPlugin.sh3p)) plugin, the card will show the levels with some buttons appearing at the top left of the 3d canvas. There is one button for each level and one butto for "all" levels. When you click on the button of the level, only that level will become visible in the card, and if you click on the "all" button all levels will appear in the card in a total view of your model.
+All other functionalities will work as before.  
+
+  
 ### To Do
 
 Project General Availability (https://github.com/adizanni/floor3d-card/projects/1)
