@@ -23,8 +23,18 @@ import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { LightShadow } from 'three';
-import { BooleanKeyframeTrack, Box3, DirectionalLightHelper, Group, LessEqualStencilFunc, Material, Mesh, Vector3 } from 'three';
+import {
+  BooleanKeyframeTrack,
+  Box3,
+  DirectionalLightHelper,
+  Group,
+  LessEqualStencilFunc,
+  Material,
+  Mesh,
+  Vector3,
+} from 'three';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { NotEqualStencilFunc, Object3D } from 'three';
@@ -50,6 +60,7 @@ export class Floor3dCard extends LitElement {
   private _scene?: THREE.Scene;
   private _camera?: THREE.PerspectiveCamera;
   private _renderer?: THREE.WebGLRenderer;
+  private _levelbar?: HTMLElement;
   private _controls?: OrbitControls;
   private _hemiLight?: THREE.HemisphereLight;
   private _modelX?: number;
@@ -57,6 +68,8 @@ export class Floor3dCard extends LitElement {
   private _modelZ?: number;
   private _to_animate: boolean;
   private _bboxmodel: THREE.Object3D;
+  private _levels: THREE.Object3D[];
+  private _selectedlevel: number;
 
   private _states?: string[];
   private _color?: number[][];
@@ -113,6 +126,7 @@ export class Floor3dCard extends LitElement {
   private _sky: Sky;
   private _sun: THREE.DirectionalLight;
   private _point_light: THREE.PointLight;
+  private _torchhelper: THREE.DirectionalLightHelper;
   _helper: THREE.DirectionalLightHelper;
   _modelready: boolean;
   private _maxtextureimage: number;
@@ -121,7 +135,9 @@ export class Floor3dCard extends LitElement {
     super();
 
     this._cardObscured = false;
-    this._resizeObserver = new ResizeObserver(() => { this._resizeCanvasDebounce() });
+    this._resizeObserver = new ResizeObserver(() => {
+      this._resizeCanvasDebounce();
+    });
     this._performActionListener = (evt) => this._performAction(evt);
     this._fireventListener = (evt) => this._firevent(evt);
     this._changeListener = () => this._render();
@@ -305,15 +321,13 @@ export class Floor3dCard extends LitElement {
       }
 
       if (!this._ispanel()) {
-
         const show_header = this._config.header ? this._config.header : 'yes';
 
         if (show_header == 'yes') {
           (this._card as any).header = this._config.name ? this._config.name : 'Floor 3d';
         } else {
-          (this._card as any).header = "";
+          (this._card as any).header = '';
         }
-
       }
 
       if (this._content && !this._renderer) {
@@ -354,21 +368,20 @@ export class Floor3dCard extends LitElement {
           if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
             if (this._config.entities[i].action) {
               switch (this._config.entities[i].action) {
-                case "more-info":
-                  fireEvent(this, "hass-more-info", { entityId: entity.entity });
+                case 'more-info':
+                  fireEvent(this, 'hass-more-info', { entityId: entity.entity });
                   break;
-                case "overlay":
+                case 'overlay':
                   if (this._overlay) {
                     this._setoverlaycontent(entity.entity);
                   }
                   break;
-                case "default":
+                case 'default':
                 default:
                   this._defaultaction(intersects);
               }
               return;
-            }
-            else {
+            } else {
               this._defaultaction(intersects);
               return;
             }
@@ -379,16 +392,15 @@ export class Floor3dCard extends LitElement {
   }
 
   private _setoverlaycontent(entity_id: string): void {
-
     this._overlay_entity = entity_id;
-    const name = this._hass.states[entity_id].attributes["friendly_name"] ? this._hass.states[entity_id].attributes["friendly_name"] : entity_id;
-    this._overlay.textContent = name + ": " + this._hass.states[entity_id].state
-    this._overlay_state = this._hass.states[entity_id].state
-
+    const name = this._hass.states[entity_id].attributes['friendly_name']
+      ? this._hass.states[entity_id].attributes['friendly_name']
+      : entity_id;
+    this._overlay.textContent = name + ': ' + this._hass.states[entity_id].state;
+    this._overlay_state = this._hass.states[entity_id].state;
   }
 
   private _defaultaction(intersects: THREE.Intersection[]): void {
-
     if (intersects.length > 0 && intersects[0].object.name != '') {
       if (getLovelace().editMode) {
         window.prompt('Object:', intersects[0].object.name);
@@ -405,9 +417,8 @@ export class Floor3dCard extends LitElement {
                   this._hass.callService(entity.gesture.domain, entity.gesture.service, {
                     entity_id: entity.entity,
                   });
-                }
-                else if (entity.type3d == 'camera') {
-                  fireEvent(this, "hass-more-info", { entityId: entity.entity });
+                } else if (entity.type3d == 'camera') {
+                  fireEvent(this, 'hass-more-info', { entityId: entity.entity });
                   //this._hass.states[entity.entity].attributes["entity_picture"]
                 }
                 break;
@@ -420,35 +431,33 @@ export class Floor3dCard extends LitElement {
       window.prompt(
         'YAML:',
         'camera_position: { x: ' +
-        this._camera.position.x +
-        ', y: ' +
-        this._camera.position.y +
-        ', z: ' +
-        this._camera.position.z +
-        ' }\n' +
-        'camera_rotate: { x: ' +
-        this._camera.rotation.x +
-        ', y: ' +
-        this._camera.rotation.y +
-        ', z: ' +
-        this._camera.rotation.z +
-        ' }\n' +
-        'camera_target: { x: ' +
-        this._controls.target.x +
-        ', y: ' +
-        this._controls.target.y +
-        ', z: ' +
-        this._controls.target.z +
-        ' }',
+          this._camera.position.x +
+          ', y: ' +
+          this._camera.position.y +
+          ', z: ' +
+          this._camera.position.z +
+          ' }\n' +
+          'camera_rotate: { x: ' +
+          this._camera.rotation.x +
+          ', y: ' +
+          this._camera.rotation.y +
+          ', z: ' +
+          this._camera.rotation.z +
+          ' }\n' +
+          'camera_target: { x: ' +
+          this._controls.target.x +
+          ', y: ' +
+          this._controls.target.y +
+          ', z: ' +
+          this._controls.target.z +
+          ' }',
       );
     }
   }
 
   private _performAction(e: any): void {
-
     const intersects = this._getintersect(e);
     this._defaultaction(intersects);
-
   }
 
   private _zIndexChecker(): void {
@@ -465,18 +474,17 @@ export class Floor3dCard extends LitElement {
           this._cardObscured = true;
 
           if (this._to_animate) {
-            console.log("Canvas Obscured; stopping animation");
+            console.log('Canvas Obscured; stopping animation');
             this._clock = null;
             this._renderer.setAnimationLoop(null);
           }
         }
-      }
-      else {
+      } else {
         if (this._cardObscured) {
           this._cardObscured = false;
 
           if (this._to_animate) {
-            console.log("Canvas visible again; starting animation");
+            console.log('Canvas visible again; starting animation');
             this._clock = new THREE.Clock();
             this._renderer.setAnimationLoop(() => this._rotateobjects());
           }
@@ -486,7 +494,6 @@ export class Floor3dCard extends LitElement {
   }
 
   private _getZIndex(toCheck: any): string {
-
     let returnVal: string;
 
     if (toCheck == null) {
@@ -503,19 +510,15 @@ export class Floor3dCard extends LitElement {
     }
 
     if (returnVal == '' || returnVal == 'auto') {
-
       if (toCheck.parentNode.constructor != null) {
         if (toCheck.parentNode.constructor.name == 'ShadowRoot') {
           return this._getZIndex(toCheck.parentNode.host);
-        }
-        else if (toCheck.parentNode.constructor.name == 'HTMLDocument') {
+        } else if (toCheck.parentNode.constructor.name == 'HTMLDocument') {
           return '0';
-        }
-        else {
+        } else {
           return this._getZIndex(toCheck.parentNode);
         }
-      }
-      else {
+      } else {
         returnVal = '0';
       }
     }
@@ -632,8 +635,8 @@ export class Floor3dCard extends LitElement {
               this._sprites.push('');
             }
             if (entity.type3d == 'cover') {
-              if (hass.states[entity.entity].attributes["current_position"]) {
-                this._position.push(hass.states[entity.entity].attributes["current_position"]);
+              if (hass.states[entity.entity].attributes['current_position']) {
+                this._position.push(hass.states[entity.entity].attributes['current_position']);
               } else {
                 this._position.push(null);
               }
@@ -681,9 +684,9 @@ export class Floor3dCard extends LitElement {
             let state = this._statewithtemplate(entity);
             if (entity.type3d == 'cover') {
               let toupdate = false;
-              if (hass.states[entity.entity].attributes["current_position"]) {
-                if (this._position[i] != hass.states[entity.entity].attributes["current_position"]) {
-                  this._position[i] = hass.states[entity.entity].attributes["current_position"];
+              if (hass.states[entity.entity].attributes['current_position']) {
+                if (this._position[i] != hass.states[entity.entity].attributes['current_position']) {
+                  this._position[i] = hass.states[entity.entity].attributes['current_position'];
                   toupdate = true;
                 }
               } else {
@@ -693,7 +696,7 @@ export class Floor3dCard extends LitElement {
                 }
               }
               if (toupdate) {
-                this._updatecover(entity, this._states[i], i)
+                this._updatecover(entity, this._states[i], i);
                 torerender = true;
               }
             }
@@ -775,15 +778,15 @@ export class Floor3dCard extends LitElement {
                 let toupdate = false;
                 if (entity.room.attribute) {
                   if (hass.states[entity.entity].attributes[entity.room.attribute]) {
-                  if (this._spritetext[i] != hass.states[entity.entity].attributes[entity.room.attribute]) {
-                    this._spritetext[i] = hass.states[entity.entity].attributes[entity.room.attribute];
+                    if (this._spritetext[i] != hass.states[entity.entity].attributes[entity.room.attribute]) {
+                      this._spritetext[i] = hass.states[entity.entity].attributes[entity.room.attribute];
+                      toupdate = true;
+                    }
+                  } else {
+                    this._spritetext[i] = '';
                     toupdate = true;
                   }
                 } else {
-                  this._spritetext[i] = '';
-                  toupdate = true;
-                }
-              } else {
                   if (entity.room.label_text) {
                     if (entity.room.label_text == 'template') {
                       if (this._spritetext[i] != this._statewithtemplate(entity)) {
@@ -795,18 +798,15 @@ export class Floor3dCard extends LitElement {
                         this._spritetext[i] = this._states[i];
                         toupdate = true;
                       }
-
-
                     }
-
+                  }
                 }
-              }
 
-              if (this._canvas[i] && toupdate) {
-                this._updateroom(entity, this._spritetext[i], this._unit_of_measurement[i], i);
-                this._updateroomcolor(entity, i)
-                torerender = true;
-              }
+                if (this._canvas[i] && toupdate) {
+                  this._updateroom(entity, this._spritetext[i], this._unit_of_measurement[i], i);
+                  this._updateroomcolor(entity, i);
+                  torerender = true;
+                }
               }
             }
           }
@@ -819,8 +819,6 @@ export class Floor3dCard extends LitElement {
   }
 
   private _initSky(): void {
-
-
     const effectController = {
       turbidity: 10,
       rayleigh: 3,
@@ -831,7 +829,7 @@ export class Floor3dCard extends LitElement {
     };
 
     //init sky
-    console.log("Init Sky");
+    console.log('Init Sky');
 
     this._sky = new Sky();
     this._sky.scale.setScalar(100000);
@@ -845,33 +843,32 @@ export class Floor3dCard extends LitElement {
 
     // init ground
 
-    console.log("Init Ground");
+    console.log('Init Ground');
 
     const groundGeo = new THREE.PlaneGeometry(10000, 10000);
     const groundMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     groundMat.color.setHSL(0.095, 1, 0.75);
     const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.position.y = - 5;
-    ground.rotation.x = - Math.PI / 2;
+    ground.position.y = -5;
+    ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = false;
     ground.castShadow = false;
     this._bboxmodel.add(ground);
 
     // inti sun
 
-    console.log("Init Sun");
+    console.log('Init Sun');
 
     this._sun = new THREE.DirectionalLight(0xffffff, 1.0);
     const sun = new THREE.Vector3();
     this._scene.add(this._sun);
 
-
-    if (this._hass.states["sun.sun"].attributes['azimuth']) {
-      effectController.azimuth = Number(this._hass.states["sun.sun"].attributes['azimuth']);
+    if (this._hass.states['sun.sun'].attributes['azimuth']) {
+      effectController.azimuth = Number(this._hass.states['sun.sun'].attributes['azimuth']);
     }
 
-    if (this._hass.states["sun.sun"].attributes['elevation']) {
-      effectController.elevation = Number(this._hass.states["sun.sun"].attributes['elevation']);
+    if (this._hass.states['sun.sun'].attributes['elevation']) {
+      effectController.elevation = Number(this._hass.states['sun.sun'].attributes['elevation']);
     }
 
     let south: THREE.Vector3;
@@ -896,15 +893,14 @@ export class Floor3dCard extends LitElement {
 
     south_sphere.phi = THREE.MathUtils.degToRad(90 - effectController.elevation);
 
-    south_sphere.theta = THREE.MathUtils.degToRad(THREE.MathUtils.radToDeg(south_sphere.theta) - effectController.azimuth);
+    south_sphere.theta = THREE.MathUtils.degToRad(
+      THREE.MathUtils.radToDeg(south_sphere.theta) - effectController.azimuth,
+    );
 
     sun.setFromSphericalCoords(1, south_sphere.phi, south_sphere.theta);
 
-
     if (sun.y < 0) {
-
       this._sun.intensity = 0;
-
     }
 
     uniforms['sunPosition'].value.copy(sun);
@@ -914,53 +910,51 @@ export class Floor3dCard extends LitElement {
     // sun directional light parameters
     const d = 1000;
 
-    this._sun.shadow.camera
+    this._sun.shadow.camera;
     this._sun.castShadow = true;
 
     this._sun.shadow.mapSize.width = 512;
     this._sun.shadow.mapSize.height = 512;
     this._sun.shadow.camera.near = 3000;
-    this._sun.shadow.camera.far = 7000
+    this._sun.shadow.camera.far = 7000;
 
-    this._sun.shadow.camera.left = - d;
+    this._sun.shadow.camera.left = -d;
     this._sun.shadow.camera.right = d;
     this._sun.shadow.camera.top = d;
-    this._sun.shadow.camera.bottom = - d;
+    this._sun.shadow.camera.bottom = -d;
 
     this._renderer.shadowMap.needsUpdate = true;
 
     //FOR DEBUG: this._scene.add(new THREE.CameraHelper(this._sun.shadow.camera));
-
   }
 
   private _initTorch(): void {
-
     this._torch = new THREE.DirectionalLight(0xffffff, 0.2);
     this._torchTarget = new THREE.Object3D();
-
-    this._torch.target = this._torchTarget
+    this._torchTarget.name = "Torch Target"
+    this._torch.target = this._torchTarget;
     this._torch.matrixAutoUpdate = true;
     this._scene.add(this._torch);
     this._scene.add(this._torchTarget);
+
     this._torch.castShadow = false;
+
+    this._torch.position.copy(this._camera.position);
+    this._torch.rotation.copy(this._camera.rotation);
+    this._camera.getWorldDirection(this._torch.target.position);
 
     if (this._hass.states[this._config.globalLightPower]) {
       if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
-        this._torch.intensity = Number(
-          this._hass.states[this._config.globalLightPower].state,
-        );
+        this._torch.intensity = Number(this._hass.states[this._config.globalLightPower].state);
       }
     } else {
       if (this._config.globalLightPower) {
         this._torch.intensity = Number(this._config.globalLightPower);
       }
     }
-
   }
 
-
   private _initAmbient(): void {
-
     this._ambient_light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
     this._ambient_light.groundColor.setHSL(0.095, 1, 0.75);
 
@@ -968,20 +962,16 @@ export class Floor3dCard extends LitElement {
 
     if (this._hass.states[this._config.globalLightPower]) {
       if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
-        this._ambient_light.intensity = Number(
-          this._hass.states[this._config.globalLightPower].state,
-        );
+        this._ambient_light.intensity = Number(this._hass.states[this._config.globalLightPower].state);
       }
     } else {
       if (this._config.globalLightPower) {
         this._ambient_light.intensity = Number(this._config.globalLightPower);
       }
     }
-
   }
 
   protected display3dmodel(): void {
-
     //load the model into the GL Renderer
 
     console.log('Start Build Renderer');
@@ -1001,10 +991,8 @@ export class Floor3dCard extends LitElement {
 
     this._renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     this._maxtextureimage = this._renderer.capabilities.maxTextures;
-    console.log("Max Texture Image Units: " + this._maxtextureimage);
-    console.log(
-      "Max Texture Image Units: number of lights casting shadow should be less than the above number"
-    );
+    console.log('Max Texture Image Units: ' + this._maxtextureimage);
+    console.log('Max Texture Image Units: number of lights casting shadow should be less than the above number');
 
     const availableshadows = Math.max(6, this._maxtextureimage - 4);
 
@@ -1014,12 +1002,13 @@ export class Floor3dCard extends LitElement {
 
     //this._renderer.physicallyCorrectLights = true;
     this._renderer.outputEncoding = THREE.sRGBEncoding;
-    this._renderer.shadowMap.type = THREE.BasicShadowMap;
     this._renderer.toneMapping = THREE.LinearToneMapping;
-    this._renderer.toneMappingExposure = 0.3;
+    this._renderer.toneMappingExposure = 0.5;
     this._renderer.setClearColor(0x000000, 0.0);
-    this._renderer.shadowMap.autoUpdate = false;
     this._renderer.localClippingEnabled = true;
+    this._renderer.physicallyCorrectLights = false;
+
+    this._levelbar = document.createElement('div');
 
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
@@ -1028,27 +1017,38 @@ export class Floor3dCard extends LitElement {
         path = path + '/';
       }
       console.log('Path: ' + path);
-      if (this._config.mtlfile && this._config.mtlfile != '') {
-        const mtlLoader: MTLLoader = new MTLLoader();
-        mtlLoader.setPath(path);
-        mtlLoader.load(
-          this._config.mtlfile,
-          this._onLoaded3DMaterials.bind(this),
-          this._onLoadMaterialProgress.bind(this),
-          function (error: ErrorEvent): void {
-            throw new Error(error.error);
-          },
-        );
-      } else {
-        const objLoader: OBJLoader = new OBJLoader();
-        objLoader.load(
-          path + this._config.objfile,
-          this._onLoaded3DModel.bind(this),
-          this._onLoadObjectProgress.bind(this),
-          function (error: ErrorEvent): void {
-            throw new Error(error.error);
-          },
-        );
+
+      let fileExt = this._config.objfile.split('?')[0].split('.').pop();
+
+      if (fileExt == 'obj') {
+        //waterfront format
+        if (this._config.mtlfile && this._config.mtlfile != '') {
+          const mtlLoader: MTLLoader = new MTLLoader();
+          mtlLoader.setPath(path);
+          mtlLoader.load(
+            this._config.mtlfile,
+            this._onLoaded3DMaterials.bind(this),
+            this._onLoadMaterialProgress.bind(this),
+            function (error: ErrorEvent): void {
+              throw new Error(error.error);
+            },
+          );
+        } else {
+          const objLoader: OBJLoader = new OBJLoader();
+          objLoader.load(
+            path + this._config.objfile,
+            this._onLoaded3DModel.bind(this),
+            this._onLoadObjectProgress.bind(this),
+            function (error: ErrorEvent): void {
+              throw new Error(error.error);
+            },
+          );
+        }
+      } else if (fileExt == "glb") {
+        //glb format
+        const loader = new GLTFLoader().setPath( path );
+						loader.load( this._config.objfile, this._onLoadedGLTF3DModel.bind(this) );
+
       }
     } else {
       throw new Error('Path is empty');
@@ -1070,15 +1070,25 @@ export class Floor3dCard extends LitElement {
     this._content.innerText = '2/2: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
   }
 
-  private _onLoaded3DModel(object: THREE.Object3D): void {
+  private _onLoadedGLTF3DModel(gltf: GLTF) {
+
+    this._onLoaded3DModel(gltf.scene);
+
+  }
+
+  private _onLoaded3DModel(object: Object3D): void {
     // Object Loaded Event: last root object passed to the function
 
     console.log('Object loaded start');
 
+    this._initobjects(object);
 
-    let model_array = [];
+    this._bboxmodel = new THREE.Object3D();
 
-    this._bboxmodel = object;
+    this._levels.forEach((element) => {
+      this._bboxmodel.add(element);
+    });
+
     this._scene.add(this._bboxmodel);
 
     this._bboxmodel.updateMatrixWorld(true);
@@ -1095,37 +1105,26 @@ export class Floor3dCard extends LitElement {
       if (this._config.shadow == 'yes') {
         console.log('Shadow On');
         this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMap.type = THREE.BasicShadowMap;
+        this._renderer.shadowMap.autoUpdate = false;
       } else {
         console.log('Shadow Off');
         this._renderer.shadowMap.enabled = false;
       }
     }
 
-    this._bboxmodel.traverse(this._setShadowAndDepth.bind(this));
-    //Exclude ceiling from raycasting
-
-    this._raycasting = [];
-
-    this._bboxmodel.traverse((child) => {
-
-      if (!child.name.includes("transparent_slab")) {
-        this._raycasting.push(child);
-      }
-      else {
-        console.log("Found slab");
-      }
-
-    } );
-
-
     this._add3dObjects();
+
     console.log('Object loaded end');
 
     if (this._content && this._renderer) {
       this._modelready = true;
       console.log('Show canvas');
       this._content.innerText = '';
+      this._content.appendChild(this._levelbar);
       this._content.appendChild(this._renderer.domElement);
+      this._selectedlevel = -1;
+      render(this._getLevelBar(), this._levelbar);
       if (this._config.click == 'yes') {
         this._content.addEventListener('click', this._fireventListener);
       }
@@ -1144,7 +1143,7 @@ export class Floor3dCard extends LitElement {
 
       this._setLookAt();
 
-      this._controls.update()
+      this._controls.update();
 
       if (this._config.lock_camera == 'yes') {
         /*
@@ -1152,7 +1151,7 @@ export class Floor3dCard extends LitElement {
                 this._controls.enableZoom = false;
                 this._controls.enablePan = false;
         */
-        this._controls.enabled = false
+        this._controls.enabled = false;
       }
 
       if (this._config.sky) {
@@ -1161,7 +1160,7 @@ export class Floor3dCard extends LitElement {
         }
       }
 
-      if (!this._config.sky || (this._config.sky == 'no')) {
+      if (!this._config.sky || this._config.sky == 'no') {
         this._initTorch();
       }
 
@@ -1169,8 +1168,10 @@ export class Floor3dCard extends LitElement {
 
       this._getOverlay();
 
+      this._setVisibleLevel(-1);
+
       //first render
-      this._render();
+      //this._render();
       this._resizeCanvas();
 
       this._zIndexInterval = window.setInterval(() => {
@@ -1183,61 +1184,211 @@ export class Floor3dCard extends LitElement {
     }
   }
 
-  private _getOverlay(): void {
+  private _initobjects(object: THREE.Object3D) {
+    console.log('Ïnit Objects, Levels and Raycasting');
 
+    this._levels = [];
+    this._raycasting = [];
+
+    console.log('Found level 0');
+
+    this._levels[0] = new THREE.Object3D();
+
+    const regex = /lvl(?<level>\d{3})/;
+
+    let imported_objects: THREE.Object3D[] = [];
+
+
+
+    object.traverse((element) => {
+      imported_objects.push(element);
+    });
+
+    imported_objects.forEach((element) => {
+      let found;
+
+      found = element.name.match(regex);
+
+      if (found) {
+        if (!this._levels[Number(found.groups?.level)]) {
+          console.log('Found level ' + found.groups?.level);
+          this._levels[Number(found.groups?.level)] = new THREE.Object3D();
+        }
+
+        element.userData = { level: Number(found.groups?.level) };
+        element.name = element.name.slice(6);
+        this._levels[Number(found.groups?.level)].add(element);
+      } else {
+        element.userData = { level: 0 };
+        this._levels[0].add(element);
+      }
+
+      element.receiveShadow = true;
+
+      if (element.name.includes('transparent_slab')) {
+        element.castShadow = true;
+        if ((element as Mesh).material instanceof THREE.MeshPhongMaterial) {
+          ((element as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
+        } else if ((element as Mesh).material instanceof THREE.MeshBasicMaterial) {
+          ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+        } else if ((element as Mesh).material instanceof THREE.MeshStandardMaterial) {
+          ((element as Mesh).material as THREE.MeshStandardMaterial).transparent = true;
+          ((element as Mesh).material as THREE.MeshStandardMaterial).opacity = 0;
+          ((element as Mesh).material as THREE.MeshStandardMaterial).depthWrite = false;
+        }
+        return;
+      }
+
+      this._raycasting.push(element);
+
+      if (element instanceof Mesh) {
+        if (!Array.isArray((element as Mesh).material)) {
+          if (((element as Mesh).material as Material).opacity != 1) {
+            if ((element as Mesh).material instanceof THREE.MeshPhongMaterial) {
+              ((element as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
+            } else if ((element as Mesh).material instanceof THREE.MeshBasicMaterial) {
+              ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+            } else if ((element as Mesh).material instanceof THREE.MeshStandardMaterial) {
+              ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+            }
+            element.castShadow = false;
+            return;
+          }
+        }
+      }
+
+      const shadow = this._config.shadow ? this._config.shadow : 'no';
+
+      if (shadow == 'no') {
+        element.castShadow = false;
+      } else {
+        element.castShadow = true;
+      }
+
+      return;
+    });
+
+    console.log('End Init Objects. Number of levels found: ' + this._levels.length);
+  }
+
+  private _setVisibleLevel(level: number): void {
+    this._levels.forEach((element, i) => {
+      if (level == i || level == -1) {
+        element.visible = true;
+      } else {
+        element.visible = false;
+      }
+    });
+
+    this._selectedlevel = level;
+  }
+
+  private _getLevelBar(): TemplateResult {
+    if (this._levels) {
+      if (this._levels.length > 1) {
+        return html` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `;
+      } else {
+        return html``;
+      }
+    } else {
+      return html``;
+    }
+  }
+
+  private _getLevelIcons(): TemplateResult[] {
+    const iconArray: TemplateResult[] = [];
+
+    iconArray.push(html`
+      <div class="row">
+        <ha-icon
+          .icon=${`mdi:format-list-numbered`}
+          style=${this._selectedlevel == -1 ? 'opacity: 100%;' : 'opacity: 25%;'}
+          class="ha-icon-large"
+          .index=${-1}
+          @click=${this._handleLevelClick.bind(this)}
+        >
+        </ha-icon>
+      </div>
+    `);
+
+    this._levels.forEach((element, index) => {
+      if (element) {
+        iconArray.push(html`
+          <div class="row">
+            <ha-icon
+              .icon=${`mdi:numeric-${index}-box-multiple`}
+              style=${this._selectedlevel == index ? 'opacity: 100%;' : 'opacity: 25%;'}
+              class="ha-icon-large"
+              .index=${index}
+              @click=${this._handleLevelClick.bind(this)}
+            >
+            </ha-icon>
+          </div>
+        `);
+      }
+    });
+
+    return iconArray;
+  }
+
+  private _handleLevelClick(ev): void {
+    this._setVisibleLevel(ev.target.index);
+
+    render(this._getLevelBar(), this._levelbar);
+
+    this._render();
+  }
+
+  private _getOverlay(): void {
     if (this._config.overlay == 'yes') {
-      console.log("Start config Overlay");
+      console.log('Start config Overlay');
       const overlay = document.createElement('div');
       overlay.id = 'overlay';
       overlay.className = 'overlay';
-      overlay.style.setProperty("position", "absolute");
+      overlay.style.setProperty('position', 'absolute');
       if (this._config.overlay_alignment) {
         switch (this._config.overlay_alignment) {
           case 'top-left':
-            overlay.style.setProperty("top", "0px");
-            overlay.style.setProperty("left", "0px");
+            overlay.style.setProperty('top', '0px');
+            overlay.style.setProperty('left', '0px');
             break;
           case 'top-right':
-            overlay.style.setProperty("top", "0px");
-            overlay.style.setProperty("right", "0px");
+            overlay.style.setProperty('top', '0px');
+            overlay.style.setProperty('right', '0px');
             break;
           case 'bottom-left':
-            overlay.style.setProperty("bottom", "0px");
-            overlay.style.setProperty("left", "0px");
+            overlay.style.setProperty('bottom', '0px');
+            overlay.style.setProperty('left', '0px');
             break;
           case 'bottom-right':
-            overlay.style.setProperty("bottom", "0px");
-            overlay.style.setProperty("right", "0px");
+            overlay.style.setProperty('bottom', '0px');
+            overlay.style.setProperty('right', '0px');
             break;
           default:
-            overlay.style.setProperty("top", "0px");
-            overlay.style.setProperty("left", "0px");
+            overlay.style.setProperty('top', '0px');
+            overlay.style.setProperty('left', '0px');
         }
       }
       if (this._config.overlay_width) {
-        overlay.style.setProperty("width", this._config.overlay_width + '%');
-      }
-      else {
-        overlay.style.setProperty("width", "33%");
+        overlay.style.setProperty('width', this._config.overlay_width + '%');
+      } else {
+        overlay.style.setProperty('width', '33%');
       }
       if (this._config.overlay_height) {
-        overlay.style.setProperty("height", this._config.overlay_height + '%');
-      }
-      else {
-        overlay.style.setProperty("height", "20%");
+        overlay.style.setProperty('height', this._config.overlay_height + '%');
+      } else {
+        overlay.style.setProperty('height', '20%');
       }
 
       if (this._config.overlay_bgcolor) {
-        overlay.style.setProperty("background-color", this._config.overlay_bgcolor);
-      }
-      else {
-        overlay.style.setProperty("background-color", "transparent");
+        overlay.style.setProperty('background-color', this._config.overlay_bgcolor);
+      } else {
+        overlay.style.setProperty('background-color', 'transparent');
       }
       if (this._config.overlay_fgcolor) {
-        overlay.style.setProperty("color", this._config.overlay_fgcolor);
-      }
-      else {
-        overlay.style.setProperty("color", "black");
+        overlay.style.setProperty('color', this._config.overlay_fgcolor);
+      } else {
+        overlay.style.setProperty('color', 'black');
       }
       if (this._config.overlay_font) {
         overlay.style.fontFamily = this._config.overlay_font;
@@ -1246,9 +1397,9 @@ export class Floor3dCard extends LitElement {
         overlay.style.fontSize = this._config.overlay_fontsize;
       }
 
-      overlay.style.setProperty("overflow", "hidden");
-      overlay.style.setProperty("white-space", "nowrap");
-      let zindex = "";
+      overlay.style.setProperty('overflow', 'hidden');
+      overlay.style.setProperty('white-space', 'nowrap');
+      let zindex = '';
 
       try {
         zindex = this._getZIndex(this._renderer.domElement.parentNode);
@@ -1257,29 +1408,24 @@ export class Floor3dCard extends LitElement {
       }
 
       if (zindex) {
-        overlay.style.setProperty("z-index", (Number(zindex) + 1).toString(10));
+        overlay.style.setProperty('z-index', (Number(zindex) + 1).toString(10));
       } else {
-        overlay.style.setProperty("z-index", "999");
+        overlay.style.setProperty('z-index', '999');
       }
 
-      (this._renderer.domElement.parentNode as HTMLElement).style.setProperty("position", "relative");
+      (this._renderer.domElement.parentNode as HTMLElement).style.setProperty('position', 'relative');
       this._renderer.domElement.parentNode.appendChild(overlay);
       this._overlay = overlay;
-      console.log("End config Overlay");
+      console.log('End config Overlay');
     }
-
   }
 
-
   private _setCamera(): void {
-
     const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
 
     this._modelX = this._bboxmodel.position.x = -(box.max.x - box.min.x) / 2;
     this._modelY = this._bboxmodel.position.y = -box.min.y;
     this._modelZ = this._bboxmodel.position.z = -(box.max.z - box.min.z) / 2;
-
-
 
     if (this._config.camera_position) {
       this._camera.position.set(
@@ -1291,7 +1437,6 @@ export class Floor3dCard extends LitElement {
       this._camera.position.set(box.max.x * 1.3, box.max.y * 5, box.max.z * 1.3);
     }
 
-
     if (this._config.camera_rotate) {
       this._camera.rotation.set(
         this._config.camera_rotate.x,
@@ -1302,11 +1447,10 @@ export class Floor3dCard extends LitElement {
       this._camera.rotation.set(0, 0, 0);
     }
 
-    this._camera.updateProjectionMatrix()
+    this._camera.updateProjectionMatrix();
   }
 
   private _setLookAt(): void {
-
     const box: THREE.Box3 = new THREE.Box3().setFromObject(this._bboxmodel);
 
     if (this._config.camera_target) {
@@ -1318,52 +1462,12 @@ export class Floor3dCard extends LitElement {
     } else {
       this._camera.lookAt(box.max.multiplyScalar(0.5));
     }
-    this._camera.updateProjectionMatrix()
+    this._camera.updateProjectionMatrix();
   }
 
   private _setNoShadowLight(object: THREE.Object3D): void {
-
     object.receiveShadow = true;
     object.castShadow = false;
-
-    return;
-  }
-
-  private _setShadowAndDepth(object: THREE.Object3D): void {
-
-    object.receiveShadow = true;
-
-    if (object.name.includes("transparent_slab")) {
-      object.castShadow = true;
-      if ((object as Mesh).material instanceof THREE.MeshPhongMaterial) {
-        ((object as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
-      } else if ((object as Mesh).material instanceof THREE.MeshBasicMaterial) {
-        ((object as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
-      }
-      return;
-    }
-
-    if (object instanceof Mesh) {
-      if (!Array.isArray((object as Mesh).material)) {
-        if (((object as Mesh).material as Material).opacity != 1) {
-          if ((object as Mesh).material instanceof THREE.MeshPhongMaterial) {
-            ((object as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
-          } else if ((object as Mesh).material instanceof THREE.MeshBasicMaterial) {
-            ((object as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
-          }
-          object.castShadow = false;
-          return;
-        }
-      }
-    }
-
-    const shadow = (this._config.shadow) ? this._config.shadow : 'no';
-
-    if (shadow == 'no') {
-      object.castShadow = false;
-    } else {
-      object.castShadow = true;
-    }
 
     return;
   }
@@ -1406,7 +1510,6 @@ export class Floor3dCard extends LitElement {
       this._slidingdoorposition = [];
       this._to_animate = false;
 
-
       this._config.entities.forEach((entity, i) => {
         this._objposition.push([0, 0, 0]);
         this._pivot.push(null);
@@ -1428,26 +1531,20 @@ export class Floor3dCard extends LitElement {
               hinge = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
             }
             bbox = new THREE.Box3().setFromObject(hinge);
-            this._pivot[i] = new THREE.Vector3;
+            this._pivot[i] = new THREE.Vector3();
             this._pivot[i].subVectors(bbox.max, bbox.min).multiplyScalar(0.5);
             this._pivot[i].add(bbox.min);
 
-            this._object_ids[i].objects.forEach(element => {
-
+            this._object_ids[i].objects.forEach((element) => {
               let _obj: any = this._scene.getObjectByName(element.object_id);
               this._centerobjecttopivot(_obj, this._pivot[i]);
               _obj.geometry.applyMatrix4(
-                new THREE.Matrix4().makeTranslation(
-                  -(this._pivot[i].x),
-                  -(this._pivot[i].y),
-                  -(this._pivot[i].z)
-                )
+                new THREE.Matrix4().makeTranslation(-this._pivot[i].x, -this._pivot[i].y, -this._pivot[i].z),
               );
-
             });
           }
           if (entity.type3d == 'door') {
-            if (entity.door.doortype == "swing") {
+            if (entity.door.doortype == 'swing') {
               //console.log("Start Add Door Swing");
               let position = new THREE.Vector3();
               if (entity.door.hinge) {
@@ -1470,7 +1567,6 @@ export class Floor3dCard extends LitElement {
                 position.add(boundingBox.min);
                 position.applyMatrix4(hinge.matrixWorld);
               } else {
-
                 let pane: THREE.Mesh;
 
                 if (entity.door.pane) {
@@ -1483,10 +1579,8 @@ export class Floor3dCard extends LitElement {
                 let boundingBox = pane.geometry.boundingBox;
                 position.subVectors(boundingBox.max, boundingBox.min);
                 if (entity.door.side) {
-
                   switch (entity.door.side) {
-
-                    case "up":
+                    case 'up':
                       position.x = position.x / 2;
                       position.z = position.z / 2;
                       position.y = position.y;
@@ -1496,7 +1590,7 @@ export class Floor3dCard extends LitElement {
                         this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
                       }
                       break;
-                    case "down":
+                    case 'down':
                       position.x = position.x / 2;
                       position.z = position.z / 2;
                       position.y = 0;
@@ -1506,63 +1600,46 @@ export class Floor3dCard extends LitElement {
                         this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
                       }
                       break;
-                    case "left":
+                    case 'left':
                       if (position.x > position.z) {
-
                         position.x = 0;
                         position.z = position.z / 2;
-
                       } else {
-
                         position.z = 0;
                         position.x = position.x / 2;
-
                       }
                       this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
                       position.y = 0;
                       break;
-                    case "right":
+                    case 'right':
                       if (position.x > position.z) {
-
                         position.z = position.z / 2;
-
                       } else {
-
                         position.x = position.x / 2;
-
                       }
                       this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
                       position.y = 0;
                       break;
                   }
-
                 }
                 position.add(boundingBox.min);
                 position.applyMatrix4(pane.matrixWorld);
-
               }
 
               this._pivot[i] = position;
-              this._degrees[i] = (entity.door.degrees) ? (entity.door.degrees) : 90;
-              this._object_ids[i].objects.forEach(element => {
-
+              this._degrees[i] = entity.door.degrees ? entity.door.degrees : 90;
+              this._object_ids[i].objects.forEach((element) => {
                 let _obj: any = this._scene.getObjectByName(element.object_id);
 
                 this._centerobjecttopivot(_obj, this._pivot[i]);
 
                 _obj.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(
-                    -(this._pivot[i].x),
-                    -(this._pivot[i].y),
-                    -(this._pivot[i].z)
-                  )
+                  new THREE.Matrix4().makeTranslation(-this._pivot[i].x, -this._pivot[i].y, -this._pivot[i].z),
                 );
-
               });
 
               //console.log("End Add Door Swing");
-            } else if (entity.door.doortype == "slide") {
-
+            } else if (entity.door.doortype == 'slide') {
               //console.log("Start Add Door Slide");
 
               this._object_ids[i].objects.forEach((element) => {
@@ -1571,35 +1648,24 @@ export class Floor3dCard extends LitElement {
                 this._slidingdoorposition[i].push(objbbox.min);
                 this._centerobjecttopivot(_obj, objbbox.min);
                 _obj.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(
-                    -(objbbox.min.x),
-                    -(objbbox.min.y),
-                    -(objbbox.min.z)
-                  )
+                  new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
                 );
               });
 
               //console.log("End Add Door Slide");
             }
-
           }
           if (entity.type3d == 'cover') {
-
             const pane: THREE.Mesh = this._scene.getObjectByName(entity.cover.pane) as THREE.Mesh;
 
             if (pane) {
-
               this._object_ids[i].objects.forEach((element) => {
                 let _obj: any = this._scene.getObjectByName(element.object_id);
                 let objbbox = new THREE.Box3().setFromObject(_obj);
                 this._slidingdoorposition[i].push(objbbox.min);
                 this._centerobjecttopivot(_obj, objbbox.min);
                 _obj.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(
-                    -(objbbox.min.x),
-                    -(objbbox.min.y),
-                    -(objbbox.min.z)
-                  )
+                  new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
                 );
               });
 
@@ -1608,21 +1674,20 @@ export class Floor3dCard extends LitElement {
               let panevertices: THREE.Vector3[] = [];
 
               switch (entity.cover.side) {
-
-                case "up":
+                case 'up':
                   panevertices = [
-                    new THREE.Vector3( boxpane.min.x, boxpane.max.y, boxpane.min.z ), // 000
-                    new THREE.Vector3( boxpane.min.x, boxpane.max.y, boxpane.max.z ), // 001
-                    new THREE.Vector3( boxpane.max.x, boxpane.max.y, boxpane.min.z ), // 010
-                    new THREE.Vector3( boxpane.max.x, boxpane.max.y, boxpane.max.z ), // 011
+                    new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.min.z), // 000
+                    new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.max.z), // 001
+                    new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.min.z), // 010
+                    new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.max.z), // 011
                   ];
                   break;
-                case "down":
+                case 'down':
                   panevertices = [
-                    new THREE.Vector3( boxpane.min.x, boxpane.min.y, boxpane.min.z ), // 000
-                    new THREE.Vector3( boxpane.min.x, boxpane.min.y, boxpane.max.z ), // 001
-                    new THREE.Vector3( boxpane.max.x, boxpane.min.y, boxpane.min.z ), // 010
-                    new THREE.Vector3( boxpane.max.x, boxpane.min.y, boxpane.max.z ), // 011
+                    new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.min.z), // 000
+                    new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.max.z), // 001
+                    new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.min.z), // 010
+                    new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.max.z), // 011
                   ];
                   break;
               }
@@ -1641,16 +1706,18 @@ export class Floor3dCard extends LitElement {
 
               coverplane.setFromCoplanarPoints(panevertices[2], panevertices[1], panevertices[0]);
 
-              const clipPlanes = [
-                coverplane
-              ];
+              const clipPlanes = [coverplane];
 
-              (pane.material as THREE.Material).clippingPlanes = clipPlanes;
+              this._object_ids[i].objects.forEach((element) => {
+                let _obj: any = this._scene.getObjectByName(element.object_id);
+                (_obj.material as THREE.Material).clippingPlanes = clipPlanes;
+              });
+
+              //(pane.material as THREE.Material).clippingPlanes = clipPlanes;
 
               if (this._config.shadow) {
                 if (this._config.shadow == 'yes') {
-                (pane.material as THREE.Material).clipShadows = true;
-
+                  (pane.material as THREE.Material).clipShadows = true;
                 } else {
                   (pane.material as THREE.Material).clipShadows = false;
                 }
@@ -1660,7 +1727,6 @@ export class Floor3dCard extends LitElement {
               //this._scene.add(planehelper);
 
               this._updatecover(entity, this._states[i], i);
-
             }
           }
           if (entity.type3d == 'light') {
@@ -1693,23 +1759,33 @@ export class Floor3dCard extends LitElement {
                   }
                 }
 
-
                 if (entity.light.light_target || entity.light.light_direction) {
+                  const angle = entity.light.angle ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10;
 
-                  const angle = (entity.light.angle) ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10 ;
-
-                  const slight: THREE.SpotLight = new THREE.SpotLight(new THREE.Color('#ffffff'), 0, 700, angle, 0.5, 1);
-                  this._bboxmodel.add(slight);
-                  let target = new THREE.Object3D;
-                  this._bboxmodel.add(target);
+                  const slight: THREE.SpotLight = new THREE.SpotLight(
+                    new THREE.Color('#ffffff'),
+                    0,
+                    700,
+                    angle,
+                    0.5,
+                    1,
+                  );
+                  //this._bboxmodel.add(slight);
+                  this._levels[_foundobject.userData.level].add(slight);
+                  let target = new THREE.Object3D();
+                  //this._bboxmodel.add(target);
+                  this._levels[_foundobject.userData.level].add(target);
                   slight.position.set(x, y, z);
                   if (entity.light.light_direction) {
-                    target.position.set(x + entity.light.light_direction.x, y + entity.light.light_direction.y, z + entity.light.light_direction.z);
+                    target.position.set(
+                      x + entity.light.light_direction.x,
+                      y + entity.light.light_direction.y,
+                      z + entity.light.light_direction.z,
+                    );
                   } else {
                     const tobj: THREE.Object3D = this._scene.getObjectByName(entity.light.light_target);
 
                     if (tobj) {
-
                       const tbox: THREE.Box3 = new THREE.Box3();
                       tbox.setFromObject(tobj);
 
@@ -1728,20 +1804,18 @@ export class Floor3dCard extends LitElement {
                   }
 
                   light = slight;
-
                 } else {
-                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 700, 2);
-                  this._bboxmodel.add(plight);
+                  //const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 600, 2);
+                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 600, 2);
+                  this._levels[_foundobject.userData.level].add(plight);
                   plight.position.set(x, y, z);
                   light = plight;
                 }
 
-
                 this._setNoShadowLight(_foundobject);
                 _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
 
-
-                if (entity.light.shadow == "no") {
+                if (entity.light.shadow == 'no') {
                   light.castShadow = false;
                 } else {
                   light.castShadow = true;
@@ -1766,19 +1840,17 @@ export class Floor3dCard extends LitElement {
           if (entity.type3d == 'text') {
             // Clone object to print the text
             this._object_ids[i].objects.forEach((element) => {
-
               let _foundobject: any = this._scene.getObjectByName(element.object_id);
 
               let box: THREE.Box3 = new THREE.Box3();
               box.setFromObject(_foundobject);
 
-
               let _newobject = _foundobject.clone();
 
               //(_newobject as Mesh).scale.set(1.005, 1.005, 1.005);
-              _newobject.name = "f3dobj_" + _foundobject.name;
-              this._bboxmodel.add(_newobject);
-
+              _newobject.name = 'f3dobj_' + _foundobject.name;
+              //this._bboxmodel.add(_newobject);
+              this._levels[_foundobject.userData.level].add(_newobject);
             });
           }
         }
@@ -1797,7 +1869,7 @@ export class Floor3dCard extends LitElement {
             this._updatedoor(entity, i);
           } else if (entity.type3d == 'text') {
             this._canvas[i] = this._createTextCanvas(entity.text, this._text[i], this._unit_of_measurement[i]);
-            this._updatetext(entity,this._text[i],this._canvas[i], this._unit_of_measurement[i] )
+            this._updatetext(entity, this._text[i], this._canvas[i], this._unit_of_measurement[i]);
           } else if (entity.type3d == 'rotate') {
             this._rotatecalc(entity, i);
           } else if (entity.type3d == 'room') {
@@ -1813,42 +1885,40 @@ export class Floor3dCard extends LitElement {
   // manage all entity types
 
   private _createroom(entity: Floor3dCardConfig, i: number): void {
-
     // createroom
 
-    console.log('Create Room')
+    console.log('Create Room');
 
-    const elevation: number = (entity.room.elevation) ? entity.room.elevation : 250;
-    const transparency: number = (entity.room.transparency) ? entity.room.transparency : 50;
-    const color: string = (entity.room.color) ? entity.room.color : '#ffffff';
+    const elevation: number = entity.room.elevation ? entity.room.elevation : 250;
+    const transparency: number = entity.room.transparency ? entity.room.transparency : 50;
+    const color: string = entity.room.color ? entity.room.color : '#ffffff';
 
     const _foundroom: THREE.Object3D = this._scene.getObjectByName(entity.object_id);
 
     if (_foundroom) {
-      if (_foundroom.name.includes("room") && _foundroom instanceof THREE.Mesh) {
+      if (_foundroom.name.includes('room') && _foundroom instanceof THREE.Mesh) {
         const _roomMesh: THREE.Mesh = _foundroom as Mesh;
 
         if (_roomMesh.geometry instanceof THREE.BufferGeometry) {
           const _roomGeometry: THREE.BufferGeometry = _roomMesh.geometry as THREE.BufferGeometry;
 
-
           let oldRoomBox = new THREE.Box3().setFromObject(_roomMesh);
           this._centerobjecttopivot(_roomMesh, oldRoomBox.min);
-                _roomMesh.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(
-                    -(oldRoomBox.min.x),
-                    -(oldRoomBox.min.y),
-                    -(oldRoomBox.min.z)
-                  )
-                );
+          _roomMesh.geometry.applyMatrix4(
+            new THREE.Matrix4().makeTranslation(-oldRoomBox.min.x, -oldRoomBox.min.y, -oldRoomBox.min.z),
+          );
 
           let newRoomBox: THREE.Box3 = new THREE.Box3().setFromObject(_roomMesh);
 
-          const expansion : THREE.Vector3 = new THREE.Vector3(0, elevation/2, 0);
+          const expansion: THREE.Vector3 = new THREE.Vector3(0, elevation / 2, 0);
           newRoomBox.expandByVector(expansion);
 
-          const dimensions = new THREE.Vector3().subVectors( newRoomBox.max, newRoomBox.min );
-          const newRoomGeometry: THREE.BoxBufferGeometry = new THREE.BoxBufferGeometry(dimensions.x-4, dimensions.y-4, dimensions.z-4);
+          const dimensions = new THREE.Vector3().subVectors(newRoomBox.max, newRoomBox.min);
+          const newRoomGeometry: THREE.BoxBufferGeometry = new THREE.BoxBufferGeometry(
+            dimensions.x - 4,
+            dimensions.y - 4,
+            dimensions.z - 4,
+          );
 
           //const meshPosition = dimensions.addVectors(newRoomBox.min, newRoomBox.max).multiplyScalar(0.5);
           const meshPosition = oldRoomBox.min.clone();
@@ -1884,13 +1954,17 @@ export class Floor3dCard extends LitElement {
 
           this._canvas[i] = this._createTextCanvas(entity.room, this._spritetext[i], this._unit_of_measurement[i]);
 
-          const sprite_width: number = (entity.room.width) ? entity.room.width : 150;
-          const sprite_height: number = (entity.room.height) ? entity.room.height : 75;
+          const sprite_width: number = entity.room.width ? entity.room.width : 150;
+          const sprite_height: number = entity.room.height ? entity.room.height : 75;
           newSprite.scale.set(sprite_width, sprite_height, 5);
 
           //TBD work on position bug
 
-          const spritePosition = new THREE.Vector3(meshPosition.x+ dimensions.x/2, newRoomBox.max.y + (elevation / 2) + (sprite_height / 2), meshPosition.z+dimensions.z/2);
+          const spritePosition = new THREE.Vector3(
+            meshPosition.x + dimensions.x / 2,
+            newRoomBox.max.y + elevation / 2 + sprite_height / 2,
+            meshPosition.z + dimensions.z / 2,
+          );
           newSprite.visible = false;
 
           if (entity.room.label) {
@@ -1899,68 +1973,54 @@ export class Floor3dCard extends LitElement {
             }
           }
 
-
-          this._bboxmodel.add(newSprite);
-          this._bboxmodel.add(newRoomMesh);
+          //this._bboxmodel.add(newSprite);
+          this._levels[_roomMesh.userData.level].add(newSprite);
+          this._levels[_roomMesh.userData.level].add(newRoomMesh);
 
           newRoomBox = new THREE.Box3().setFromObject(newRoomMesh);
           this._centerobjecttopivot(newRoomMesh, newRoomBox.min);
-               newRoomMesh.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(
-                    -(newRoomBox.min.x),
-                    -(newRoomBox.min.y),
-                    -(newRoomBox.min.z)
-                  )
-               );
+          newRoomMesh.geometry.applyMatrix4(
+            new THREE.Matrix4().makeTranslation(-newRoomBox.min.x, -newRoomBox.min.y, -newRoomBox.min.z),
+          );
 
           //const matrixsprite = new THREE.Matrix4().setPosition(new THREE.Vector3(meshPosition.x,newRoomBox.max.y+(elevation / 2)+(sprite_height / 2), meshPosition.z));
           //newSprite.applyMatrix4(matrixsprite);
 
-
-
           newRoomMesh.position.set(meshPosition.x, meshPosition.y, meshPosition.z);
           newSprite.position.set(spritePosition.x, spritePosition.y, spritePosition.z);
 
-
           this._updateroomcolor(entity, i);
         }
-
       }
     }
 
     return;
-
   }
 
   private _updateroom(entity: Floor3dCardConfig, text: string, uom: string, i: number): void {
-
     //update sprite text and other change conditions
 
     const _roomMesh: THREE.Object3D = this._scene.getObjectByName(this._rooms[i]);
     const _roomSprite: THREE.Object3D = this._scene.getObjectByName(this._sprites[i]);
     const _roomCanvas: HTMLCanvasElement = this._canvas[i];
 
-
     if (_roomMesh && entity) {
-
       let roomsprite: THREE.Sprite = _roomSprite as THREE.Sprite;
 
       this._updateTextCanvas(entity.room, _roomCanvas, text + uom);
 
       this._applyTextCanvasSprite(_roomCanvas, roomsprite);
-
     }
   }
 
   private _updatecover(item: Floor3dCardConfig, state: string, i: number): void {
-
     let pane = this._scene.getObjectByName(item.cover.pane);
 
     if (this._position[i] == null) {
-      if (state == "open") {
+      if (state == 'open') {
         this._position[i] = 100;
       }
-      if (state == "closed") {
+      if (state == 'closed') {
         this._position[i] = 0;
       }
     }
@@ -1970,11 +2030,9 @@ export class Floor3dCard extends LitElement {
     }
     this._translatedoor(pane, this._position[i], item.cover.side, i, state);
     this._renderer.shadowMap.needsUpdate = true;
-
   }
 
   private _createTextCanvas(entity: Floor3dCardConfig, text: string, uom: string): HTMLCanvasElement {
-
     const canvas = document.createElement('canvas');
 
     this._updateTextCanvas(entity, canvas, text + uom);
@@ -1983,9 +2041,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updateTextCanvas(entity: Floor3dCardConfig, canvas: HTMLCanvasElement, text: string): void {
-
     //Manages the update of the text entities according to their configuration and the new text of the entity state
-
 
     const ctx = canvas.getContext('2d');
 
@@ -2022,58 +2078,47 @@ export class Floor3dCard extends LitElement {
     ctx.fillStyle = entity.textfgcolor ? entity.textfgcolor : 'white';
 
     ctx.fillText(text, width / 2, height / 2);
-
   }
 
-
   private _applyTextCanvas(canvas: HTMLCanvasElement, object: THREE.Object3D) {
-
     // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
     const _foundobject: any = object;
 
     if (_foundobject instanceof Mesh) {
-
       const texture = new THREE.CanvasTexture(canvas);
       texture.repeat.set(1, 1);
 
-      if (((_foundobject as Mesh).material as THREE.MeshBasicMaterial).name.startsWith("f3dmat")) {
+      if (((_foundobject as Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
         ((_foundobject as Mesh).material as THREE.MeshBasicMaterial).map = texture;
       } else {
         const material = new THREE.MeshBasicMaterial({
           map: texture,
-          transparent: true
+          transparent: true,
         });
-        material.name = "f3dmat" + _foundobject.name;
+        material.name = 'f3dmat' + _foundobject.name;
 
         (_foundobject as Mesh).material = material;
-
-
       }
-
     }
-
   }
 
   private _applyTextCanvasSprite(canvas: HTMLCanvasElement, object: THREE.Sprite) {
-
     // put the canvas texture with the text on top of the Sprite object: consider merge with the applyTextCanvas
 
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.repeat.set(1, 1);
 
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.repeat.set(1, 1);
+    if (object.material.name.startsWith('f3dmat')) {
+      (object.material as THREE.SpriteMaterial).map = texture;
+    } else {
+      const material = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+      });
+      material.name = 'f3dmat' + object.name;
 
-      if (object.material.name.startsWith("f3dmat")) {
-        (object.material as THREE.SpriteMaterial).map = texture;
-      } else {
-        const material = new THREE.SpriteMaterial({
-          map: texture,
-          transparent: true
-        });
-        material.name = "f3dmat" + object.name;
-
-        object.material = material;
-      }
-
+      object.material = material;
+    }
   }
 
   private _TemperatureToRGB(t: number): number[] {
@@ -2119,15 +2164,13 @@ export class Floor3dCard extends LitElement {
   }
 
   private _updatetext(_item: Floor3dCardConfig, state: string, canvas: HTMLCanvasElement, uom: string): void {
-
     const _foundobject: any = this._scene.getObjectByName(_item.object_id);
 
     if (_foundobject) {
       this._updateTextCanvas(_item.text, canvas, state + uom);
-      this._applyTextCanvas(canvas,_foundobject)
+      this._applyTextCanvas(canvas, _foundobject);
     }
   }
-
 
   private _updatelight(item: Floor3dCardConfig, i: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
@@ -2162,7 +2205,7 @@ export class Floor3dCard extends LitElement {
         //light.color = new THREE.Color('#000000');
       }
       if (this._config.extralightmode) {
-        if (this._config.extralightmode == "yes") {
+        if (this._config.extralightmode == 'yes') {
           this._manage_light_shadows(item, light);
         }
       }
@@ -2171,25 +2214,15 @@ export class Floor3dCard extends LitElement {
   }
 
   private _manage_light_shadows(item: Floor3dCardConfig, light: THREE.Light): void {
-
-    if (this._config.shadow == "yes") {
-
-      if (item.light.shadow == "yes") {
-
+    if (this._config.shadow == 'yes') {
+      if (item.light.shadow == 'yes') {
         if (light.intensity > 0) {
-
           light.castShadow = true;
-
         } else {
-
           light.castShadow = false;
-
         }
-
       }
-
     }
-
   }
 
   private _updatedoor(item: Floor3dCardConfig, i: number): void {
@@ -2210,78 +2243,67 @@ export class Floor3dCard extends LitElement {
           if (!pane) {
             pane = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
           }
-          this._translatedoor(pane, (item.door.percentage) ? item.door.percentage: 100, item.door.side, i, this._states[i]);
+          this._translatedoor(
+            pane,
+            item.door.percentage ? item.door.percentage : 100,
+            item.door.side,
+            i,
+            this._states[i],
+          );
         }
       }
     }
     this._renderer.shadowMap.needsUpdate = true;
-
   }
 
   private _centerobjecttopivot(object: THREE.Mesh, pivot: THREE.Vector3) {
-
     //Center a Mesh  along is defined pivot point
 
-    object.applyMatrix4(
-      new THREE.Matrix4().makeTranslation(
-        -(pivot.x),
-        -(pivot.y),
-        -(pivot.z)
-      )
-    );
+    object.applyMatrix4(new THREE.Matrix4().makeTranslation(-pivot.x, -pivot.y, -pivot.z));
     object.position.copy(pivot);
-
   }
 
   private _rotatedoorpivot(entity: Floor3dCardConfig, index: number) {
-
     //For a swing door, rotate the objects along the configured axis and the degrees of opening
-    this._object_ids[index].objects.forEach(element => {
-
+    this._object_ids[index].objects.forEach((element) => {
       let _obj: any = this._scene.getObjectByName(element.object_id);
 
       //this._centerobjecttopivot(_obj, this._pivot[index]);
 
-      if (this._states[index] == "on") {
-        if (entity.door.direction == "inner") {
+      if (this._states[index] == 'on') {
+        if (entity.door.direction == 'inner') {
           //_obj.rotateOnAxis(this._axis_for_door[index], -Math.PI * this._degrees[index] / 180);
 
           if (this._axis_for_door[index].y == 1) {
-            _obj.rotation.y = -Math.PI * this._degrees[index] / 180;
+            _obj.rotation.y = (-Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].x == 1) {
-            _obj.rotation.x = -Math.PI * this._degrees[index] / 180;
+            _obj.rotation.x = (-Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].z == 1) {
-            _obj.rotation.z = -Math.PI * this._degrees[index] / 180;
+            _obj.rotation.z = (-Math.PI * this._degrees[index]) / 180;
           }
-        } else if (entity.door.direction == "outer") {
+        } else if (entity.door.direction == 'outer') {
           //_obj.rotateOnAxis(this._axis_for_door[index], Math.PI * this._degrees[index] / 180);
           if (this._axis_for_door[index].y == 1) {
-            _obj.rotation.y = Math.PI * this._degrees[index] / 180;
+            _obj.rotation.y = (Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].x == 1) {
-            _obj.rotation.x = Math.PI * this._degrees[index] / 180;
+            _obj.rotation.x = (Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].z == 1) {
-            _obj.rotation.z = Math.PI * this._degrees[index] / 180;
+            _obj.rotation.z = (Math.PI * this._degrees[index]) / 180;
           }
         }
-
       } else {
         _obj.rotation.x = 0;
         _obj.rotation.y = 0;
         _obj.rotation.z = 0;
       }
-
     });
-
-
   }
 
-
   private _rotatecalc(entity: Floor3dCardConfig, i: number) {
-
     let j = this._rotation_index.indexOf(i);
 
     //1 if the entity is on, 0 if the entity is off
-    this._rotation_state[j] = (this._states[i] == 'on' ? 1 : 0);
+    this._rotation_state[j] = this._states[i] == 'on' ? 1 : 0;
 
     //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
     //into a decimal and store it as the rotation state
@@ -2291,14 +2313,15 @@ export class Floor3dCard extends LitElement {
 
     //If the entity is on and it is reversed, set the rotation state to the negative value of itself
     if (
-      this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['direction'] &&
+      this._rotation_state[j] != 0 &&
+      this._hass.states[entity.entity].attributes['direction'] &&
       this._hass.states[entity.entity].attributes['direction'] == 'reverse'
     ) {
       this._rotation_state[j] = 0 - this._rotation_state[j];
     }
 
     //If every rotating entity is stopped, disable animation
-    if (this._rotation_state.every(item => item === 0)) {
+    if (this._rotation_state.every((item) => item === 0)) {
       if (this._to_animate) {
         this._to_animate = false;
         this._clock = null;
@@ -2319,34 +2342,30 @@ export class Floor3dCard extends LitElement {
 
     this._rotation_state.forEach((state, index) => {
       if (state != 0) {
-        this._object_ids[this._rotation_index[index]].objects.forEach(element => {
+        this._object_ids[this._rotation_index[index]].objects.forEach((element) => {
           let _obj = this._scene.getObjectByName(element.object_id);
           if (_obj) {
             switch (this._axis_to_rotate[index]) {
-              case "x":
+              case 'x':
                 _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
                 break;
-              case "y":
+              case 'y':
                 _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
                 break;
-              case "z":
+              case 'z':
                 _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
                 break;
             }
           }
-
         });
       }
       this._renderer.shadowMap.needsUpdate = true;
-
     });
 
     this._renderer.render(this._scene, this._camera);
   }
 
-
-  private _translatedoor(pane: THREE.Object3D, percentage : number, side: string,  index: number, doorstate: string) {
-
+  private _translatedoor(pane: THREE.Object3D, percentage: number, side: string, index: number, doorstate: string) {
     //console.log("Translate Door Start");
     //For a slide door, translate the objects according to the configured directions and percentage of opening
 
@@ -2362,51 +2381,48 @@ export class Floor3dCard extends LitElement {
     size.subVectors(bbox.max, bbox.min);
 
     this._object_ids[index].objects.forEach((element, j) => {
-        let _obj: any = this._scene.getObjectByName(element.object_id);
-        _obj.position.set(this._slidingdoorposition[index][j].x, this._slidingdoorposition[index][j].y, this._slidingdoorposition[index][j].z);
-      });
+      let _obj: any = this._scene.getObjectByName(element.object_id);
+      _obj.position.set(
+        this._slidingdoorposition[index][j].x,
+        this._slidingdoorposition[index][j].y,
+        this._slidingdoorposition[index][j].z,
+      );
+    });
 
     if (doorstate == 'on' || doorstate == 'open') {
       if (side == 'left') {
         if (size.x > size.z) {
           translate.z += 0;
-          translate.x += -size.x * percentage / 100;
-          translate.y = 0
+          translate.x += (-size.x * percentage) / 100;
+          translate.y = 0;
         } else {
-          translate.z += -size.z * percentage / 100;
+          translate.z += (-size.z * percentage) / 100;
           translate.x += 0;
           translate.y += 0;
         }
       } else if (side == 'right') {
         if (size.x > size.z) {
           translate.z += 0;
-          translate.x += +size.x * percentage / 100;
+          translate.x += (+size.x * percentage) / 100;
           translate.y += 0;
         } else {
-          translate.z += +size.z * percentage / 100;
+          translate.z += (+size.z * percentage) / 100;
           translate.x += 0;
-          translate.y += 0
+          translate.y += 0;
         }
       } else if (side == 'down') {
-        translate.y += -size.y * percentage / 100;
+        translate.y += (-size.y * percentage) / 100;
         translate.x += 0;
         translate.z += 0;
       } else if (side == 'up') {
-        translate.y += +size.y * percentage / 100;
+        translate.y += (+size.y * percentage) / 100;
         translate.x += 0;
         translate.z += 0;
       }
       this._object_ids[index].objects.forEach((element) => {
         let _obj: any = this._scene.getObjectByName(element.object_id);
-        _obj.applyMatrix4(
-          new THREE.Matrix4().makeTranslation(
-            (translate.x),
-            (translate.y),
-            (translate.z)
-          )
-        );
+        _obj.applyMatrix4(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
       });
-
     }
   }
 
@@ -2415,37 +2431,29 @@ export class Floor3dCard extends LitElement {
 
     let _room: any = this._scene.getObjectByName(this._rooms[index]);
 
-    const color: string = (item.room.color) ? item.room.color : '#ffffff';
+    const color: string = item.room.color ? item.room.color : '#ffffff';
 
     if (_room && _room instanceof THREE.Mesh) {
-
       let i: any;
       let defaultcolor = true;
 
       const _object: any = _room;
 
       for (i in item.colorcondition) {
-
-          if (this._states[index] == item.colorcondition[i].state) {
-
-            const colorcond: THREE.Color = new THREE.Color(item.colorcondition[i].color);
-            _object.material.color.set(colorcond);
-            _object.material.emissive.set(colorcond);
-            defaultcolor = false;
-            break;
-          }
+        if (this._states[index] == item.colorcondition[i].state) {
+          const colorcond: THREE.Color = new THREE.Color(item.colorcondition[i].color);
+          _object.material.color.set(colorcond);
+          _object.material.emissive.set(colorcond);
+          defaultcolor = false;
+          break;
+        }
       }
       if (defaultcolor) {
-
         _object.material.color.set(color);
         _object.material.emissive.set(color);
-
       }
-
     }
-
   }
-
 
   private _updatecolor(item: any, index: number): void {
     // Change the color of the object when, for the bound device, the state matches the condition
@@ -2514,7 +2522,6 @@ export class Floor3dCard extends LitElement {
       }
     });
     this._renderer.shadowMap.needsUpdate = true;
-
   }
 
   // end of manage entity types
@@ -2537,8 +2544,13 @@ export class Floor3dCard extends LitElement {
     else htmlHeight = 'auto';
 
     return html`
-      <ha-card tabindex="0" .style=${`${this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight
-            + '; position: relative;'}`} id="${this._card_id}">
+      <ha-card
+        tabindex="0"
+        .style=${`${
+          this._config.style || 'overflow: hidden; width: auto; height: ' + htmlHeight + '; position: relative;'
+        }`}
+        id="${this._card_id}"
+      >
       </ha-card>
     `;
   }

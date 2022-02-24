@@ -258,7 +258,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _fetchObjectList(): void {
-    fetch(this._config.path + this._config.objectlist)
+    let path = this._config.path;
+      const lastChar = path.substr(-1);
+      if (lastChar != '/') {
+        path = path + '/';
+      }
+    fetch(path + this._config.objectlist)
       .then(function (response): any {
         if (!response.ok) {
           throw Error(response.statusText);
@@ -643,7 +648,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
                 <paper-input
                   editable
-                  label="Obj Wavefront file"
+                  label="Obj/Glb file"
                   .value="${config.objfile ? config.objfile : ''}"
                   .configObject=${config}
                   .configAttribute=${'objfile'}
