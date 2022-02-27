@@ -19,25 +19,12 @@ import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 //import three.js libraries for 3D rendering
 import * as THREE from 'three';
-import { Projector } from 'three/examples/jsm/renderers/Projector';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
-import { LightShadow } from 'three';
-import {
-  BooleanKeyframeTrack,
-  Box3,
-  DirectionalLightHelper,
-  Group,
-  LessEqualStencilFunc,
-  Material,
-  Mesh,
-  Vector3,
-} from 'three';
-import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
 import { Sky } from 'three/examples/jsm/objects/Sky';
-import { NotEqualStencilFunc, Object3D } from 'three';
+import { Object3D } from 'three';
 
 /* eslint no-console: 0 */
 console.info(
@@ -53,6 +40,10 @@ console.info(
   name: 'Floor3d Card',
   description: 'A custom card to visualize and activate entities in a live 3D model',
 });
+class ModelSource {
+  public static OBJ = 0;
+  public static GLB = 1;
+}
 
 // TODO Name your custom element
 @customElement('floor3d-card')
@@ -70,7 +61,6 @@ export class Floor3dCard extends LitElement {
   private _bboxmodel: THREE.Object3D;
   private _levels: THREE.Object3D[];
   private _selectedlevel: number;
-
   private _states?: string[];
   private _color?: number[][];
   private _raycasting: THREE.Object3D[];
@@ -110,8 +100,7 @@ export class Floor3dCard extends LitElement {
   private _cardObscured: boolean;
   private _card?: HTMLElement;
   private _content?: HTMLElement;
-  private _progress?: HTMLElement;
-
+  private _modeltype?: ModelSource;
   private _config!: Floor3dCardConfig;
   private _configArray: Floor3dCardConfig[] = [];
   private _object_ids?: Floor3dCardConfig[] = [];
@@ -120,15 +109,13 @@ export class Floor3dCard extends LitElement {
   private _haShadowRoot: any;
   private _position: number[];
   private _card_id: string;
-  private _ambient_light: THREE.HemisphereLight;
+  private _ambient_light: any;
   private _torch: THREE.DirectionalLight;
   private _torchTarget: THREE.Object3D;
   private _sky: Sky;
   private _sun: THREE.DirectionalLight;
-  private _point_light: THREE.PointLight;
-  private _torchhelper: THREE.DirectionalLightHelper;
   _helper: THREE.DirectionalLightHelper;
-  _modelready: boolean;
+  private _modelready: boolean;
   private _maxtextureimage: number;
 
   constructor() {
@@ -859,7 +846,7 @@ export class Floor3dCard extends LitElement {
 
     console.log('Init Sun');
 
-    this._sun = new THREE.DirectionalLight(0xffffff, 1.0);
+    this._sun = new THREE.DirectionalLight(0xffffff, 2.0);
     const sun = new THREE.Vector3();
     this._scene.add(this._sun);
 
@@ -908,15 +895,15 @@ export class Floor3dCard extends LitElement {
     this._sun.position.copy(sun.multiplyScalar(5000));
 
     // sun directional light parameters
-    const d = 1000;
+    const d = 500;
 
     this._sun.shadow.camera;
     this._sun.castShadow = true;
 
-    this._sun.shadow.mapSize.width = 512;
-    this._sun.shadow.mapSize.height = 512;
-    this._sun.shadow.camera.near = 3000;
-    this._sun.shadow.camera.far = 7000;
+    this._sun.shadow.mapSize.width = 1024;
+    this._sun.shadow.mapSize.height = 1024;
+    this._sun.shadow.camera.near = 4000;
+    this._sun.shadow.camera.far = 6000;
 
     this._sun.shadow.camera.left = -d;
     this._sun.shadow.camera.right = d;
@@ -929,6 +916,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _initTorch(): void {
+
     this._torch = new THREE.DirectionalLight(0xffffff, 0.2);
     this._torchTarget = new THREE.Object3D();
     this._torchTarget.name = "Torch Target"
@@ -955,20 +943,31 @@ export class Floor3dCard extends LitElement {
   }
 
   private _initAmbient(): void {
-    this._ambient_light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
-    this._ambient_light.groundColor.setHSL(0.095, 1, 0.75);
 
-    this._scene.add(this._ambient_light);
+
+    let intensity;
 
     if (this._hass.states[this._config.globalLightPower]) {
       if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
-        this._ambient_light.intensity = Number(this._hass.states[this._config.globalLightPower].state);
+        intensity = Number(this._hass.states[this._config.globalLightPower].state);
       }
     } else {
       if (this._config.globalLightPower) {
-        this._ambient_light.intensity = Number(this._config.globalLightPower);
+        intensity = Number(this._config.globalLightPower);
       }
     }
+
+    if (this._config.sky == 'yes') {
+      this._ambient_light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
+      this._ambient_light.groundColor.setHSL(0.095, 1, 0.75);
+      this._ambient_light.intensity = intensity;
+    } else {
+      this._ambient_light = new THREE.AmbientLight(0xffffff, 0.2);
+      this._ambient_light.intensity = intensity;
+    }
+
+    this._scene.add(this._ambient_light);
+
   }
 
   protected display3dmodel(): void {
@@ -1002,13 +1001,12 @@ export class Floor3dCard extends LitElement {
 
     //this._renderer.physicallyCorrectLights = true;
     this._renderer.outputEncoding = THREE.sRGBEncoding;
-    this._renderer.toneMapping = THREE.LinearToneMapping;
-    this._renderer.toneMappingExposure = 0.5;
-    this._renderer.setClearColor(0x000000, 0.0);
+    //this._renderer.toneMapping = THREE.LinearToneMapping;
+    //this._renderer.toneMappingExposure = 0.5;
+    //this._renderer.setClearColor(0x000000, 0.0);
     this._renderer.localClippingEnabled = true;
     this._renderer.physicallyCorrectLights = false;
 
-    this._levelbar = document.createElement('div');
 
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
@@ -1044,10 +1042,19 @@ export class Floor3dCard extends LitElement {
             },
           );
         }
+        this._modeltype = ModelSource.OBJ;
       } else if (fileExt == "glb") {
         //glb format
         const loader = new GLTFLoader().setPath( path );
-						loader.load( this._config.objfile, this._onLoadedGLTF3DModel.bind(this) );
+        loader.load(
+          this._config.objfile,
+          this._onLoadedGLTF3DModel.bind(this),
+          this._onloadedGLTF3DProgress.bind(this),
+          function (error: ErrorEvent): void {
+            throw new Error(error.error);
+          },
+        );
+        this._modeltype = ModelSource.GLB;
 
       }
     } else {
@@ -1060,14 +1067,23 @@ export class Floor3dCard extends LitElement {
     this._showError(event.error);
   }
 
+  private _onloadedGLTF3DProgress(_progress: ProgressEvent): void {
+
+    this._content.innerText = 'Loading: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
+
+  }
+
+
   private _onLoadMaterialProgress(_progress: ProgressEvent): void {
     //progress function called at regular intervals during material loading process
     this._content.innerText = '1/2: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
+
   }
 
   private _onLoadObjectProgress(_progress: ProgressEvent): void {
     //progress function called at regular intervals during object loading process
     this._content.innerText = '2/2: ' + Math.round((_progress.loaded / _progress.total) * 100) + '%';
+
   }
 
   private _onLoadedGLTF3DModel(gltf: GLTF) {
@@ -1093,7 +1109,7 @@ export class Floor3dCard extends LitElement {
 
     this._bboxmodel.updateMatrixWorld(true);
 
-    this._content.innerText = '2/2: 100%';
+    this._content.innerText = 'Finished';
 
     if (this._config.show_axes) {
       if (this._config.show_axes == 'yes') {
@@ -1120,6 +1136,7 @@ export class Floor3dCard extends LitElement {
     if (this._content && this._renderer) {
       this._modelready = true;
       console.log('Show canvas');
+      this._levelbar = document.createElement('div');
       this._content.innerText = '';
       this._content.appendChild(this._levelbar);
       this._content.appendChild(this._renderer.domElement);
@@ -1138,7 +1155,7 @@ export class Floor3dCard extends LitElement {
 
       this._renderer.setPixelRatio(window.devicePixelRatio);
 
-      this._controls.maxPolarAngle = (0.9 * Math.PI) / 2;
+      this._controls.maxPolarAngle = (0.85 * Math.PI) / 2;
       this._controls.addEventListener('change', this._changeListener);
 
       this._setLookAt();
@@ -1199,7 +1216,6 @@ export class Floor3dCard extends LitElement {
     let imported_objects: THREE.Object3D[] = [];
 
 
-
     object.traverse((element) => {
       imported_objects.push(element);
     });
@@ -1227,29 +1243,40 @@ export class Floor3dCard extends LitElement {
 
       if (element.name.includes('transparent_slab')) {
         element.castShadow = true;
-        if ((element as Mesh).material instanceof THREE.MeshPhongMaterial) {
-          ((element as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
-        } else if ((element as Mesh).material instanceof THREE.MeshBasicMaterial) {
-          ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
-        } else if ((element as Mesh).material instanceof THREE.MeshStandardMaterial) {
-          ((element as Mesh).material as THREE.MeshStandardMaterial).transparent = true;
-          ((element as Mesh).material as THREE.MeshStandardMaterial).opacity = 0;
-          ((element as Mesh).material as THREE.MeshStandardMaterial).depthWrite = false;
+        if ((element as THREE.Mesh).material instanceof THREE.MeshPhongMaterial) {
+          ((element as THREE.Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
+        } else if ((element as THREE.Mesh).material instanceof THREE.MeshBasicMaterial) {
+          ((element as THREE.Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+        } else if ((element as THREE.Mesh).material instanceof THREE.MeshStandardMaterial) {
+          ((element as THREE.Mesh).material as THREE.MeshStandardMaterial).transparent = true;
+          ((element as THREE.Mesh).material as THREE.MeshStandardMaterial).opacity = 0;
+          ((element as THREE.Mesh).material as THREE.MeshStandardMaterial).depthWrite = false;
         }
         return;
       }
 
+      if (this._modeltype == ModelSource.GLB) {
+        if (element.name.includes('_hole_')) {
+          element.castShadow = false;
+          if ((element as THREE.Mesh).material instanceof THREE.MeshStandardMaterial) {
+            ((element as THREE.Mesh).material as THREE.MeshStandardMaterial).transparent = true;
+            ((element as THREE.Mesh).material as THREE.MeshStandardMaterial).opacity = 0;
+          }
+          return;
+        }
+      }
+
       this._raycasting.push(element);
 
-      if (element instanceof Mesh) {
-        if (!Array.isArray((element as Mesh).material)) {
-          if (((element as Mesh).material as Material).opacity != 1) {
-            if ((element as Mesh).material instanceof THREE.MeshPhongMaterial) {
-              ((element as Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
-            } else if ((element as Mesh).material instanceof THREE.MeshBasicMaterial) {
-              ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
-            } else if ((element as Mesh).material instanceof THREE.MeshStandardMaterial) {
-              ((element as Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+      if (element instanceof THREE.Mesh) {
+        if (!Array.isArray((element as THREE.Mesh).material)) {
+          if (((element as THREE.Mesh).material as THREE.Material).opacity != 1) {
+            if ((element as THREE.Mesh).material instanceof THREE.MeshPhongMaterial) {
+              ((element as THREE.Mesh).material as THREE.MeshPhongMaterial).depthWrite = false;
+            } else if ((element as THREE.Mesh).material instanceof THREE.MeshBasicMaterial) {
+              ((element as THREE.Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
+            } else if ((element as THREE.Mesh).material instanceof THREE.MeshStandardMaterial) {
+              ((element as THREE.Mesh).material as THREE.MeshBasicMaterial).depthWrite = false;
             }
             element.castShadow = false;
             return;
@@ -1897,7 +1924,7 @@ export class Floor3dCard extends LitElement {
 
     if (_foundroom) {
       if (_foundroom.name.includes('room') && _foundroom instanceof THREE.Mesh) {
-        const _roomMesh: THREE.Mesh = _foundroom as Mesh;
+        const _roomMesh: THREE.Mesh = _foundroom as THREE.Mesh;
 
         if (_roomMesh.geometry instanceof THREE.BufferGeometry) {
           const _roomGeometry: THREE.BufferGeometry = _roomMesh.geometry as THREE.BufferGeometry;
@@ -2084,12 +2111,12 @@ export class Floor3dCard extends LitElement {
     // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
     const _foundobject: any = object;
 
-    if (_foundobject instanceof Mesh) {
+    if (_foundobject instanceof THREE.Mesh) {
       const texture = new THREE.CanvasTexture(canvas);
       texture.repeat.set(1, 1);
 
-      if (((_foundobject as Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
-        ((_foundobject as Mesh).material as THREE.MeshBasicMaterial).map = texture;
+      if (((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
+        ((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).map = texture;
       } else {
         const material = new THREE.MeshBasicMaterial({
           map: texture,
@@ -2097,7 +2124,7 @@ export class Floor3dCard extends LitElement {
         });
         material.name = 'f3dmat' + _foundobject.name;
 
-        (_foundobject as Mesh).material = material;
+        (_foundobject as THREE.Mesh).material = material;
       }
     }
   }
@@ -2371,8 +2398,8 @@ export class Floor3dCard extends LitElement {
 
     let translate: THREE.Vector3 = new THREE.Vector3(0, 0, 0);
 
-    let size: Vector3 = new THREE.Vector3();
-    let center: Vector3 = new THREE.Vector3();
+    let size: THREE.Vector3 = new THREE.Vector3();
+    let center: THREE.Vector3 = new THREE.Vector3();
 
     //TBD let pane = this._scene.getObjectByName(item.door.pane);
 

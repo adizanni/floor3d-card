@@ -15,6 +15,7 @@
   "author": "Andrea Di Zanni <adizanni@msn.com>",
   "license": "MIT",
   "dependencies": {
+    "@polymer/paper-progress": "^3.0.1",
     "@vaadin/vaadin-combo-box": "^20.0.0",
     "card-tools": "github:thomasloven/lovelace-card-tools",
     "custom-card-helpers": "^1.7.2",
