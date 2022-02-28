@@ -895,7 +895,7 @@ export class Floor3dCard extends LitElement {
     this._sun.position.copy(sun.multiplyScalar(5000));
 
     // sun directional light parameters
-    const d = 500;
+    const d = 1000;
 
     this._sun.shadow.camera;
     this._sun.castShadow = true;
@@ -1001,9 +1001,9 @@ export class Floor3dCard extends LitElement {
 
     //this._renderer.physicallyCorrectLights = true;
     this._renderer.outputEncoding = THREE.sRGBEncoding;
-    //this._renderer.toneMapping = THREE.LinearToneMapping;
-    //this._renderer.toneMappingExposure = 0.5;
-    //this._renderer.setClearColor(0x000000, 0.0);
+    this._renderer.toneMapping = THREE.LinearToneMapping;
+    this._renderer.toneMappingExposure = 0.5;
+    this._renderer.setClearColor(0x000000, 0.0);
     this._renderer.localClippingEnabled = true;
     this._renderer.physicallyCorrectLights = false;
 
