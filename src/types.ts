@@ -48,6 +48,8 @@ export interface Floor3dCardConfig {
   object_group: string;
   objects: any;
   lumens: number;
+  decay: number;
+  distance: number;
   colorcondition: any;
   light: any;
   door: any;

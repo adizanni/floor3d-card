@@ -60,6 +60,7 @@ export class Floor3dCard extends LitElement {
   private _to_animate: boolean;
   private _bboxmodel: THREE.Object3D;
   private _levels: THREE.Object3D[];
+  private _displaylevels: boolean[];
   private _selectedlevel: number;
   private _states?: string[];
   private _color?: number[][];
@@ -1295,19 +1296,28 @@ export class Floor3dCard extends LitElement {
       return;
     });
 
+    this._displaylevels = [];
+    this._levels.forEach(() => {
+        this._displaylevels.push(true);
+      }
+    );
     console.log('End Init Objects. Number of levels found: ' + this._levels.length);
   }
 
   private _setVisibleLevel(level: number): void {
-    this._levels.forEach((element, i) => {
-      if (level == i || level == -1) {
-        element.visible = true;
-      } else {
-        element.visible = false;
-      }
-    });
 
-    this._selectedlevel = level;
+      this._levels.forEach((element, i) => {
+        if (level == -1) {
+          element.visible = true;
+          this._displaylevels[i] = true;
+        }
+        if (level == i) {
+          element.visible = !element.visible;
+          this._displaylevels[level] = !this._displaylevels[level];
+        } else {
+          element.visible = this._displaylevels[i];
+        }
+      });
   }
 
   private _getLevelBar(): TemplateResult {
@@ -1325,31 +1335,36 @@ export class Floor3dCard extends LitElement {
   private _getLevelIcons(): TemplateResult[] {
     const iconArray: TemplateResult[] = [];
 
+
     iconArray.push(html`
-      <div class="row">
+      <div class="row" style="background-color:black;">
+        <font color="white">
         <ha-icon
           .icon=${`mdi:format-list-numbered`}
-          style=${this._selectedlevel == -1 ? 'opacity: 100%;' : 'opacity: 25%;'}
+          style="opacity: 100%;"
           class="ha-icon-large"
           .index=${-1}
           @click=${this._handleLevelClick.bind(this)}
         >
         </ha-icon>
+        </font>
       </div>
     `);
 
     this._levels.forEach((element, index) => {
       if (element) {
         iconArray.push(html`
-          <div class="row">
+          <div class="row" style="background-color:black;">
+          <font color="white">
             <ha-icon
               .icon=${`mdi:numeric-${index}-box-multiple`}
-              style=${this._selectedlevel == index ? 'opacity: 100%;' : 'opacity: 25%;'}
+              style=${ this._displaylevels[index] ? 'opacity: 100%;' : 'opacity: 60%;'}
               class="ha-icon-large"
               .index=${index}
               @click=${this._handleLevelClick.bind(this)}
             >
             </ha-icon>
+            </font>
           </div>
         `);
       }
@@ -1792,10 +1807,10 @@ export class Floor3dCard extends LitElement {
                   const slight: THREE.SpotLight = new THREE.SpotLight(
                     new THREE.Color('#ffffff'),
                     0,
-                    700,
+                    600,
                     angle,
                     0.5,
-                    1,
+                    2,
                   );
                   //this._bboxmodel.add(slight);
                   this._levels[_foundobject.userData.level].add(slight);
@@ -1832,7 +1847,6 @@ export class Floor3dCard extends LitElement {
 
                   light = slight;
                 } else {
-                  //const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 600, 2);
                   const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 600, 2);
                   this._levels[_foundobject.userData.level].add(plight);
                   plight.position.set(x, y, z);
@@ -2202,6 +2216,21 @@ export class Floor3dCard extends LitElement {
   private _updatelight(item: Floor3dCardConfig, i: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
 
+    let decay;
+    let distance;
+
+    if (item.light.decay) {
+      decay = item.light.decay;
+    } else {
+      decay = 2;
+    }
+
+    if (item.light.distance) {
+      distance = item.light.distance;
+    } else {
+      distance = 600;
+    }
+
     this._object_ids[i].objects.forEach((element) => {
       const light: any = this._scene.getObjectByName(element.object_id + '_light');
 
@@ -2216,6 +2245,9 @@ export class Floor3dCard extends LitElement {
         max = 800;
       }
 
+      light.decay = decay;
+      light.distance = distance;
+
       if (this._states[i] == 'on') {
         if (this._brightness[i] != -1) {
           light.intensity = 0.003 * max * (this._brightness[i] / 255);
@@ -2223,9 +2255,13 @@ export class Floor3dCard extends LitElement {
           light.intensity = 0.003 * max;
         }
         if (!this._color[i]) {
-          light.color = new THREE.Color('#ffffff');
+          if (item.light.color) {
+            light.color = new THREE.Color(item.light.color);
+          } else {
+            light.color = new THREE.Color('#ffffff');
+          }
         } else {
-          light.color = new THREE.Color(this._RGBToHex(this._color[i][0], this._color[i][1], this._color[i][2]));
+            light.color = new THREE.Color(this._RGBToHex(this._color[i][0], this._color[i][1], this._color[i][2]));
         }
       } else {
         light.intensity = 0;

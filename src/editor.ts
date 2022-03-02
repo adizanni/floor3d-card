@@ -1587,10 +1587,36 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               <paper-input
                                 class="value-number"
                                 type="number"
-                                label="Lumens"
+                                label="Lumens (0-2000)"
                                 .value=${config.light.lumens ? config.light.lumens : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'lumens'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Color"
+                                .value=${config.light.color ? config.light.color : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'color'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Decay (0-inifinity)"
+                                .value=${config.light.decay ? config.light.decay : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'decay'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                class="value-number"
+                                type="number"
+                                label="Distance (cm: 0=inifinity)"
+                                .value=${config.light.distance ? config.light.distance : ''}
+                                .configObject=${config.light}
+                                .configAttribute=${'distance'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input
