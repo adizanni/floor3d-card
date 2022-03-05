@@ -190,13 +190,14 @@ entities:
     object_id: <an object id in the 3D model you want to postion the light on>
     light:
       lumens: <max light lumens range: 0-4000 for regular led/bulb lights>
+      color: <light color, if the light is a led with variable color this parameter will be ignored in favor of color and temperature attributes>
+      decay: <0-2, the speed of decay for the light between the light source and the distance>
+      distance: <number of cm for which the light will have an effect on the scene>
       shadow: <'no', if you do not want this light to case a shadow. This is to cope with the limit of max lights casting shadow in a model>
       vertical_alignment: <'top', 'middle', 'bottom', when you activate shadows it allows to avoid that the lamp itself block the light>
       light_target: when this parameter is filled, the light becomes a spotlight, you need to put here the object_id of the target of the spot
       light_direction: when this parameter is filled, the light becomes a spotlight, you put here the direction vector of the spotlight. It can only be changed in the code editor. in the format x: xxx, y: yyy, z: zzz. See coordinate explanation above
 ```
-
-light_name is the name of the light object that will be created in the model to do the actual illumination.
 
 Light behaviour is obvious: the **light_name** will illuminate when the bound entity in Home Assistant will be turned on and viceversa. If the light has color and brightness attributes they will be used to render the light.
 A double click on the light object will toggle the light (so far the events in iOS and Android are not yet managed as the events are captured by the OrbitContol of Three.js library and I have not yet fully understood the behaviour)
