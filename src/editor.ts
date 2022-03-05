@@ -458,7 +458,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           </div>
           <div class="values" style="flex-grow: 1;">
             ${this._entity_ids.length < 100
-              ? html`<paper-dropdown-menu
+              ? html`<ha-paper-dropdown-menu
                   label="Entity (Required)"
                   @value-changed=${this._valueChanged}
                   .configAttribute=${'entity'}
@@ -470,7 +470,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       return html` <paper-item>${entity}</paper-item> `;
                     })}
                   </paper-listbox>
-                </paper-dropdown-menu>`
+                </ha-paper-dropdown-menu>`
               : html`
                   <paper-input
                     label="Entity"
@@ -713,7 +713,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .configAttribute=${'overlay_fgcolor'}
                   @value-changed=${this._valueChanged}
                 ></paper-input>
-                <paper-dropdown-menu
+                <ha-paper-dropdown-menu
                   label="Overlay Alignment"
                   @selected-item-changed=${this._valueChanged}
                   .configObject=${config}
@@ -730,7 +730,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     <paper-item item-name="bottom-left">bottom-left</paper-item>
                     <paper-item item-name="bottom-right">bottom-right</paper-item>
                   </paper-listbox>
-                </paper-dropdown-menu>
+                </ha-paper-dropdown-menu>
                 <paper-input
                   editable
                   label="Overlay Width %"
@@ -1059,7 +1059,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .configObject=${config}
                     @value-changed=${this._valueChanged}
                   ></paper-input>
-                  <paper-dropdown-menu
+                  <ha-paper-dropdown-menu
                     label="Action"
                     @selected-item-changed=${this._valueChanged}
                     .optionTgt=${this._options.entities.options.entities[index].options}
@@ -1076,8 +1076,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="overlay">overlay</paper-item>
                       <paper-item item-name="default">default</paper-item>
                   </paper-listbox>
-                  </paper-dropdown-menu>
-                  <paper-dropdown-menu
+                  </ha-paper-dropdown-menu>
+                  <ha-paper-dropdown-menu
                     label="3D Type"
                     @selected-item-changed=${this._typeChanged}
                     .optionTgt=${this._options.entities.options.entities[index].options}
@@ -1102,7 +1102,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <paper-item item-name="gesture">gesture</paper-item>
                       <paper-item item-name="camera">camera</paper-item>
                     </paper-listbox>
-                  </paper-dropdown-menu>
+                  </ha-paper-dropdown-menu>
                   ${!this._objects
                     ? html`
                         <paper-input
@@ -1115,7 +1115,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                         ></paper-input>
                       `
                     : html`
-                        <paper-dropdown-menu
+                        <ha-paper-dropdown-menu
                           label="Object id"
                           @selected-item-changed=${this._valueChanged}
                           .configAttribute=${'object_id'}
@@ -1130,7 +1130,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               return html` <paper-item value="${"<"+object_group.object_group+">"}">${"<"+object_group.object_group+">"}</paper-item> `;
                             })}
                           </paper-listbox>
-                        </paper-dropdown-menu>
+                        </ha-paper-dropdown-menu>
                       `}
                 </div>
               </div>
@@ -1588,7 +1588,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 class="value-number"
                                 type="number"
                                 label="Lumens (0-2000)"
-                                .value=${config.light.lumens ? config.light.lumens : ''}
+                                .value=${config.light.lumens ? config.light.lumens : null}
                                 .configObject=${config.light}
                                 .configAttribute=${'lumens'}
                                 @value-changed=${this._valueChanged}
@@ -1605,18 +1605,20 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 class="value-number"
                                 type="number"
                                 label="Decay (0-inifinity)"
-                                .value=${config.light.decay ? config.light.decay : ''}
+                                .value=${config.light.decay ? config.light.decay : null}
                                 .configObject=${config.light}
                                 .configAttribute=${'decay'}
+                                .ignoreNull=${true}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input
                                 class="value-number"
                                 type="number"
                                 label="Distance (cm: 0=inifinity)"
-                                .value=${config.light.distance ? config.light.distance : ''}
+                                .value=${config.light.distance ? config.light.distance : null}
                                 .configObject=${config.light}
                                 .configAttribute=${'distance'}
+                                .ignoreNull=${true}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
                               <paper-input
@@ -1624,7 +1626,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 label="Shadow"
                                 .value=${config.light.shadow
                                   ? config.light.shadow
-                                  : ""}
+                                  : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${"shadow"}
                                 @value-changed=${this._valueChanged}
@@ -1654,7 +1656,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'angle'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
-                              <paper-dropdown-menu
+                              <ha-paper-dropdown-menu
                                 label="Light Vertical Alignment"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.light}
@@ -1670,7 +1672,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="middle">middle</paper-item>
                                   <paper-item item-name="top">top</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
+                              </ha-paper-dropdown-menu>
                             `
                           : ''}
                       </div>
@@ -1750,7 +1752,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'label'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
-                              <paper-dropdown-menu
+                              <ha-paper-dropdown-menu
                                 label="Label text (state or template)"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.room}
@@ -1765,7 +1767,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="state">state</paper-item>
                                   <paper-item item-name="template">template</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
+                              </ha-paper-dropdown-menu>
                               <paper-input
                                 class="value-number"
                                 type="number"
@@ -1954,7 +1956,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <div>
                         ${index !== null
                           ? html`
-                              <paper-dropdown-menu
+                              <ha-paper-dropdown-menu
                                 label="Door Type"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.door}
@@ -1969,8 +1971,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="swing">swing</paper-item>
                                   <paper-item item-name="slide">slide</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
-                              <paper-dropdown-menu
+                              </ha-paper-dropdown-menu>
+                              <ha-paper-dropdown-menu
                                 label="Side"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.door}
@@ -1987,8 +1989,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="left">left</paper-item>
                                   <paper-item item-name="right">right</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
-                              <paper-dropdown-menu
+                              </ha-paper-dropdown-menu>
+                              <ha-paper-dropdown-menu
                                 label="Direction"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.door}
@@ -2003,7 +2005,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="inner">inner</paper-item>
                                   <paper-item item-name="outer">outer</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
+                              </ha-paper-dropdown-menu>
                               <paper-input
                                 editable
                                 label="Degrees (for Swing)"
@@ -2089,7 +2091,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'pane'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
-                              <paper-dropdown-menu
+                              <ha-paper-dropdown-menu
                                 label="Side"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.cover}
@@ -2104,7 +2106,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="up">up</paper-item>
                                   <paper-item item-name="down">down</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
+                              </ha-paper-dropdown-menu>
                             `
                           : ''}
                       </div>
@@ -2211,7 +2213,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       <div>
                         ${index !== null
           ? html`
-                           <paper-dropdown-menu
+                           <ha-paper-dropdown-menu
                                 label="Axis"
                                 @selected-item-changed=${this._valueChanged}
                                 .configObject=${config.rotate}
@@ -2227,7 +2229,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                   <paper-item item-name="y">y</paper-item>
                                   <paper-item item-name="z">z</paper-item>
                                 </paper-listbox>
-                              </paper-dropdown-menu>
+                              </ha-paper-dropdown-menu>
                               <paper-input
                                 editable
                                 label="Hinge-pivot object "

@@ -58,7 +58,7 @@ export interface Floor3dCardConfig {
   room: any;
   elevation: number;
   transparency: number;
-  show_axes: string; s
+  show_axes: string;
   label: string;
   label_text: string;
   side: string;

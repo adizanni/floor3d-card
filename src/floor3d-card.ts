@@ -946,7 +946,7 @@ export class Floor3dCard extends LitElement {
   private _initAmbient(): void {
 
 
-    let intensity;
+    let intensity = 0.2;
 
     if (this._hass.states[this._config.globalLightPower]) {
       if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
@@ -1003,8 +1003,7 @@ export class Floor3dCard extends LitElement {
     //this._renderer.physicallyCorrectLights = true;
     this._renderer.outputEncoding = THREE.sRGBEncoding;
     this._renderer.toneMapping = THREE.LinearToneMapping;
-    this._renderer.toneMappingExposure = 0.5;
-    this._renderer.setClearColor(0x000000, 0.0);
+    this._renderer.toneMappingExposure = 0.6;
     this._renderer.localClippingEnabled = true;
     this._renderer.physicallyCorrectLights = false;
 
@@ -1801,16 +1800,31 @@ export class Floor3dCard extends LitElement {
                   }
                 }
 
+                let decay: number;
+                let distance: number;
+
+                if (entity.light.decay) {
+                  decay = Number(entity.light.decay);
+                } else {
+                  decay = 2;
+                }
+
+                if (entity.light.distance) {
+                  distance = Number(entity.light.distance);
+                } else {
+                  distance = 600;
+                }
+
                 if (entity.light.light_target || entity.light.light_direction) {
                   const angle = entity.light.angle ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10;
 
                   const slight: THREE.SpotLight = new THREE.SpotLight(
                     new THREE.Color('#ffffff'),
                     0,
-                    600,
+                    distance,
                     angle,
                     0.5,
-                    2,
+                    decay,
                   );
                   //this._bboxmodel.add(slight);
                   this._levels[_foundobject.userData.level].add(slight);
@@ -1847,7 +1861,7 @@ export class Floor3dCard extends LitElement {
 
                   light = slight;
                 } else {
-                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, 600, 2);
+                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, distance, decay);
                   this._levels[_foundobject.userData.level].add(plight);
                   plight.position.set(x, y, z);
                   light = plight;
@@ -2216,21 +2230,6 @@ export class Floor3dCard extends LitElement {
   private _updatelight(item: Floor3dCardConfig, i: number): void {
     // Illuminate the light object when, for the bound device, one of its attribute gets modified in HA. See set hass property
 
-    let decay;
-    let distance;
-
-    if (item.light.decay) {
-      decay = item.light.decay;
-    } else {
-      decay = 2;
-    }
-
-    if (item.light.distance) {
-      distance = item.light.distance;
-    } else {
-      distance = 600;
-    }
-
     this._object_ids[i].objects.forEach((element) => {
       const light: any = this._scene.getObjectByName(element.object_id + '_light');
 
@@ -2244,9 +2243,6 @@ export class Floor3dCard extends LitElement {
       } else {
         max = 800;
       }
-
-      light.decay = decay;
-      light.distance = distance;
 
       if (this._states[i] == 'on') {
         if (this._brightness[i] != -1) {
