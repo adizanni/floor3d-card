@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { LitElement, html, TemplateResult, css, PropertyValues, CSSResultGroup } from 'lit';
-import { render } from 'lit';
+import { LitElement, html, TemplateResult, css, PropertyValues, CSSResultGroup, render } from 'lit';
 import { property, customElement, state } from 'lit/decorators';
 import {
   HomeAssistant,
-  hasConfigOrEntityChanged,
-  hasAction,
   ActionHandlerEvent,
   handleAction,
   LovelaceCardEditor,
@@ -13,8 +10,8 @@ import {
   fireEvent,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 import './editor';
-import { mergeDeep, hasConfigOrEntitiesChanged, createConfigArray, createObjectGroupConfigArray } from './helpers';
-import type { Floor3dCardConfig, EntityFloor3dCardConfig } from './types';
+import { createConfigArray, createObjectGroupConfigArray } from './helpers';
+import type { Floor3dCardConfig } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 //import three.js libraries for 3D rendering

@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { LitElement, CSSResultGroup, css } from 'lit';
-import { property, customElement, state, query } from 'lit/decorators';
+import { property, customElement, state } from 'lit/decorators';
 import { TemplateResult, html } from 'lit';
-import { HomeAssistant, fireEvent, LovelaceCardEditor, ActionConfig } from 'custom-card-helpers';
+import { HomeAssistant, fireEvent, LovelaceCardEditor } from 'custom-card-helpers';
 import {
   createEditorConfigArray,
   arrayMove,
-  hasConfigOrEntitiesChanged,
   createEditorObjectGroupConfigArray,
 } from './helpers';
 import { Floor3dCardConfig } from './types';
 import { Floor3dCard } from './floor3d-card';
-//import '@vaadin/vaadin-combo-box/theme/material/vaadin-combo-box-light';
+import { loadHaForm } from './load-ha-form';
 
 @customElement('floor3d-card-editor')
 export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor {
@@ -28,6 +27,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _objects: any;
   private _entity_ids: string[];
   private _visible: any[];
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async firstUpdated() {
+    await loadHaForm();
+  }
+
 
   public setConfig(config: Floor3dCardConfig): void {
     this._config = { ...config };
@@ -1552,6 +1557,11 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _createLightElement(index): TemplateResult {
+    const yesno =  [
+      {'label': 'yes', 'value': 'yes'},
+      {'label': 'no', 'value': 'no'},
+    ];
+
     const options = this._options.entities.options.entities[index].options.light;
     const config = this._configArray[index];
     const visible: boolean = config.type3d ? config.type3d === 'light' : false;
