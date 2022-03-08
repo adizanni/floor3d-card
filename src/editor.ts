@@ -10,7 +10,6 @@ import {
 } from './helpers';
 import { Floor3dCardConfig } from './types';
 import { Floor3dCard } from './floor3d-card';
-import { loadHaForm } from './load-ha-form';
 
 @customElement('floor3d-card-editor')
 export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor {
@@ -29,10 +28,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   private _visible: any[];
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  async firstUpdated() {
-    await loadHaForm();
-  }
-
 
   public setConfig(config: Floor3dCardConfig): void {
     this._config = { ...config };
@@ -357,15 +352,15 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               .index=${index}
             ></ha-icon>
           </div>
-          <div class="value" style="flex-grow: 1;">
-            <paper-input
+          <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+            <mwc-textfield
               label="Object Group"
-              @value-changed=${this._valueChanged}
+              @input=${this._valueChanged}
               .configAttribute=${'object_group'}
               .configObject=${this._configObjectArray[index]}
               .value=${config.object_group}
             >
-            </paper-input>
+            </mwc-textfield>
           </div>
           ${index !== 0
             ? html`
@@ -463,28 +458,31 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           </div>
           <div class="values" style="flex-grow: 1;">
             ${this._entity_ids.length < 100
-              ? html`<ha-paper-dropdown-menu
-                  label="Entity (Required)"
-                  @value-changed=${this._valueChanged}
-                  .configAttribute=${'entity'}
-                  .configObject=${this._configArray[index]}
-                  .ignoreNull=${true}
-                >
-                  <paper-listbox slot="dropdown-content" .selected=${this._entity_ids.indexOf(config.entity)}>
-                    ${this._entity_ids.map((entity) => {
-                      return html` <paper-item>${entity}</paper-item> `;
+            ? html` <mwc-select
+                      label="Entity (Required)"
+                      .value=${config.entity}
+                      @selected=${this._valueChanged}
+                      .configAttribute=${'entity'}
+                      .configObject=${this._configArray[index]}
+                      .ignoreNull=${false}
+                      @closed=${(ev) => ev.stopPropagation()}
+                      fixedMenuPosition
+                      naturalMenuWidth
+                      id="entity">
+                      <mwc-list-item></mwc-list-item>
+                      ${this._entity_ids.map((entity) => {
+                      return html` <mwc-list-item .value=${entity}>${entity}</mwc-list-item> `;
                     })}
-                  </paper-listbox>
-                </ha-paper-dropdown-menu>`
+                  </mwc-select>`
               : html`
-                  <paper-input
+                  <mwc-textfield
                     label="Entity"
-                    @value-changed=${this._valueChanged}
+                    @input=${this._valueChanged}
                     .configAttribute=${'entity'}
                     .configObject=${this._configArray[index]}
                     .value=${config.entity}
                   >
-                  </paper-input>
+                  </mwc-textfield>
                 `}
           </div>
           ${index !== 0
@@ -632,49 +630,46 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.show
           ? html`
-              <div class="value-container">
-                <ha-file-upload>
-                </ha-file-upload>
-                <paper-input
-                  editable
+              <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                <mwc-textfield
                   label="Name"
-                  .value="${config.name ? config.name : ''}"
+                  fullwidth
+                  .value=${config.name ? config.name : ''}
                   .configObject=${config}
                   .configAttribute=${'name'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}>
+                </mwc-textfield>
+                <mwc-textfield
                   label="Path"
-                  .value="${config.path ? config.path : ''}"
+                  fullwidth
+                  .value=${config.path ? config.path : ''}
                   .configObject=${config}
                   .configAttribute=${'path'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-textfield
                   label="Obj/Glb file"
-                  .value="${config.objfile ? config.objfile : ''}"
+                  fullwidth
+                  .value=${config.objfile ? config.objfile : ''}
                   .configObject=${config}
                   .configAttribute=${'objfile'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-textfield
                   label="Mtl Wavefront file"
-                  .value="${config.mtlfile ? config.mtlfile : ''}"
+                  fullwidth
+                  .value=${config.mtlfile ? config.mtlfile : ''}
                   .configObject=${config}
                   .configAttribute=${'mtlfile'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-textfield
                   label="Object list JSON"
-                  .value="${config.objectlist ? config.objectlist : ''}"
+                  .value=${config.objectlist ? config.objectlist : ''}
                   .configObject=${config}
                   .configAttribute=${'objectlist'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
               </div>
             `
           : ''}
@@ -700,74 +695,83 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
-              <div class="value-container">
-                <paper-input
-                  editable
+      ? html`
+         <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                <mwc-textfield
                   label="Overlay Background color"
-                  .value="${config.overlay_bgcolor ? config.overlay_bgcolor : ''}"
+                  fullwidth
+                  size=20
+                  .value=${config.overlay_bgcolor ? config.overlay_bgcolor : ''}
                   .configObject=${config}
                   .configAttribute=${'overlay_bgcolor'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-textfield
                   label="Overlay Foreground color"
-                  .value="${config.overlay_fgcolor ? config.overlay_fgcolor : ''}"
+                  fullwidth
+                  size=20
+                  .value=${config.overlay_fgcolor ? config.overlay_fgcolor : ''}
                   .configObject=${config}
                   .configAttribute=${'overlay_fgcolor'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <ha-paper-dropdown-menu
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-select
                   label="Overlay Alignment"
-                  @selected-item-changed=${this._valueChanged}
+                  size=40
+                  @selected=${this._valueChanged}
+                  .value=${config.overlay_alignment ? config.overlay_alignment : ''}
                   .configObject=${config}
                   .configAttribute=${'overlay_alignment'}
-                  .ignoreNull=${true}
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
                 >
-                  <paper-listbox
-                    slot="dropdown-content"
-                    attr-for-selected="item-name"
-                    selected="${config.overlay_alignment ? config.overlay_alignment: null}"
-                  >
-                    <paper-item item-name="top-left">top-left</paper-item>
-                    <paper-item item-name="top-right">top-right</paper-item>
-                    <paper-item item-name="bottom-left">bottom-left</paper-item>
-                    <paper-item item-name="bottom-right">bottom-right</paper-item>
-                  </paper-listbox>
-                </ha-paper-dropdown-menu>
-                <paper-input
-                  editable
-                  label="Overlay Width %"
-                  .value="${config.overlay_width ? config.overlay_width : ''}"
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="top-left">top-left</mwc-list-item>
+                    <mwc-list-item value="top-right">top-right</mwc-list-item>
+                    <mwc-list-item value="bottom-left">bottom-left</mwc-list-item>
+                    <mwc-list-item value="bottom-right">bottom-right</mwc-list-item>
+                </mwc-select>
+                <mwc-formfield alignEnd label="Overlay Width %" >
+                <mwc-textfield
+                  type="number"
+                  min=0
+                  max=100
+                  fullwidth
+                  .ignoreNull=${false}
+                  .value=${config.overlay_width ? config.overlay_width : null}
                   .configObject=${config}
                   .configAttribute=${'overlay_width'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Overlay Height %"
-                  .value="${config.overlay_height ? config.overlay_height : ''}"
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                </mwc-formfield>
+                <mwc-formfield alignEnd label="Overlay Height %" >
+                <mwc-textfield
+                  type="number"
+                  min=0
+                  max=100
+                  fullwidth
+                  .ignoreNull=${false}
+                  .value=${config.overlay_height ? config.overlay_height : null}
                   .configObject=${config}
                   .configAttribute=${'overlay_height'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                </mwc-formfield>
+                <mwc-textfield
                   label="Overlay Font"
+                  size=40
                   .value="${config.overlay_font ? config.overlay_font : ''}"
                   .configObject=${config}
                   .configAttribute=${'overlay_font'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-textfield
                   label="Overlay Font size"
                   .value="${config.overlay_fontsize ? config.overlay_fontsize : ''}"
                   .configObject=${config}
                   .configAttribute=${'overlay_fontsize'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
               </div>
             `
           : ''}
@@ -794,99 +798,143 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.show
         ? html`
-              <div class="value-container">
-                <paper-input
-                  editable
+             <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                <mwc-textfield
                   label="Style"
-                  .value="${config.style ? config.style : ''}"
+                  .value=${config.style ? config.style : ''}
                   .configObject=${config}
                   .configAttribute=${'style'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Lock Camera"
-                  .value="${config.lock_camera ? config.lock_camera : ''}"
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-select
+                  label="Lock Camera (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.lock_camera ? config.lock_camera : null}
                   .configObject=${config}
                   .configAttribute=${'lock_camera'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Header"
-                  .value="${config.header ? config.header : ''}"
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="Header (<yes>/no)"
+                  @selected=${this._valueChanged}
+                  .value=${config.header ? config.header : null}
                   .configObject=${config}
                   .configAttribute=${'header'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Click (no dblclick)"
-                  .value="${config.click ? config.click : ''}"
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="Click (no dblclick, yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.click ? config.click : null}
                   .configObject=${config}
                   .configAttribute=${'click'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Overlay"
-                  .value="${config.overlay ? config.overlay : ''}"
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="Overlay (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.overlay ? config.overlay : null}
                   .configObject=${config}
                   .configAttribute=${'overlay'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-textfield
                   label="Background Color"
-                  .value="${config.backgroundColor ? config.backgroundColor : ''}"
+                  fullwidth
+                  .value=${config.backgroundColor ? config.backgroundColor : ''}
                   .configObject=${config}
                   .configAttribute=${'backgroundColor'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Global Scene Light"
-                  .value=${config.globalLightPower ? config.globalLightPower : ''}
-                  .configObject=${config}
-                  .configAttribute=${'globalLightPower'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Shadow"
-                  .value=${config.shadow ? config.shadow : ''}
+                  @input=${this._valueChanged}
+                ></mwc-textfield>
+                <mwc-formfield alignEnd label="Global Scene Light (0..1)" >
+                  <mwc-textfield
+                    type="number"
+                    min=0.00
+                    max=1.00
+                    step=0.01
+                    .value=${config.globalLightPower ? config.globalLightPower : null}
+                    .configObject=${config}
+                    .configAttribute=${'globalLightPower'}
+                    .ignoreNull=${false}
+                    @input=${this._valueChanged}
+                  ></mwc-textfield>
+                </mwc-formfield>
+                <mwc-select
+                  label="Shadow (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.shadow ? config.shadow : null}
                   .configObject=${config}
                   .configAttribute=${'shadow'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Extra Light Mode (impact performaces)"
-                  .value=${config.extralightmode ? config.extralightmode : ''}
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="+ Lights - Perf (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.extralightmode ? config.extralightmode : null}
                   .configObject=${config}
                   .configAttribute=${'extralightmode'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Show Axes"
-                  .value=${config.show_axes ? config.show_axes : ''}
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="Show Axes (yes/<no>"
+                  @selected=${this._valueChanged}
+                  .value=${config.show_axes ? config.show_axes : null}
                   .configObject=${config}
                   .configAttribute=${'show_axes'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
-                <paper-input
-                  editable
-                  label="Sky"
-                  .value=${config.sky ? config.sky : ''}
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
+                <mwc-select
+                  label="Sky (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${config.sky ? config.sky : null}
                   .configObject=${config}
                   .configAttribute=${'sky'}
-                  @value-changed=${this._valueChanged}
-                ></paper-input>
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </mwc-select>
                 <paper-input
                   editable
                   label="North Direction {x: xxxx,z: zzzzzz }"
-                  .value=${config.north ? config.north : ''}
+                  .value=${config.north ? config.north : null}
                   .configObject=${config}
                   .configAttribute=${'north'}
                   @value-changed=${this._valueChanged}
@@ -894,7 +942,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <paper-input
                   editable
                   label="Camera Position"
-                  .value=${config.camera_position ? config.camera_position : ''}
+                  .value=${config.camera_position ? config.camera_position : null}
                   .configObject=${config}
                   .configAttribute=${'camera_position'}
                   @value-changed=${this._valueChanged}
@@ -902,7 +950,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <paper-input
                   editable
                   label="Camera Rotation"
-                  .value=${config.camera_rotate ? config.camera_rotate : ''}
+                  .value=${config.camera_rotate ? config.camera_rotate : null}
                   .configObject=${config}
                   .configAttribute=${'camera_rotate'}
                   @value-changed=${this._valueChanged}
@@ -910,7 +958,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <paper-input
                   editable
                   label="Camera Target"
-                  .value=${config.camera_target ? config.camera_target : ''}
+                  .value=${config.camera_target ? config.camera_target : null}
                   .configObject=${config}
                   .configAttribute=${'camera_target'}
                   @value-changed=${this._valueChanged}
@@ -1054,90 +1102,81 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
         ${options.show
           ? html`
-              <div class="value">
-                <div>
-                  <paper-input
+              <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                  <mwc-textfield
                     label="Entity template"
-                    .value="${config.entity_template ? config.entity_template : ''}"
-                    editable
+                    fullwidth
+                    .value=${config.entity_template ? config.entity_template : ''}
                     .configAttribute=${'entity_template'}
                     .configObject=${config}
-                    @value-changed=${this._valueChanged}
-                  ></paper-input>
-                  <ha-paper-dropdown-menu
+                    @input=${this._valueChanged}
+                  ></mwc-textfield>
+                  <mwc-select
                     label="Action"
-                    @selected-item-changed=${this._valueChanged}
+                    @selected=${this._valueChanged}
+                    .value=${config.action ? config.action : null}
                     .optionTgt=${this._options.entities.options.entities[index].options}
                     .configObject=${config}
                     .configAttribute=${'action'}
-                    .ignoreNull=${true}
+                    .ignoreNull=${false}
+                    @closed=${(ev) => ev.stopPropagation()}
                   >
-                    <paper-listbox
-                      slot="dropdown-content"
-                      attr-for-selected="item-name"
-                      selected="${config.action ? config.action : null}"
-                    >
-                      <paper-item item-name="more-info">more-info</paper-item>
-                      <paper-item item-name="overlay">overlay</paper-item>
-                      <paper-item item-name="default">default</paper-item>
-                  </paper-listbox>
-                  </ha-paper-dropdown-menu>
-                  <ha-paper-dropdown-menu
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="more-info">more-info</mwc-list-item>
+                    <mwc-list-item value="overlay">overlay</mwc-list-item>
+                    <mwc-list-item value="default">default</mwc-list-item>
+                </mwc-select>
+                <mwc-select
                     label="3D Type"
-                    @selected-item-changed=${this._typeChanged}
+                    @selected=${this._typeChanged}
+                    .value=${config.type3d ? config.type3d : null}
                     .optionTgt=${this._options.entities.options.entities[index].options}
                     .configObject=${config}
                     .configAttribute=${'type3d'}
-                    .ignoreNull=${true}
+                    .ignoreNull=${false}
+                    @closed=${(ev) => ev.stopPropagation()}
                   >
-                    <paper-listbox
-                      slot="dropdown-content"
-                      attr-for-selected="item-name"
-                      selected="${config.type3d ? config.type3d : null}"
-                    >
-                      <paper-item item-name="light">light</paper-item>
-                      <paper-item item-name="color">color</paper-item>
-                      <paper-item item-name="room">room</paper-item>
-                      <paper-item item-name="hide">hide</paper-item>
-                      <paper-item item-name="show">show</paper-item>
-                      <paper-item item-name="text">text</paper-item>
-                      <paper-item item-name="door">door</paper-item>
-                      <paper-item item-name="cover">cover</paper-item>
-                      <paper-item item-name="rotate">rotate</paper-item>
-                      <paper-item item-name="gesture">gesture</paper-item>
-                      <paper-item item-name="camera">camera</paper-item>
-                    </paper-listbox>
-                  </ha-paper-dropdown-menu>
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="light">light</mwc-list-item>
+                    <mwc-list-item value="color">color</mwc-list-item>
+                    <mwc-list-item value="room">room</mwc-list-item>
+                    <mwc-list-item value="hide">hide</mwc-list-item>
+                    <mwc-list-item value="show">show</mwc-list-item>
+                    <mwc-list-item value="text">text</mwc-list-item>
+                    <mwc-list-item value="door">door</mwc-list-item>
+                    <mwc-list-item value="cover">cover</mwc-list-item>
+                    <mwc-list-item value="rotate">rotate</mwc-list-item>
+                    <mwc-list-item value="gesture">gesture</mwc-list-item>
+                    <mwc-list-item value="camera">camera</mwc-list-item>
+                </mwc-select>
                   ${!this._objects
                     ? html`
-                        <paper-input
+                        <mwc-textfield
                           label="Object"
-                          .value="${config.object_id ? config.object_id : ''}"
-                          editable
+                          .value=${config.object_id ? config.object_id : ''}
                           .configAttribute=${'object_id'}
                           .configObject=${config}
-                          @value-changed=${this._valueChanged}
-                        ></paper-input>
+                          @input=${this._valueChanged}
+                        ></mwc-textfield>
                       `
-                    : html`
-                        <ha-paper-dropdown-menu
+                      : html`
+                        <mwc-select
                           label="Object id"
-                          @selected-item-changed=${this._valueChanged}
+                          @selected=${this._valueChanged}
+                          .value=${config.object_id}
                           .configAttribute=${'object_id'}
                           .configObject=${config}
-                          .ignoreNull=${true}
-                        >
-                          <paper-listbox slot="dropdown-content" attr-for-selected="value" .selected=${config.object_id}>
+                          .ignoreNull=${false}
+                          @closed=${(ev) => ev.stopPropagation()}
+                        >   <mwc-list-item></mwc-list-item>
                             ${this._objects.map((object_id) => {
-                              return html` <paper-item value="${object_id}">${object_id}</paper-item> `;
+                              return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
                             })}
                             ${this._configObjectArray.map((object_group) => {
-                              return html` <paper-item value="${"<"+object_group.object_group+">"}">${"<"+object_group.object_group+">"}</paper-item> `;
+                              return html` <mwc-list-item value="${"<"+object_group.object_group+">"}">${"<"+object_group.object_group+">"}</mwc-list-item> `;
                             })}
-                          </paper-listbox>
-                        </ha-paper-dropdown-menu>
+                        </mwc-select>
                       `}
-                </div>
               </div>
             `
           : ''}
@@ -1247,15 +1286,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
           <div class="value">
             <div style="display:flex;">
-              <paper-input
+              <mwc-textfield
                 label="Object Id"
                 .value="${object_id.object_id ? object_id.object_id : ''}"
-                editable
                 .objectAttribute=${'object_id'}
                 .index=${index}
                 .objectIndex=${objectIndex}
-                @value-changed=${this._updateObject}
-              ></paper-input>
+                @input=${this._updateObject}
+              ></mwc-textfield>
             </div>
           </div>
           <div style="display: flex;">
@@ -1307,24 +1345,22 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
           <div class="value">
             <div style="display:flex;">
-              <paper-input
+              <mwc-textfield
                 label="Color"
                 .value="${colorcondition.color ? colorcondition.color : ''}"
-                editable
                 .colorconditionAttribute=${'color'}
                 .index=${index}
                 .colorconditionIndex=${colorconditionIndex}
-                @value-changed=${this._updateColorCondition}
-              ></paper-input>
-              <paper-input
+                @input=${this._updateColorCondition}
+              ></mwc-textfield>
+              <mwc-textfield
                 label="State"
                 .value="${colorcondition.state ? colorcondition.state : ''}"
-                editable
                 .colorconditionAttribute=${'state'}
                 .index=${index}
                 .colorconditionIndex=${colorconditionIndex}
-                @value-changed=${this._updateColorCondition}
-              ></paper-input>
+                @input=${this._updateColorCondition}
+              ></mwc-textfield>
             </div>
           </div>
           <div style="display: flex;">
@@ -1557,10 +1593,6 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _createLightElement(index): TemplateResult {
-    const yesno =  [
-      {'label': 'yes', 'value': 'yes'},
-      {'label': 'no', 'value': 'no'},
-    ];
 
     const options = this._options.entities.options.entities[index].options.light;
     const config = this._configArray[index];
@@ -1590,57 +1622,64 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Lumens (0-2000)"
-                                .value=${config.light.lumens ? config.light.lumens : null}
-                                .configObject=${config.light}
-                                .configAttribute=${'lumens'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                            <mwc-formfield alignEnd  label="Lumens (0-5000) <800>" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  max=5000
+                                  step=50
+                                  .value=${config.light.lumens ? config.light.lumens : null}
+                                  .configObject=${config.light}
+                                  .configAttribute=${'lumens'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-textfield
                                 label="Color"
                                 .value=${config.light.color ? config.light.color : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'color'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Decay (0-inifinity)"
-                                .value=${config.light.decay ? config.light.decay : null}
-                                .configObject=${config.light}
-                                .configAttribute=${'decay'}
-                                .ignoreNull=${true}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Distance (cm: 0=inifinity)"
-                                .value=${config.light.distance ? config.light.distance : null}
-                                .configObject=${config.light}
-                                .configAttribute=${'distance'}
-                                .ignoreNull=${true}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Shadow"
-                                .value=${config.light.shadow
-                                  ? config.light.shadow
-                                  : ''}
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-formfield alignEnd label="Decay (0-inifinity, <2>)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.light.decay ? config.light.decay : null}
+                                  .configObject=${config.light}
+                                  .configAttribute=${'decay'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-formfield alignEnd label="Distance (cm: 0=inifinity, <600>)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.light.distance ? config.light.distance : null}
+                                  .configObject=${config.light}
+                                  .configAttribute=${'distance'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-select
+                                label="Shadow (yes/<no>)"
+                                @selected=${this._valueChanged}
+                                .value=${config.light.shadow ? config.light.shadow : null}
                                 .configObject=${config.light}
                                 .configAttribute=${"shadow"}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
+                              >
+                                  <mwc-list-item></mwc-list-item>
+                                  <mwc-list-item value="yes">yes</mwc-list-item>
+                                  <mwc-list-item value="no">no</mwc-list-item>
+                              </mwc-select>
                               <paper-input
                                 editable
                                 label="Light Direction (spot)"
@@ -1649,44 +1688,42 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                                 .configAttribute=${'light_direction'}
                                 @value-changed=${this._valueChanged}
                               ></paper-input>
-                              <paper-input
-                                editable
+                              <mwc-textfield
                                 label="Light Target Object (spot)"
                                 .value=${config.light.light_target ? config.light.light_target : ''}
                                 .configObject=${config.light}
                                 .configAttribute=${'light_target'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Angle degrees (spot)"
-                                .value=${config.light.angle ? config.light.angle : ''}
-                                .configObject=${config.light}
-                                .configAttribute=${'angle'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <ha-paper-dropdown-menu
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-formfield alignEnd label="Angle degrees (spot)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  max=180
+                                  .value=${config.light.angle ? config.light.angle : null}
+                                  .configObject=${config.light}
+                                  .configAttribute=${'angle'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-select
                                 label="Light Vertical Alignment"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.light.vertical_alignment ? config.light.vertical_alignment : null}
                                 .configObject=${config.light}
                                 .configAttribute=${'vertical_alignment'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.light.vertical_alignment ? config.light.vertical_alignment : null}"
-                                >
-                                  <paper-item item-name="bottom">bottom</paper-item>
-                                  <paper-item item-name="middle">middle</paper-item>
-                                  <paper-item item-name="top">top</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
+                                  <mwc-list-item></mwc-list-item>
+                                  <mwc-list-item value="bottom">bottom</mwc-list-item>
+                                  <mwc-list-item value="middle">middle</mwc-list-item>
+                                  <mwc-list-item value="top">top</mwc-list-item>
+                              </mwc-select>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -1724,128 +1761,142 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Transparency"
-                                .value=${config.room.transparency ? config.room.transparency : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'transparency'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                             <mwc-formfield alignEnd label="Transparency %" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  max=100
+                                  .value=${config.room.transparency ? config.room.transparency : null}
+                                  .configObject=${config.room}
+                                  .configAttribute=${'transparency'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-textfield
                                 label="Color"
                                 .value=${config.room.color ? config.room.color : ''}
                                 .configObject=${config.room}
                                 .configAttribute=${'color'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Elevation (cm)"
-                                .value=${config.room.elevation ? config.room.elevation : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'elevation'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-formfield alignEnd label="Elevation (cm)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.room.elevation ? config.room.elevation : ''}
+                                  .configObject=${config.room}
+                                  .configAttribute=${'elevation'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-textfield
                                 label="Label"
+                                fullwidth
                                 .value=${config.room.label ? config.room.label : ''}
                                 .configObject=${config.room}
                                 .configAttribute=${'label'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <ha-paper-dropdown-menu
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-select
                                 label="Label text (state or template)"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.room.label_text ? config.room.label_text : null}
                                 .configObject=${config.room}
                                 .configAttribute=${'label_text'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.room.label_text ? config.room.label_text : null}"
-                                >
-                                  <paper-item item-name="state">state</paper-item>
-                                  <paper-item item-name="template">template</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Label Width (scaled cm)"
-                                .value=${config.room.width ? config.room.width : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'width'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                class="value-number"
-                                type="number"
-                                label="Label Height (scaled cm)"
-                                .value=${config.room.height ? config.room.height : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'height'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Attribute"
-                                .value=${config.room.attribute ? config.room.attribute : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'attribute'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="font"
-                                .value=${config.room.font ? config.room.font : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'font'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Span percentage"
-                                .value=${config.room.span ? config.room.span : ''}
-                                .configObject=${config.room}
-                                .configAttribute=${'span'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Text Background Color"
-                                .value="${config.room.textbgcolor ? config.room.textbgcolor : ''}"
-                                .configObject=${config.room}
-                                .configAttribute=${'textbgcolor'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Text Foreground Color"
-                                .value="${config.room.textfgcolor ? config.room.textfgcolor : ''}"
-                                .configObject=${config.room}
-                                .configAttribute=${'textfgcolor'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                            `
+                                  <mwc-list-item></mwc-list-item>
+                                  <mwc-list-item value="state">state</mwc-list-item>
+                                  <mwc-list-item value="template">template</mwc-list-item>
+                              </mwc-select>
+                              <mwc-formfield alignEnd  label="Label Width (scaled cm)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.room.width ? config.room.width : null}
+                                  .configObject=${config.room}
+                                  .configAttribute=${'width'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-formfield alignEnd  label="Label Height (scaled cm)" >
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.room.height ? config.room.height : null}
+                                  .configObject=${config.room}
+                                  .configAttribute=${'height'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              ${this._createTextSubElement(config.room)}`
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
           `
         : ''}
     `;
+  }
+
+
+  private _createTextSubElement(subconfig: Floor3dCardConfig): TemplateResult {
+
+    return html`
+                              <mwc-textfield
+                                label="Attribute"
+                                fullwidth
+                                .value=${subconfig.attribute ? subconfig.room.attribute : ''}
+                                .configObject=${subconfig}
+                                .configAttribute=${'attribute'}
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-textfield
+                                label="font"
+                                fullwidth
+                                .value=${subconfig.font ? subconfig.font : ''}
+                                .configObject=${subconfig}
+                                .configAttribute=${'font'}
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-formfield alignEnd  label="Span percentage" >
+                                <mwc-textfield
+                                  label="Span percentage"
+                                  type="number"
+                                  min=0
+                                  max=100
+                                  .value=${subconfig.span ? subconfig.span : null}
+                                  .configObject=${subconfig}
+                                  .configAttribute=${'span'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-textfield
+                                label="Text Background Color"
+                                .value=${subconfig.textbgcolor ? subconfig.textbgcolor : ''}
+                                .configObject=${subconfig}
+                                .configAttribute=${'textbgcolor'}
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-textfield
+                                label="Text Foreground Color"
+                                .value=${subconfig.textfgcolor ? subconfig.textfgcolor : ''}
+                                .configObject=${subconfig}
+                                .configAttribute=${'textfgcolor'}
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+    `
+
   }
 
   private _createTextElement(index): TemplateResult {
@@ -1877,54 +1928,13 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
-                        ${index !== null
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                      ${index !== null
                           ? html`
-                              <paper-input
-                                editable
-                                label="font"
-                                .value=${config.text.font ? config.text.font : ''}
-                                .configObject=${config.text}
-                                .configAttribute=${'font'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Attribute"
-                                .value=${config.text.attribute ? config.text.attribute : ''}
-                                .configObject=${config.text}
-                                .configAttribute=${'attribute'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Span percentage"
-                                .value=${config.text.span ? config.text.span : ''}
-                                .configObject=${config.text}
-                                .configAttribute=${'span'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Text Background Color"
-                                .value="${config.text.textbgcolor ? config.text.textbgcolor : ''}"
-                                .configObject=${config.text}
-                                .configAttribute=${'textbgcolor'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Text Foreground Color"
-                                .value="${config.text.textfgcolor ? config.text.textfgcolor : ''}"
-                                .configObject=${config.text}
-                                .configAttribute=${'textfgcolor'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                               ${this._createTextSubElement(config.text)}
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -1962,96 +1972,92 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <ha-paper-dropdown-menu
+                              <mwc-select
                                 label="Door Type"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.door.doortype ? config.door.doortype : null}
                                 .configObject=${config.door}
                                 .configAttribute=${'doortype'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.door.doortype ? config.door.doortype : null}"
-                                >
-                                  <paper-item item-name="swing">swing</paper-item>
-                                  <paper-item item-name="slide">slide</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
-                              <ha-paper-dropdown-menu
+                                  <mwc-list-item ></mwc-list-item>
+                                  <mwc-list-item value="swing">swing</mwc-list-item>
+                                  <mwc-list-item value="slide">slide</mwc-list-item>
+                              </mwc-select>
+                              <mwc-select
                                 label="Side"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.door.side ? config.door.side : null}
                                 .configObject=${config.door}
                                 .configAttribute=${'side'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.door.side ? config.door.side : null}"
-                                >
-                                  <paper-item item-name="up">up</paper-item>
-                                  <paper-item item-name="down">down</paper-item>
-                                  <paper-item item-name="left">left</paper-item>
-                                  <paper-item item-name="right">right</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
-                              <ha-paper-dropdown-menu
+                                  <mwc-list-item ></mwc-list-item>
+                                  <mwc-list-item value="up">up</mwc-list-item>
+                                  <mwc-list-item value="down">down</mwc-list-item>
+                                  <mwc-list-item value="left">left</mwc-list-item>
+                                  <mwc-list-item value="right">right</mwc-list-item>
+                              </mwc-select>
+                              <mwc-select
                                 label="Direction"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.door.direction ? config.door.direction : null}
                                 .configObject=${config.door}
                                 .configAttribute=${'direction'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.door.direction ? config.door.direction : null}"
-                                >
-                                  <paper-item item-name="inner">inner</paper-item>
-                                  <paper-item item-name="outer">outer</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
-                              <paper-input
-                                editable
-                                label="Degrees (for Swing)"
-                                .value=${config.door.degrees ? config.door.degrees : ''}
-                                .configObject=${config.door}
-                                .configAttribute=${'degrees'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Percentage open (for slide)"
-                                .value=${config.door.percentage ? config.door.percentage : ''}
-                                .configObject=${config.door}
-                                .configAttribute=${'percentage'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                                  <mwc-list-item ></mwc-list-item>
+                                  <mwc-list-item value="inner">inner</mwc-list-item>
+                                  <mwc-list-item value="outer">outer</mwc-list-item>
+                              </mwc-select>
+                              <mwc-formfield alignEnd  label="Degrees (for Swing)">
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  max=180
+                                  .value=${config.door.degrees ? config.door.degrees : null}
+                                  .configObject=${config.door}
+                                  .configAttribute=${'degrees'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-formfield alignEnd  label="Percentage open (for slide)">
+                                <mwc-textfield
+                                  type="number"
+                                  min=0
+                                  max=100
+                                  label="Percentage open (for slide)"
+                                  .value=${config.door.percentage ? config.door.percentage : null}
+                                  .configObject=${config.door}
+                                  .configAttribute=${'percentage'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></mwc-textfield>
+                              </mwc-formfield>
+                              <mwc-textfield
                                 label="Pane object"
                                 .value=${config.door.pane ? config.door.pane : ''}
                                 .configObject=${config.door}
                                 .configAttribute=${'pane'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-textfield
                                 label="Hinge object"
                                 .value=${config.door.hinge ? config.door.hinge : ''}
                                 .configObject=${config.door}
                                 .configAttribute=${'hinge'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -2089,38 +2095,32 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
-                                editable
+                              <mwc-textfield
                                 label="Pane object"
                                 .value=${config.cover.pane ? config.cover.pane : ''}
                                 .configObject=${config.cover}
                                 .configAttribute=${'pane'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <ha-paper-dropdown-menu
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-select
                                 label="Side"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.cover.side ? config.cover.side : null}
                                 .configObject=${config.cover}
                                 .configAttribute=${'side'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.cover.side ? config.cover.side : null}"
-                                >
-                                  <paper-item item-name="up">up</paper-item>
-                                  <paper-item item-name="down">down</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
+                                  <mwc-list-item ></mwc-list-item>
+                                  <mwc-list-item value="up">up</mwc-list-item>
+                                  <mwc-list-item value="down">down</mwc-list-item>
+                              </mwc-select>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -2158,30 +2158,28 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
-                                editable
+                              <mwc-textfield
                                 label="domain"
+                                fullwidth
                                 .value=${config.gesture.domain ? config.gesture.domain : ''}
                                 .configObject=${config.gesture}
                                 .configAttribute=${'domain'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-textfield
                                 label="service"
+                                fullwidth
                                 .value=${config.gesture.service ? config.gesture.service : ''}
                                 .configObject=${config.gesture}
                                 .configAttribute=${'service'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -2219,47 +2217,40 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                   <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
           ? html`
-                           <ha-paper-dropdown-menu
+                            <mwc-select
                                 label="Axis"
-                                @selected-item-changed=${this._valueChanged}
+                                @selected=${this._valueChanged}
+                                .value=${config.rotate.axis ? config.rotate.axis : null}
                                 .configObject=${config.rotate}
                                 .configAttribute=${'axis'}
-                                .ignoreNull=${true}
+                                .ignoreNull=${false}
+                                @closed=${(ev) => ev.stopPropagation()}
                               >
-                                <paper-listbox
-                                  slot="dropdown-content"
-                                  attr-for-selected="item-name"
-                                  selected="${config.rotate.axis ? config.rotate.axis : null}"
-                                >
-                                  <paper-item item-name="x">x</paper-item>
-                                  <paper-item item-name="y">y</paper-item>
-                                  <paper-item item-name="z">z</paper-item>
-                                </paper-listbox>
-                              </ha-paper-dropdown-menu>
-                              <paper-input
-                                editable
+                                  <mwc-list-item ></mwc-list-item>
+                                  <mwc-list-item value="x">x</mwc-list-item>
+                                  <mwc-list-item value="y">y</mwc-list-item>
+                                  <mwc-list-item value="z">z</mwc-list-item>
+                              </mwc-select>
+                              <mwc-textfield
                                 label="Hinge-pivot object "
                                 .value=${config.rotate.hinge ? config.rotate.hinge : ''}
                                 .configObject=${config.rotate}
                                 .configAttribute=${'hinge'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
+                              <mwc-textfield
                                 label="Round per seconds (2 or less recommended)"
                                 .value=${config.rotate.round_per_second ? config.rotate.round_per_second : ''}
                                 .configObject=${config.rotate}
                                 .configAttribute=${'round_per_second'}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -2299,21 +2290,18 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
+                              <mwc-textfield
                                 label="state"
-                                .value="${config.hide.state ? config.hide.state : ''}"
-                                editable
+                                .value=${config.hide.state ? config.hide.state : ''}
                                 .configAttribute=${'state'}
                                 .configObject=${config.hide}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
                             `
                           : ''}
-                      </div>
                     </div>
                   `
                 : ''}
@@ -2354,22 +2342,19 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               </div>
               ${options.show
                 ? html`
-                    <div class="value">
-                      <div>
+                   <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                         ${index !== null
                           ? html`
-                              <paper-input
+                              <mwc-textfield
                                 label="state"
-                                .value="${config.show.state ? config.show.state : ''}"
-                                editable
+                                .value=${config.show.state ? config.show.state : ''}
                                 .configAttribute=${'state'}
                                 .configObject=${config.show}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                                @input=${this._valueChanged}
+                              ></mwc-textfield>
                             `
                           : ''}
                       </div>
-                    </div>
                   `
                 : ''}
             </div>
@@ -2504,6 +2489,11 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         background: var(--secondary-background-color);
         display: grid;
       }
+      .cards .card-options {
+          display: flex;
+          justify-content: flex-end;
+          width: 100%;
+        }
       ha-formfield {
         padding-bottom: 8px;
       }

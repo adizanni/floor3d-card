@@ -943,7 +943,7 @@ export class Floor3dCard extends LitElement {
   private _initAmbient(): void {
 
 
-    let intensity = 0.2;
+    let intensity = 0.5;
 
     if (this._hass.states[this._config.globalLightPower]) {
       if (!Number.isNaN(this._hass.states[this._config.globalLightPower].state)) {
