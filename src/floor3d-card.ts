@@ -23,6 +23,7 @@ import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { Object3D } from 'three';
 
+
 /* eslint no-console: 0 */
 console.info(
   `%c  FLOOR3D-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
@@ -170,6 +171,7 @@ export class Floor3dCard extends LitElement {
   }
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
+    await import('./editor');
     return document.createElement('floor3d-card-editor');
   }
 
