@@ -482,8 +482,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       @closed=${(ev) => ev.stopPropagation()}
                       fixedMenuPosition
                       naturalMenuWidth
+                      required
                       id="entity">
-                      <mwc-list-item></mwc-list-item>
                       ${this._entity_ids.map((entity) => {
                       return html` <mwc-list-item .value=${entity}>${entity}</mwc-list-item> `;
                     })}
@@ -1148,6 +1148,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .configObject=${config}
                     .configAttribute=${'type3d'}
                     .ignoreNull=${false}
+                    fixedMenuPosition
+                    naturalMenuWidth
                     @closed=${(ev) => ev.stopPropagation()}
                   >
                     <mwc-list-item></mwc-list-item>
@@ -1171,6 +1173,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           .configAttribute=${'object_id'}
                           .configObject=${config}
                           @input=${this._valueChanged}
+                          required
                         ></floor3d-textfield>
                       `
                       : html`
@@ -1181,9 +1184,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                           .configAttribute=${'object_id'}
                           .configObject=${config}
                           .ignoreNull=${false}
+                          required
                           @closed=${(ev) => ev.stopPropagation()}
-                        >   <mwc-list-item></mwc-list-item>
-                            ${this._objects.map((object_id) => {
+                        >   ${this._objects.map((object_id) => {
                               return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
                             })}
                             ${this._configObjectArray.map((object_group) => {
