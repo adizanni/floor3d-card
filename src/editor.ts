@@ -65,6 +65,16 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           delete entityConfig.hide;
         }
       }
+      if (entityConfig.show) {
+        if (Object.entries(entityConfig.show).length === 0) {
+          delete entityConfig.show;
+        }
+      }
+      if (entityConfig.room) {
+        if (Object.entries(entityConfig.room).length === 0) {
+          delete entityConfig.room;
+        }
+      }
     }
     this._config.object_groups = this._configObjectArray;
     this._config.entities = this._configArray;
@@ -370,9 +380,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             <floor3d-textfield
               label="Object Group"
               @input=${this._valueChanged}
+
               .configAttribute=${'object_group'}
               .configObject=${this._configObjectArray[index]}
-              .value=${config.object_group}
+              .value=${config.object_group ? config.object_group : ''}
             >
             </floor3d-textfield>
           </div>
@@ -2413,6 +2424,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     console.log('Type3D changed start');
 
     if (target.configObject.colorcondition) {
+
+      const { colorcondition, ...newobject } = target.configObject;
+
+
       delete target.configObject.colorcondition;
     }
     if (ev.target.optionTgt.color) {
@@ -2424,6 +2439,62 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
     if (ev.target.optionTgt.hide) {
       ev.target.optionTgt.hide.visible = false;
+    }
+
+    if (target.configObject.show) {
+      delete target.configObject.show;
+    }
+    if (ev.target.optionTgt.show) {
+      ev.target.optionTgt.show.visible = false;
+    }
+
+    if (target.configObject.room) {
+      delete target.configObject.room;
+    }
+    if (ev.target.optionTgt.room) {
+      ev.target.optionTgt.room.visible = false;
+    }
+
+    if (target.configObject.door) {
+      delete target.configObject.door;
+    }
+    if (ev.target.optionTgt.door) {
+      ev.target.optionTgt.door.visible = false;
+    }
+
+    if (target.configObject.text) {
+      delete target.configObject.text;
+    }
+    if (ev.target.optionTgt.text) {
+      ev.target.optionTgt.text.visible = false;
+    }
+
+    if (target.configObject.cover) {
+      delete target.configObject.cover;
+    }
+    if (ev.target.optionTgt.cover) {
+      ev.target.optionTgt.cover.visible = false;
+    }
+
+    if (target.configObject.gesture) {
+      delete target.configObject.gesture;
+    }
+    if (ev.target.optionTgt.gesture) {
+      ev.target.optionTgt.gesture.visible = false;
+    }
+
+    if (target.configObject.rotate) {
+      delete target.configObject.rotate;
+    }
+    if (ev.target.optionTgt.rotate) {
+      ev.target.optionTgt.rotate.visible = false;
+    }
+
+    if (target.configObject.camera) {
+      delete target.configObject.camera;
+    }
+    if (ev.target.optionTgt.camera) {
+      ev.target.optionTgt.camera.visible = false;
     }
 
     if (target.configObject.light) {
@@ -2439,6 +2510,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       }
     }
 
+    if (target.value == 'rotate') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.rotate.visible = true;
+      }
+    }
+
     if (target.value == 'light') {
       if (ev.target.optionTgt) {
         ev.target.optionTgt.light.visible = true;
@@ -2450,6 +2527,43 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         ev.target.optionTgt.hide.visible = true;
       }
     }
+
+    if (target.value == 'show') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.show.visible = true;
+      }
+    }
+
+    if (target.value == 'text') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.text.visible = true;
+      }
+    }
+
+    if (target.value == 'room') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.room.visible = true;
+      }
+    }
+
+    if (target.value == 'camera') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.camera.visible = true;
+      }
+    }
+
+    if (target.value == 'gesture') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.gesture.visible = true;
+      }
+    }
+
+    if (target.value == 'door') {
+      if (ev.target.optionTgt) {
+        ev.target.optionTgt.door.visible = true;
+      }
+    }
+
     console.log('Type3D changed end');
   }
 

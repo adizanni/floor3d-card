@@ -1003,8 +1003,8 @@ export class Floor3dCard extends LitElement {
     if (this._config.sky && this._config.sky == 'yes') {
         this._renderer.outputEncoding = THREE.sRGBEncoding;
     }
-    //this._renderer.toneMapping = THREE.LinearToneMapping;
-    this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this._renderer.toneMapping = THREE.LinearToneMapping;
+    //this._renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this._renderer.toneMappingExposure = 0.6;
     this._renderer.localClippingEnabled = true;
     this._renderer.physicallyCorrectLights = false;
