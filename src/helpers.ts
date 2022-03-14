@@ -104,6 +104,14 @@ export function createObjectGroupConfigArray(config): Floor3dCardConfig[] {
             { entity: entityConfig.entity, objects: [{ object_id: entityConfig.object_id }] },
           );
           configArray.push(objectConfig);
+        } else {
+          if (entityConfig.entity != '') {
+            throw new Error('Object is empty for entity' + entityConfig.entity);
+          }
+        }
+      } else {
+        if (entityConfig.entity != '') {
+          throw new Error('Object is empty for entity' + entityConfig.entity);
         }
       }
     }

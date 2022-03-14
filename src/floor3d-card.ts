@@ -1122,7 +1122,7 @@ export class Floor3dCard extends LitElement {
     if (this._config.shadow && this._config.shadow == 'yes') {
       console.log('Shadow On');
       this._renderer.shadowMap.enabled = true;
-      this._renderer.shadowMap.type = THREE.BasicShadowMap;
+      this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       this._renderer.shadowMap.autoUpdate = false;
     } else {
       console.log('Shadow Off');

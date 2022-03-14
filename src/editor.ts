@@ -1159,6 +1159,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .configObject=${config}
                     .configAttribute=${'type3d'}
                     .ignoreNull=${false}
+                    .configIndex=${index}
                     fixedMenuPosition
                     naturalMenuWidth
                     @closed=${(ev) => ev.stopPropagation()}
@@ -2099,7 +2100,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     const config = this._configArray[index];
     const visible: boolean = config.type3d ? config.type3d === 'cover' : false;
     if (visible) {
-      config.cover = { ...config.cover };
+      if (!config.cover) {
+        Object.defineProperty(config, 'cover', { configurable: true, writable: true });
+      }
     }
     return html`
       ${visible
@@ -2411,157 +2414,132 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   private _typeChanged(ev): void {
+
     if (!this._config || !this.hass) {
       return;
     }
+
     const target = ev.target;
+
     if (target.configObject[target.configAttribute] == target.value) {
       return;
     }
+
+    let initialtype3d: string = target.configObject[target.configAttribute];
 
     this._valueChanged(ev);
 
     console.log('Type3D changed start');
 
-    if (target.configObject.colorcondition) {
 
-      const { colorcondition, ...newobject } = target.configObject;
+    if (target.configObject[initialtype3d]) {
 
+      const entityArray = this._configArray;
 
-      delete target.configObject.colorcondition;
+      const newentityArray: any = [];
+
+      entityArray.forEach((entity, index) => {
+
+        if (ev.target.configIndex == index) {
+
+          let newobject;
+
+          switch (initialtype3d) {
+
+            case 'light':
+              const { light, ...lightObject } = ev.target.configObject;
+              newobject = lightObject;
+              break;
+            case 'room':
+              let { room, ...roomObject } = ev.target.configObject;
+              newobject = roomObject;
+              break;
+            case 'color':
+              let { colorcondition, ...colorObject } = ev.target.configObject;
+              newobject = colorObject;
+              break;
+            case 'hide':
+              let { hide, ...hideObject } = ev.target.configObject;
+              newobject = hideObject;
+              break;
+            case 'show':
+              let { show, ...showObject } = ev.target.configObject;
+              newobject = showObject;
+              break;
+            case 'door':
+              let { door, ...doorObject } = ev.target.configObject;
+              newobject = doorObject;
+              break;
+            case 'gesture':
+              let { gesture, ...gestureObject } = ev.target.configObject;
+              newobject = gestureObject;
+              break;
+            case 'camera':
+              let { camera, ...cameraObject } = ev.target.configObject;
+              newobject = cameraObject;
+              break;
+            case 'text':
+              let { text, ...textObject } = ev.target.configObject;
+              newobject = textObject;
+              break;
+            case 'rotate':
+              let { rotate, ...rotateObject } = ev.target.configObject;
+              newobject = rotateObject;
+              break;
+            case 'cover':
+              let { cover, ...coverObject } = ev.target.configObject;
+              newobject = coverObject;
+              break;
+          }
+          console.log(newobject);
+          newentityArray.push(newobject);
+        } else {
+          newentityArray.push(entity);
+        }
+      });
+
+      this._configArray = newentityArray;
     }
+
     if (ev.target.optionTgt.color) {
       ev.target.optionTgt.color.visible = false;
     }
 
-    if (target.configObject.hide) {
-      delete target.configObject.hide;
-    }
     if (ev.target.optionTgt.hide) {
       ev.target.optionTgt.hide.visible = false;
     }
-
-    if (target.configObject.show) {
-      delete target.configObject.show;
-    }
     if (ev.target.optionTgt.show) {
       ev.target.optionTgt.show.visible = false;
-    }
-
-    if (target.configObject.room) {
-      delete target.configObject.room;
     }
     if (ev.target.optionTgt.room) {
       ev.target.optionTgt.room.visible = false;
     }
 
-    if (target.configObject.door) {
-      delete target.configObject.door;
-    }
     if (ev.target.optionTgt.door) {
       ev.target.optionTgt.door.visible = false;
     }
 
-    if (target.configObject.text) {
-      delete target.configObject.text;
-    }
     if (ev.target.optionTgt.text) {
       ev.target.optionTgt.text.visible = false;
     }
 
-    if (target.configObject.cover) {
-      delete target.configObject.cover;
-    }
     if (ev.target.optionTgt.cover) {
       ev.target.optionTgt.cover.visible = false;
     }
 
-    if (target.configObject.gesture) {
-      delete target.configObject.gesture;
-    }
     if (ev.target.optionTgt.gesture) {
       ev.target.optionTgt.gesture.visible = false;
     }
 
-    if (target.configObject.rotate) {
-      delete target.configObject.rotate;
-    }
     if (ev.target.optionTgt.rotate) {
       ev.target.optionTgt.rotate.visible = false;
     }
 
-    if (target.configObject.camera) {
-      delete target.configObject.camera;
-    }
     if (ev.target.optionTgt.camera) {
       ev.target.optionTgt.camera.visible = false;
     }
-
-    if (target.configObject.light) {
-      delete target.configObject.light;
-    }
     if (ev.target.optionTgt.light) {
       ev.target.optionTgt.light.visible = false;
-    }
-
-    if (target.value == 'color') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.color.visible = true;
-      }
-    }
-
-    if (target.value == 'rotate') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.rotate.visible = true;
-      }
-    }
-
-    if (target.value == 'light') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.light.visible = true;
-      }
-    }
-
-    if (target.value == 'hide') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.hide.visible = true;
-      }
-    }
-
-    if (target.value == 'show') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.show.visible = true;
-      }
-    }
-
-    if (target.value == 'text') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.text.visible = true;
-      }
-    }
-
-    if (target.value == 'room') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.room.visible = true;
-      }
-    }
-
-    if (target.value == 'camera') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.camera.visible = true;
-      }
-    }
-
-    if (target.value == 'gesture') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.gesture.visible = true;
-      }
-    }
-
-    if (target.value == 'door') {
-      if (ev.target.optionTgt) {
-        ev.target.optionTgt.door.visible = true;
-      }
     }
 
     console.log('Type3D changed end');
