@@ -489,7 +489,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             ></ha-icon>
           </div>
           <div class="values" style="flex-grow: 1;">
-            ${this._entity_ids.length < 100
+            ${this._entity_ids.length < 40
             ? html` <floor3d-select
                       label="Entity (Required)"
                       .value=${config.entity}
@@ -512,7 +512,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     @input=${this._valueChanged}
                     .configAttribute=${'entity'}
                     .configObject=${this._configArray[index]}
-                    .value=${config.entity}
+                    .value=${config.entity ? config.entity : ''}
                   >
                   </floor3d-textfield>
                 `}
