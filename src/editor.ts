@@ -41,6 +41,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   public setConfig(config: Floor3dCardConfig): void {
+
+    console.log("Start editor config")
+
     this._config = { ...config };
 
     if (!config.entities) {
@@ -267,7 +270,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       this._fetchObjectList();
     }
 
-    fireEvent(this, 'config-changed', { config: this._config });
+    console.log("End editor config")
+
+    //fireEvent(this, 'config-changed', { config: this._config });
   }
 
   get _show_warning(): boolean {
@@ -301,10 +306,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   }
 
   protected shouldUpdate(): boolean {
+    console.log("Should Update start")
     if (!this._initialized) {
       this._initialize();
     }
-
     return true;
   }
 
@@ -339,6 +344,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
 
 
   private _config_changed(): void {
+
+    console.log("Config change start")
     let preview_card: any = this._preview_card();
 
     if (preview_card) {

@@ -63,6 +63,7 @@ export class Floor3dCard extends LitElement {
   private _states?: string[];
   private _color?: number[][];
   private _raycasting: THREE.Object3D[];
+  private _raycastinglevels: THREE.Object3D[][];
   private _initialmaterial?: THREE.Material[][];
   private _clonedmaterial?: THREE.Material[][];
   private _brightness?: number[];
@@ -187,7 +188,7 @@ export class Floor3dCard extends LitElement {
   // https://lit-element.polymer-project.org/guide/properties#accessors-custom
   public setConfig(config: Floor3dCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
-    console.log('Set Config');
+    console.log('floor3d-card: Set Config Start');
 
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
@@ -210,6 +211,8 @@ export class Floor3dCard extends LitElement {
       });
       i += 1;
     });
+
+    console.log('floor3d-card: Set Config End');
 
     if (this._config.show_warning) {
       render(this._showWarning(localize('common.show_warning')), this._card);
@@ -1111,7 +1114,7 @@ export class Floor3dCard extends LitElement {
 
     this._bboxmodel.updateMatrixWorld(true);
 
-    this._content.innerText = 'Finished';
+    this._content.innerText = 'Finished with errors: check the console log';
 
     if (this._config.show_axes) {
       if (this._config.show_axes == 'yes') {
@@ -1202,12 +1205,15 @@ export class Floor3dCard extends LitElement {
   private _initobjects(object: THREE.Object3D) {
     console.log('Ïnit Objects, Levels and Raycasting');
 
+    let level = 0;
     this._levels = [];
     this._raycasting = [];
+    this._raycastinglevels = [];
 
     console.log('Found level 0');
 
     this._levels[0] = new THREE.Object3D();
+    this._raycastinglevels[0] = [];
 
     const regex = /lvl(?<level>\d{3})/;
 
@@ -1227,14 +1233,17 @@ export class Floor3dCard extends LitElement {
         if (!this._levels[Number(found.groups?.level)]) {
           console.log('Found level ' + found.groups?.level);
           this._levels[Number(found.groups?.level)] = new THREE.Object3D();
+          this._raycastinglevels[Number(found.groups?.level)] = [];
         }
 
         element.userData = { level: Number(found.groups?.level) };
         element.name = element.name.slice(6);
         this._levels[Number(found.groups?.level)].add(element);
+        level = Number(found.groups?.level);
       } else {
         element.userData = { level: 0 };
         this._levels[0].add(element);
+        level = 0
       }
 
       element.receiveShadow = true;
@@ -1264,7 +1273,8 @@ export class Floor3dCard extends LitElement {
         }
       }
 
-      this._raycasting.push(element);
+      this._raycastinglevels[level].push(element);
+      //this._raycasting.push(element);
 
       if (element instanceof THREE.Mesh) {
         if (!Array.isArray((element as THREE.Mesh).material)) {
@@ -1294,9 +1304,13 @@ export class Floor3dCard extends LitElement {
     });
 
     this._displaylevels = [];
-    this._levels.forEach(() => {
+    this._levels.forEach((level, index) => {
+      if (level)
+      {
         this._displaylevels.push(true);
+        this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
       }
+    }
     );
     console.log('End Init Objects. Number of levels found: ' + this._levels.length);
   }
@@ -1315,6 +1329,14 @@ export class Floor3dCard extends LitElement {
           element.visible = this._displaylevels[i];
         }
       });
+
+    this._raycasting = [];
+
+    this._displaylevels.forEach((visible, index) => {
+      if (visible) {
+       this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
+      }
+    });
   }
 
   private _getLevelBar(): TemplateResult {
