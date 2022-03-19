@@ -1209,6 +1209,7 @@ export class Floor3dCard extends LitElement {
     this._levels = [];
     this._raycasting = [];
     this._raycastinglevels = [];
+    //TODO: explore solution with layers
 
     console.log('Found level 0');
 
@@ -2574,10 +2575,12 @@ export class Floor3dCard extends LitElement {
   private _updatehide(item: Floor3dCardConfig, index: number): void {
     // hide the object when the state is equal to the configured value
     this._object_ids[index].objects.forEach((element) => {
+      //object clickable: check layers solution
       const _object: any = this._scene.getObjectByName(element.object_id);
 
       if (_object) {
         if (this._states[index] == item.hide.state) {
+          //TODO: Layers to hide ?
           _object.visible = false;
         } else {
           _object.visible = true;
@@ -2596,6 +2599,7 @@ export class Floor3dCard extends LitElement {
         if (this._states[index] == item.show.state) {
           _object.visible = true;
         } else {
+          //TODO: Layers to hide ?
           _object.visible = false;
         }
       }

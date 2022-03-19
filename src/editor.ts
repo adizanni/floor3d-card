@@ -489,7 +489,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             ></ha-icon>
           </div>
           <div class="values" style="flex-grow: 1;">
-            ${this._entity_ids.length < 40
+            ${(this._entity_ids.length * this._configArray.length) < 5000
             ? html` <floor3d-select
                       label="Entity (Required)"
                       .value=${config.entity}
@@ -2107,9 +2107,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     const config = this._configArray[index];
     const visible: boolean = config.type3d ? config.type3d === 'cover' : false;
     if (visible) {
-      if (!config.cover) {
-        Object.defineProperty(config, 'cover', { configurable: true, writable: true });
-      }
+      config.cover = { ...config.cover };
     }
     return html`
       ${visible
