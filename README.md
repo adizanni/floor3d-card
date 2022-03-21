@@ -64,8 +64,15 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 | north            | string | see desc     | north is the direction of the north on the x-z plane. ex. {x: 0, z: 1} (this is the default) for a north in the z positive direction (see axes explanation). Goes with sky yes |
 | overlay\_<style> | string | various      | allow to manage the aspect of the overlay panel (colors, fonts, etc.)                                                                                                      |
 
-**Note: with the introdction of the sky, the illumination will behave strangely when the sun will go above the ceiling. I've given the possibility to manage what I call a transparent slab. In sweethome3d put a transparent slab object (transparent box) on top of your floor and call it transparent_slab*. If you use my plugin (Export to HA) this will be managed by the card by stopping the sunlight to come through from the above **
+**Note: with the introdction of the sky, the illumination will behave strangely when the sun will go above the ceiling. I've given the possibility to manage what I call a transparent slab. In sweethome3d put a transparent slab object (transparent box) on top of your floor and call it transparent_slab*. If you use my plugin (Export to HA) this will be managed by the card by stopping the sunlight to come through from the above. It is also possible to activate the ceiling in Sweethome3d. **
 
+**Note 2: a valid north setting example:
+```yaml
+north:
+  x: -1
+  z: 0
+```
+  
 For each entity in the entities list you need to specify the following options:
 
 | Name            | Type   | Default      | Description                                                                                                                                                                                                                                                                                         |
