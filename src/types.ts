@@ -46,6 +46,7 @@ export interface Floor3dCardConfig {
   object_id: string;
   object_groups: any;
   object_group: string;
+  zoom_areas: any;
   objects: any;
   lumens: number;
   decay: number;
@@ -56,6 +57,7 @@ export interface Floor3dCardConfig {
   doortype: string;
   extralightmode: string;
   room: any;
+  zoom: string;
   elevation: number;
   transparency: number;
   show_axes: string;

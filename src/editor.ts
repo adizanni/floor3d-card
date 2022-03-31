@@ -8,6 +8,7 @@ import {
   createEditorConfigArray,
   arrayMove,
   createEditorObjectGroupConfigArray,
+  createEditorZoomConfigArray,
 } from './helpers';
 import { loadHaComponents } from './ensureComponents';
 import { Floor3dCardConfig } from './types';
@@ -23,8 +24,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
   @state() private _helpers?: any;
   private _configArray: any[] = [];
   private _configObjectArray: any[] = [];
+  private _configZoomArray: any[] = [];
   private _entityOptionsArray: object[] = [];
   private _entityOptionsGroupArray: object[] = [];
+  private _entityOptionsZoomArray: object[] = [];
   private _options: any;
   private _initialized = false;
   private _objects: any;
@@ -54,8 +57,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       this._config.object_groups = [{ object_group: '' }];
     }
 
+    if (!config.zoom_areas) {
+      this._config.zoom_areas = [{ zoom: '' }];
+    }
+
     this._configArray = createEditorConfigArray(this._config);
     this._configObjectArray = createEditorObjectGroupConfigArray(this._config);
+    this._configZoomArray = createEditorZoomConfigArray(this._config);
+
 
     for (const entityConfig of this._configArray) {
       if (entityConfig.light) {
@@ -81,6 +90,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
     this._config.object_groups = this._configObjectArray;
     this._config.entities = this._configArray;
+    this._config.zoom_areas = this._configZoomArray;
 
     //console.log(JSON.stringify(this._config));
 
@@ -154,6 +164,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       visible: false,
     };
 
+    const zoomOptions = {
+      icon: 'magnify-plus',
+      name: 'Zoom Area',
+      secondary: 'Zoom Area options',
+      show: false,
+      visible: false,
+    };
+
     const textOptions = {
       icon: 'format-text',
       name: 'Text',
@@ -201,6 +219,13 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       show: false,
     };
 
+    const zoomAreaOptions = {
+      show: false,
+      options: {
+        zoom: { ...zoomOptions },
+      }
+    }
+
     const entityOptions = {
       show: false,
       options: {
@@ -223,8 +248,13 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
 
     for (const config of this._configArray) {
-      this._entityOptionsArray.push({ ...entityOptions });
+       this._entityOptionsArray.push({ ...entityOptions });
     }
+
+    for (const zoomconfig of this._configZoomArray) {
+      this._entityOptionsZoomArray.push({ ...zoomAreaOptions });
+    }
+
     if (!this._options) {
       this._options = {
         object_groups: {
@@ -234,6 +264,15 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           show: false,
           options: {
             object_groups: this._entityOptionsGroupArray,
+          },
+        },
+        zoom_areas: {
+          icon: 'magnify-expand',
+          name: 'Zoom Areas',
+          secondary: 'Manage card Zoom Areas.',
+          show: false,
+          options: {
+            zoom_areas: this._entityOptionsZoomArray,
           },
         },
         entities: {
@@ -321,7 +360,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         <ha-icon @click=${this._config_changed} icon="mdi:refresh" class="ha-icon-large"> </ha-icon>
       </div>
       ${this._createModelElement()} ${this._createAppearanceElement()} ${show ? html` ${this._createOverlayElement()} ` : ``} ${this._createEntitiesElement()}
-      ${this._createObjectGroupsElement()}
+      ${this._createObjectGroupsElement()} ${this._createZoomAreasElement()}
     `;
   }
 
@@ -352,6 +391,8 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       preview_card.rerender();
     }
   }
+
+
 
   private _createObjectGroupsValues(): TemplateResult[] {
     if (!this.hass || !this._config) {
@@ -452,6 +493,96 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
         </div>
       </div>
     `;
+  }
+
+  private _createZoomAreasValues(): TemplateResult[] {
+    if (!this.hass || !this._config) {
+      return [html``];
+    }
+
+    const options = this._options.zoom_areas;
+
+    const valueElementArray: TemplateResult[] = [];
+    for (const config of this._configZoomArray) {
+      const index = this._configZoomArray.indexOf(config);
+      valueElementArray.push(html`
+        <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
+          <div style="display: flex; align-items: center; flex-direction: column;">
+            <div
+              style="font-size: 10px; margin-bottom: -8px; opacity: 0.5;"
+              @click=${this._toggleThing}
+              .options=${options.options.zoom_areas[index]}
+              .optionsTarget=${options.options.zoom_areas}
+              .index=${index}
+            >
+              options
+            </div>
+            <ha-icon
+              icon="mdi:chevron-${options.options.zoom_areas[index].show ? 'up' : 'down'}"
+              @click=${this._toggleThing}
+              .options=${options.options.zoom_areas[index]}
+              .optionsTarget=${options.options.zoom_areas}
+              .index=${index}
+            ></ha-icon>
+          </div>
+          <div class="values" style="flex-grow: 1;">
+                  <floor3d-textfield
+                    label="Zoom"
+                    @input=${this._valueChanged}
+                    .configAttribute=${'zoom'}
+                    .configObject=${this._configZoomArray[index]}
+                    .value=${config.zoom ? config.zoom : ''}
+                  >
+                  </floor3d-textfield>
+          </div>
+          ${index !== 0
+            ? html`
+                <ha-icon
+                  class="ha-icon-large"
+                  icon="mdi:arrow-up"
+                  @click=${this._moveZoomArea}
+                  .configDirection=${'up'}
+                  .configArray=${this._config!.zoom_areas}
+                  .arrayAttribute=${'zoom_areas'}
+                  .arraySource=${this._config}
+                  .index=${index}
+                ></ha-icon>
+              `
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+          ${index !== this._configZoomArray.length - 1
+            ? html`
+                <ha-icon
+                  class="ha-icon-large"
+                  icon="mdi:arrow-down"
+                  @click=${this._moveZoomArea}
+                  .configDirection=${'down'}
+                  .configArray=${this._config!.zoom_areas}
+                  .arrayAttribute=${'zoom_areas'}
+                  .arraySource=${this._config}
+                  .index=${index}
+                ></ha-icon>
+              `
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+          <ha-icon
+            class="ha-icon-large"
+            icon="mdi:close"
+            @click=${this._removeZoomArea}
+            .configAttribute=${'zoom'}
+            .configArray=${'zoom_areas'}
+            .configIndex=${index}
+          ></ha-icon>
+        </div>
+        ${options.options.zoom_areas[index].show
+          ? html`
+              <div class="options">
+                ${this._createZoomElement(index)}
+              </div>
+            `
+          : ''}
+
+      `);
+    }
+    return valueElementArray;
   }
 
   private _createEntitiesValues(): TemplateResult[] {
@@ -567,6 +698,43 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       `);
     }
     return valueElementArray;
+  }
+
+  private _createZoomAreasElement(): TemplateResult {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+    const options = this._options.zoom_areas;
+
+    return html`
+      <div class="card-config">
+        <div class="option" @click=${this._toggleThing} .options=${options} .optionsTarget=${this._options}>
+          <div class="row">
+            <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+            <div class="title">${options.name}</div>
+            <ha-icon .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`} style="margin-left: auto;"></ha-icon>
+          </div>
+          <div class="secondary">${options.secondary}</div>
+        </div>
+        ${options.show
+          ? html`
+              <div class="card-background" style="max-height: 400px; overflow: auto;">
+                ${this._createZoomAreasValues()}
+                <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
+                  <ha-icon
+                    class="ha-icon-large"
+                    icon="mdi:plus"
+                    .configArray=${this._configZoomArray}
+                    .configAddValue=${'zoom'}
+                    .sourceArray=${this._config.zoom_areas}
+                    @click=${this._addZoomArea}
+                  ></ha-icon>
+                </div>
+              </div>
+            `
+          : ''}
+      </div>
+    `;
   }
 
   private _createObjectGroupsElement(): TemplateResult {
@@ -1054,6 +1222,23 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  private _addZoomArea(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    let newObject;
+    if (target.configAddObject) {
+      newObject = target.configAddObject;
+    } else {
+      newObject = { [target.configAddValue]: '' };
+    }
+    const newArray = target.configArray.slice();
+    newArray.push(newObject);
+    this._config.zoom_areas = newArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   private _moveEntity(ev): void {
     if (!this._config || !this.hass) {
       return;
@@ -1063,6 +1248,18 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     if (target.configDirection == 'up') newArray = arrayMove(newArray, target.index, target.index - 1);
     else if (target.configDirection == 'down') newArray = arrayMove(newArray, target.index, target.index + 1);
     this._config.entities = newArray;
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _moveZoomArea(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    let newArray = target.configArray.slice();
+    if (target.configDirection == 'up') newArray = arrayMove(newArray, target.index, target.index - 1);
+    else if (target.configDirection == 'down') newArray = arrayMove(newArray, target.index, target.index + 1);
+    this._config.zoom_areas = newArray;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
@@ -1092,6 +1289,24 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       index++;
     }
     const newConfig = { [target.configArray]: entitiesArray };
+    this._config = Object.assign(this._config, newConfig);
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
+  private _removeZoomArea(ev): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    const zoomareasArray: Floor3dCardConfig[] = [];
+    let index = 0;
+    for (const config of this._configArray) {
+      if (target.configIndex !== index) {
+        zoomareasArray.push(config);
+      }
+      index++;
+    }
+    const newConfig = { [target.configArray]: zoomareasArray };
     this._config = Object.assign(this._config, newConfig);
     fireEvent(this, 'config-changed', { config: this._config });
   }
@@ -1219,6 +1434,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
       </div>
     `;
   }
+
 
   private _createObject_GroupElement(index): TemplateResult {
     const options = this._options.object_groups.options.object_groups[index];
@@ -1884,6 +2100,96 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     `;
   }
 
+  private _createZoomElement(index): TemplateResult {
+    const options = this._options.zoom_areas.options.zoom_areas[index].options.zoom;
+    const config = this._configZoomArray[index];
+    return html`
+            <div class="category" id="light">
+              <div
+                class="sub-category"
+                @click=${this._toggleThing}
+                .options=${options}
+                .optionsTarget=${this._options.zoom_areas.options.zoom_areas[index].options}
+              >
+                <div class="row">
+                  <ha-icon .icon=${`mdi:${options.icon}`}></ha-icon>
+                  <div class="title">${options.name}</div>
+                  <ha-icon
+                    .icon=${options.show ? `mdi:chevron-up` : `mdi:chevron-down`}
+                    style="margin-left: auto;"
+                  ></ha-icon>
+                </div>
+                <div class="secondary">${options.secondary}</div>
+              </div>
+              ${options.show
+                ? html`
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                        ${index !== null
+                          ? html`
+                              ${!this._objects
+                                ? html`
+                                  <floor3d-textfield
+                                    label="Object"
+                                    .value=${config.object_id ? config.object_id : ''}
+                                    .configAttribute=${'object_id'}
+                                    .configObject=${config}
+                                    @input=${this._valueChanged}
+                                    required
+                                  ></floor3d-textfield>
+                                `
+                                  : html`
+                                    <floor3d-select
+                                      label="Object id"
+                                      @selected=${this._valueChanged}
+                                      .value=${config.object_id}
+                                      .configAttribute=${'object_id'}
+                                      .configObject=${config}
+                                      .ignoreNull=${false}
+                                      required
+                                      @closed=${(ev) => ev.stopPropagation()}
+                                    >   ${this._objects.map((object_id) => {
+                                          return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
+                                        })}
+                                        ${this._configObjectArray.map((object_group) => {
+                                          return html` <mwc-list-item value="${"<"+object_group.object_group+">"}">${"<"+object_group.object_group+">"}</mwc-list-item> `;
+                                        })}
+                                    </floor3d-select>
+                                  `}
+                              <paper-input
+                                editable
+                                label="Zoom Direction {x: xxxx,y: yyyy, z: zzzz }"
+                                .value=${config.direction ? config.direction : null}
+                                .configObject=${config}
+                                .configAttribute=${'direction'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <paper-input
+                                editable
+                                label="Zoom Rotation {x: xxxx,y: yyyy, z: zzzz }"
+                                .value=${config.rotation ? config.rotation : null}
+                                .configObject=${config}
+                                .configAttribute=${'rotation'}
+                                @value-changed=${this._valueChanged}
+                              ></paper-input>
+                              <floor3d-formfield alignEnd label="Distance (cm)" >
+                                <floor3d-textfield
+                                  type="number"
+                                  min=0
+                                  .value=${config.distance ? config.distance : null}
+                                  .configObject=${config}
+                                  .configAttribute=${'distance'}
+                                  .ignoreNull=${false}
+                                  @input=${this._valueChanged}
+                                ></floor3d-textfield>
+                              </floor3d-formfield>
+                        `
+                          : ''}
+                      </div>
+                  `
+                : ''}
+            </div>
+    `;
+  }
 
   private _createTextSubElement(subconfig: Floor3dCardConfig): TemplateResult {
 
@@ -2459,6 +2765,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
               let { room, ...roomObject } = ev.target.configObject;
               newobject = roomObject;
               break;
+            case 'zoom':
+                let { zoom, ...zoomObject } = ev.target.configObject;
+                newobject = zoomObject;
+                break;
             case 'color':
               let { colorcondition, ...colorObject } = ev.target.configObject;
               newobject = colorObject;
@@ -2519,7 +2829,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     if (ev.target.optionTgt.room) {
       ev.target.optionTgt.room.visible = false;
     }
-
+    if (ev.target.optionTgt.zoom) {
+      ev.target.optionTgt.zoom.visible = false;
+    }
     if (ev.target.optionTgt.door) {
       ev.target.optionTgt.door.visible = false;
     }
@@ -2574,6 +2886,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
     }
     this._config.entities = this._configArray;
     this._config.object_groups = this._configObjectArray;
+    this._config.zoom_areas = this._configZoomArray;
     fireEvent(this, 'config-changed', { config: this._config });
   }
 

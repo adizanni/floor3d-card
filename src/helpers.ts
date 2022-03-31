@@ -138,6 +138,24 @@ export function createEditorObjectGroupConfigArray(config): Floor3dCardConfig[] 
   return configArray;
 }
 
+export function createEditorZoomConfigArray(config): Floor3dCardConfig[] {
+  const configArray: Floor3dCardConfig[] = [];
+  if (config.zoom_areas) {
+    for (const objectZoomConfig of config.zoom_areas) {
+      if (typeof objectZoomConfig == 'string') {
+        const stringConfig = mergeDeep({}, { zoom_areas: objectZoomConfig });
+        configArray.push(stringConfig);
+      } else if (typeof objectZoomConfig == 'object') {
+        const objectConfig = mergeDeep({}, objectZoomConfig);
+        configArray.push(objectConfig);
+      }
+    }
+  } else {
+    configArray.push(config);
+  }
+  return configArray;
+}
+
 export function createEditorConfigArray(config): Floor3dCardConfig[] {
   const configArray: Floor3dCardConfig[] = [];
   if (config.entities) {

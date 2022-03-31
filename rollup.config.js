@@ -38,6 +38,7 @@ const plugins = [
       require.resolve("@material/mwc-menu/mwc-menu.js"),
       require.resolve("@material/mwc-menu/mwc-menu-surface.js"),
       require.resolve("@material/mwc-icon/mwc-icon.js"),
+      require.resolve("@material/mwc-button/mwc-button.js"),
     ],
   })
 ];

@@ -22,6 +22,7 @@ import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { Object3D } from 'three';
+import '../elements/button';
 
 
 /* eslint no-console: 0 */
@@ -50,6 +51,7 @@ export class Floor3dCard extends LitElement {
   private _camera?: THREE.PerspectiveCamera;
   private _renderer?: THREE.WebGLRenderer;
   private _levelbar?: HTMLElement;
+  private _zoombar?: HTMLElement;
   private _controls?: OrbitControls;
   private _hemiLight?: THREE.HemisphereLight;
   private _modelX?: number;
@@ -59,6 +61,7 @@ export class Floor3dCard extends LitElement {
   private _bboxmodel: THREE.Object3D;
   private _levels: THREE.Object3D[];
   private _displaylevels: boolean[];
+  private _zoom: any[];
   private _selectedlevel: number;
   private _states?: string[];
   private _color?: number[][];
@@ -228,6 +231,7 @@ export class Floor3dCard extends LitElement {
   public rerender(): void {
     this._content.removeEventListener('dblclick', this._performActionListener);
     this._content.removeEventListener('touchstart', this._performActionListener);
+    this._content.removeEventListener('keydown', this._performActionListener);
     this._controls.removeEventListener('change', this._changeListener);
 
     this._renderer.setAnimationLoop(null);
@@ -843,7 +847,8 @@ export class Floor3dCard extends LitElement {
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = false;
     ground.castShadow = false;
-    this._bboxmodel.add(ground);
+    //this._bboxmodel.add(ground);
+    this._scene.add(ground);
 
     // inti sun
 
@@ -1114,6 +1119,7 @@ export class Floor3dCard extends LitElement {
 
     this._bboxmodel.updateMatrixWorld(true);
 
+
     this._content.innerText = 'Finished with errors: check the console log';
 
     if (this._config.show_axes) {
@@ -1140,8 +1146,10 @@ export class Floor3dCard extends LitElement {
       this._modelready = true;
       console.log('Show canvas');
       this._levelbar = document.createElement('div');
+      this._zoombar = document.createElement('div');
       this._content.innerText = '';
       this._content.appendChild(this._levelbar);
+      this._content.appendChild(this._zoombar);
       this._content.appendChild(this._renderer.domElement);
       this._selectedlevel = -1;
       render(this._getLevelBar(), this._levelbar);
@@ -1151,6 +1159,7 @@ export class Floor3dCard extends LitElement {
 
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
+      this._content.addEventListener('keydown', this._performActionListener);
 
       this._setCamera();
 
@@ -1186,11 +1195,20 @@ export class Floor3dCard extends LitElement {
 
       this._getOverlay();
 
+      this._manageZoom();
+
       this._setVisibleLevel(-1);
 
-      //first render
-      //this._render();
       this._resizeCanvas();
+
+      /*
+      this._zoom.forEach(element => {
+
+        this._bboxmodel.localToWorld(element.position);
+        this._bboxmodel.localToWorld(element.target);
+
+      });
+      */
 
       this._zIndexInterval = window.setInterval(() => {
         this._zIndexChecker();
@@ -1340,6 +1358,57 @@ export class Floor3dCard extends LitElement {
     });
   }
 
+  private _getZoomBar(): TemplateResult {
+    if (this._levels) {
+      if (this._zoom.length > 0) {
+        return html` <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; left: 0px">${this._getZoomButtons()}</div> `;
+      } else {
+        return html``;
+      }
+    } else {
+      return html``;
+    }
+  }
+
+  private _getZoomButtons(): TemplateResult[] {
+    const iconArray: TemplateResult[] = [];
+
+
+    iconArray.push(html`
+      <div class="row" style="background-color:black;">
+        <font color="white">
+        <floor3d-button
+          style="opacity: 100%;"
+          label="reset"
+          .index=${-1}
+          @click=${this._handleZoomClick.bind(this)}
+        >
+        </floor3d-button>
+        </font>
+      </div>
+    `);
+
+    this._zoom.forEach((element, index) => {
+      if (element) {
+        iconArray.push(html`
+          <div class="row" style="background-color:black;">
+          <font color="white">
+            <floor3d-button
+              label=${element.name}
+              .index=${index}
+              @click=${this._handleZoomClick.bind(this)}
+            >
+            </floor3d-button>
+            </font>
+          </div>
+        `);
+      }
+    });
+
+    return iconArray;
+  }
+
+
   private _getLevelBar(): TemplateResult {
     if (this._levels) {
       if (this._levels.length > 1) {
@@ -1393,12 +1462,56 @@ export class Floor3dCard extends LitElement {
     return iconArray;
   }
 
+  private _handleZoomClick(ev): void {
+
+    if (ev.target.index == -1) {
+
+      this._setCamera();
+
+      this._setLookAt();
+
+      this._controls.update();
+
+      this._render();
+
+      return;
+
+    }
+
+    this._camera.position.set(
+        this._zoom[ev.target.index].position.x,
+        this._zoom[ev.target.index].position.y,
+        this._zoom[ev.target.index].position.z,
+    );
+
+    this._camera.rotation.set(
+      this._zoom[ev.target.index].rotation.x,
+      this._zoom[ev.target.index].rotation.y,
+      this._zoom[ev.target.index].rotation.z,
+    );
+
+    this._controls.target.set(
+      this._zoom[ev.target.index].target.x,
+      this._zoom[ev.target.index].target.y,
+      this._zoom[ev.target.index].target.z
+    );
+
+    this._camera.updateProjectionMatrix();
+
+    this._controls.update();
+
+    this._render();
+
+  }
+
   private _handleLevelClick(ev): void {
+
     this._setVisibleLevel(ev.target.index);
 
     render(this._getLevelBar(), this._levelbar);
 
     this._render();
+
   }
 
   private _getOverlay(): void {
@@ -1571,6 +1684,7 @@ export class Floor3dCard extends LitElement {
       this._objposition = [];
       this._slidingdoorposition = [];
       this._to_animate = false;
+      this._zoom = [];
 
       this._config.entities.forEach((entity, i) => {
         this._objposition.push([0, 0, 0]);
@@ -1960,6 +2074,74 @@ export class Floor3dCard extends LitElement {
 
   // manage all entity types
 
+  private _manageZoom(): void {
+
+    if (this._config.zoom_areas) {
+
+    this._config.zoom_areas.forEach((element) => {
+
+       // For each element of the Zoom Area array calculate zoom position and initialize zoom array
+
+      if (element.object_id && element.object_id != '') {
+
+          let _foundobject: any = this._scene.getObjectByName(element.object_id);
+
+          if (_foundobject && _foundobject instanceof THREE.Mesh) {
+
+            const _targetMesh: THREE.Mesh = _foundobject as THREE.Mesh;
+            let targetBox = new THREE.Box3().setFromObject(_targetMesh);
+
+            /*this._centerobjecttopivot(_targetMesh, targetBox.min);
+            _targetMesh.geometry.applyMatrix4(
+              new THREE.Matrix4().makeTranslation(-targetBox.min.x, -targetBox.min.y, -targetBox.min.z),
+            );
+            targetBox = new THREE.Box3().setFromObject(_targetMesh);
+            */
+
+            let targetVector: THREE.Vector3 = new THREE.Vector3();
+            targetVector.addVectors(targetBox.min, targetBox.max.sub(targetBox.min).multiplyScalar(0.5));
+
+            let positionVector: THREE.Vector3;
+            if (element.direction) {
+              positionVector = new THREE.Vector3(element.direction.x, element.direction.y, element.direction.z);
+            }
+            else {
+              positionVector = new THREE.Vector3(0, 1, 0);
+            }
+            positionVector.normalize();
+            positionVector.multiplyScalar(element.distance ? element.distance : 500);
+            positionVector.add(targetVector);
+
+            let rotationVector: THREE.Vector3;
+            if (element.rotation) {
+              rotationVector = new THREE.Vector3(element.rotation.x, element.rotation.y, element.rotation.z);
+            } else {
+              rotationVector = new THREE.Vector3(0, 0, 0);
+            }
+
+            this._zoom.push(
+              {
+                "name": element.zoom,
+                "target": targetVector,
+                "position": positionVector,
+                "rotation": rotationVector
+              }
+            );
+
+          }
+
+        }
+
+      }
+
+    );
+
+    render(this._getZoomBar(), this._zoombar);
+
+    }
+
+  }
+
   private _createroom(entity: Floor3dCardConfig, i: number): void {
     // createroom
 
@@ -1976,7 +2158,6 @@ export class Floor3dCard extends LitElement {
         const _roomMesh: THREE.Mesh = _foundroom as THREE.Mesh;
 
         if (_roomMesh.geometry instanceof THREE.BufferGeometry) {
-          const _roomGeometry: THREE.BufferGeometry = _roomMesh.geometry as THREE.BufferGeometry;
 
           let oldRoomBox = new THREE.Box3().setFromObject(_roomMesh);
           this._centerobjecttopivot(_roomMesh, oldRoomBox.min);
