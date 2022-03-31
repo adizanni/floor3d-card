@@ -96,6 +96,17 @@ The objects array contains a list of
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
+  
+For each zoom in zoom_areas
+  
+| Name             | Type   | Default      | Description                                                                                                                                                                |
+| ---------------- | ------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| zoom             | string | **Required** | the name of the zoom area (ex. Kitchen).                                                                                                                                    |
+| object_id        | string | **Required** | the object id of the target of the zoom (ex. room_1_1)                                                                                                                      |
+| rotation         | object | {x:0, y:0, z:0} | the rotation of the camera pointing to the area.                                                                                                                                                      |
+| direction        | object  | {x:0, y:0, z:0}   | the direction vector of the canera pointing to the area.                                                                                                                             |  
+| distance        | number  | 500   | the number of cm from the camera to the target point                                                                                              |
+  
 
 ### Client Side Javascript template example
 
