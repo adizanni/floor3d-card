@@ -10,6 +10,7 @@ import {
   fireEvent,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 import './editor';
+import { HassEntity } from 'home-assistant-js-websocket';
 import { createConfigArray, createObjectGroupConfigArray } from './helpers';
 import type { Floor3dCardConfig } from './types';
 import { CARD_VERSION } from './const';
@@ -37,6 +38,7 @@ console.info(
 (window as any).customCards.push({
   type: 'floor3d-card',
   name: 'Floor3d Card',
+  preview: true,
   description: 'A custom card to visualize and activate entities in a live 3D model',
 });
 class ModelSource {
@@ -179,9 +181,163 @@ export class Floor3dCard extends LitElement {
     return document.createElement('floor3d-card-editor');
   }
 
-  public static getStubConfig(): object {
-    return {};
+  public static getStubConfig(hass: HomeAssistant, entities: string[], entitiesFallback: string[]): object {
+
+    console.log("Stub started");
+
+    const entityFilter = (stateObj: HassEntity): boolean => {
+      return !isNaN(Number(stateObj.state));
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const _arrayFilter = (array: any[], conditions: Array<(value: any) => boolean>, maxSize: number) => {
+      if (!maxSize || maxSize > array.length) {
+        maxSize = array.length;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filteredArray: any[] = [];
+
+      for (let i = 0; i < array.length && filteredArray.length < maxSize; i++) {
+        let meetsConditions = true;
+
+        for (const condition of conditions) {
+          if (!condition(array[i])) {
+            meetsConditions = false;
+            break;
+          }
+        }
+
+        if (meetsConditions) {
+          filteredArray.push(array[i]);
+        }
+      }
+
+      return filteredArray;
+    };
+
+    const _findEntities = (
+      hass: HomeAssistant,
+      maxEntities: number,
+      entities: string[],
+      entitiesFallback: string[],
+      includeDomains?: string[],
+      entityFilter?: (stateObj: HassEntity) => boolean,
+    ) => {
+      const conditions: Array<(value: string) => boolean> = [];
+
+      if (includeDomains?.length) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        conditions.push((eid) => includeDomains!.includes(eid.split('.')[0]));
+      }
+
+      if (entityFilter) {
+        conditions.push((eid) => hass.states[eid] && entityFilter(hass.states[eid]));
+      }
+
+      const entityIds = _arrayFilter(entities, conditions, maxEntities);
+
+      if (entityIds.length < maxEntities && entitiesFallback.length) {
+        const fallbackEntityIds = _findEntities(
+          hass,
+          maxEntities - entityIds.length,
+          entitiesFallback,
+          [],
+          includeDomains,
+          entityFilter,
+        );
+
+        entityIds.push(...fallbackEntityIds);
+      }
+
+      return entityIds;
+    };
+
+    //build a valid stub config
+
+    let includeDomains = ['binary_sensor'];
+    let maxEntities = 2;
+
+    let foundEntities = _findEntities(hass, maxEntities, entities, entitiesFallback, includeDomains);
+
+
+    const url = new URL(import.meta.url);
+    let asset = url.pathname.split("/").pop();
+    let path = url.pathname.replace(asset, "");
+
+    const conf = {
+      path: path,
+      name: "Home",
+      objfile: "home.glb",
+      shadow: "yes",
+      globalLightPower: "0.8",
+      header: "no",
+      camera_position: { x: 609.3072605703628, y: 905.5330092468828, z: 376.66437610591277 },
+      camera_rotate: { x: -1.0930244719682243, y: 0.5200808414019678, z: 0.7648717152512469 },
+      camera_target: { x: 37.36890424945437, y: 18.64464320782064, z: -82.55051697031719 },
+      object_groups: [{ object_group: "RoundTable", objects: [{object_id: "Round_table_1"}, {object_id: "Round_table_2"}, {object_id: "Round_table_3"} ]},
+      { object_group: "EntranceDoor", objects: [{object_id: "Door_9"}, {object_id: "Door_7"}, {object_id: "Door_5"} ]} ],
+      entities: []
+    };
+
+
+    let totalentities = 0;
+
+    if (foundEntities[0]) {
+      conf.entities.push( {
+        entity: foundEntities[0],
+        type3d: "door",
+        object_id: "<EntranceDoor>",
+        door:
+        {  doortype: "swing",
+          direction: "inner",
+          hinge: "Door_3",
+          percentage: "90"}
+      });
+      totalentities += 1;
+    }
+    if (foundEntities[1]) {
+        conf.entities.push( {
+        entity: foundEntities[1],
+        type3d: "hide",
+        object_id: "<RoundTable>",
+        hide:
+        {  state: "off" }
+      });
+      totalentities += 1;
+    }
+
+    includeDomains = ["light"];
+    maxEntities = 1;
+
+    foundEntities = _findEntities(hass, maxEntities, entities, entitiesFallback, includeDomains);
+
+    if (foundEntities[0]) {
+      conf.entities.push(
+        {
+          entity: foundEntities[1],
+          type3d: "light",
+          object_id: "Bowl_2",
+          light:
+        {  lumens: "800" }
+        }
+      );
+      totalentities += 1;
+    }
+    if (totalentities == 0) {
+      conf.entities.push(
+        {
+          entity: ""
+        }
+      );
+
+    }
+
+    console.log(conf);
+
+    console.log("Stub ended");
+    return conf;
   }
+
 
   // TODO Add any properities that should cause your element to re-render here
   // https://lit-element.polymer-project.org/guide/properties
@@ -1021,10 +1177,13 @@ export class Floor3dCard extends LitElement {
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
       const lastChar = path.substr(-1);
-      if (lastChar != '/') {
+      if (lastChar == '.') {
+        path = '';
+      } else if (lastChar != '/') {
         path = path + '/';
       }
       console.log('Path: ' + path);
+
 
       let fileExt = this._config.objfile.split('?')[0].split('.').pop();
 
