@@ -315,12 +315,12 @@ export class Floor3dCard extends LitElement {
     includeDomains = ["light"];
     maxEntities = 1;
 
-    foundEntities = _findEntities(hass, maxEntities, entities, entitiesFallback, includeDomains);
+    let foundLights = _findEntities(hass, maxEntities, entities, entitiesFallback, includeDomains);
 
-    if (foundEntities[0]) {
+    if (foundLights[0]) {
       conf.entities.push(
         {
-          entity: foundEntities[0],
+          entity: foundLights[0],
           type3d: "light",
           object_id: "Bowl_2",
           light:
@@ -329,6 +329,7 @@ export class Floor3dCard extends LitElement {
       );
       totalentities += 1;
     }
+
     if (totalentities == 0) {
       conf.entities.push(
         {
