@@ -264,6 +264,12 @@ export class Floor3dCard extends LitElement {
     let asset = url.pathname.split("/").pop();
     let path = url.pathname.replace(asset, "");
 
+    if (path.includes("hacsfiles")) {
+
+      path = "/local/community/floor3d-card/";
+
+    }
+
     const conf = {
       path: path,
       name: "Home",
@@ -314,7 +320,7 @@ export class Floor3dCard extends LitElement {
     if (foundEntities[0]) {
       conf.entities.push(
         {
-          entity: foundEntities[1],
+          entity: foundEntities[0],
           type3d: "light",
           object_id: "Bowl_2",
           light:
