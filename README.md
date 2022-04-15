@@ -39,6 +39,20 @@ Based on some feedback there are some open issues which I will try to fix, pleas
 
 When you are finished, configure a new card (either in panel mode or regular) with the following options:
 
+### Note: GLB format
+
+If you want to generate a glb file instead of the wavefront (obj) file to load the card (it is faster and more optimized), you can follow this procedure in Windows:
+Install nodejs here https://nodejs.org/dist/v16.14.2/node-v16.14.2-x64.msi 
+Once installed you can open a command prompt (or powershell) and type the following command:
+```bash
+npm install -g obj2gltf
+```
+Then (always in the same command prompt) you just have the full wavefront obj model (either created with the builtin function or with my plugin) to a folder (obj, mtl, pictures), move to the folder (cd <folder>) and type the following command:
+```bash
+obj2gltf --checkTransparency -i home.obj -o home.glb
+```
+Assuming your model is called home.obj. You wait for some time (from few seconds to minutes) and when it is completed you can take the glb file and copy it to the www folder of Home Assistant. It is a self containing binary object so you just need that one file to load the model.
+
 ## Options
 
 | Name             | Type   | Default      | Description                                                                                                                                                                |
