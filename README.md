@@ -113,6 +113,12 @@ The objects array contains a list of
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
   
+Here is a Tutorial for Object Groups:
+  
+| Object Groups Tutorial
+| ------------------------- 
+| [![Alt text](https://img.youtube.com/vi/eAbaDfNw93M/0.jpg)](https://www.youtube.com/watch?v=eAbaDfNw93M)  
+  
 For each zoom in zoom_areas
   
 | Name             | Type   | Default      | Description                                                                                                                                                                |
