@@ -1150,16 +1150,12 @@ export class Floor3dCard extends LitElement {
     //create and initialize scene and camera
 
     this._scene = new THREE.Scene();
-    if (this._config.backgroundColor && this._config.backgroundColor != '#000000') {
-      this._scene.background = new THREE.Color(this._config.backgroundColor);
-    } else {
-      this._scene.background = new THREE.Color('#aaaaaa');
-    }
+
     this._camera = new THREE.PerspectiveCamera(45, 1, 0.1, 10000);
 
     // create and initialize renderer
 
-    this._renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+    this._renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, alpha: true });
     this._maxtextureimage = this._renderer.capabilities.maxTextures;
     console.log('Max Texture Image Units: ' + this._maxtextureimage);
     console.log('Max Texture Image Units: number of lights casting shadow should be less than the above number');
@@ -1169,6 +1165,17 @@ export class Floor3dCard extends LitElement {
     this._renderer.domElement.style.width = '100%';
     this._renderer.domElement.style.height = '100%';
     this._renderer.domElement.style.display = 'block';
+
+    if (this._config.backgroundColor) {
+      if (this._config.backgroundColor == 'transparent') {
+        this._renderer.setClearColor(0x000000, 0);
+      } else {
+        this._scene.background = new THREE.Color(this._config.backgroundColor);
+      }
+    } else {
+      this._scene.background = new THREE.Color('#aaaaaa');
+    }
+
 
     //this._renderer.physicallyCorrectLights = true;
     if (this._config.sky && this._config.sky == 'yes') {
@@ -1183,7 +1190,7 @@ export class Floor3dCard extends LitElement {
 
     if (this._config.path && this._config.path != '') {
       let path = this._config.path;
-      const lastChar = path.substr(-1);
+      const lastChar = path.charAt(path.length - 1);
       if (lastChar == '.') {
         path = '';
       } else if (lastChar != '/') {
