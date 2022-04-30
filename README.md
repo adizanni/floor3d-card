@@ -6,8 +6,8 @@
 
 Javascript Module for the Home Assistant visualization Card for 3D Models with bindings to entity states.
 
-| New Tutorial [![Alt text](https://img.youtube.com/vi/ArBy7uqSJkY/0.jpg)](https://www.youtube.com/watch?v=ArBy7uqSJkY) | Demo [![Alt text](https://img.youtube.com/vi/M1zlIneB3e0/0.jpg)](https://www.youtube.com/watch?v=M1zlIneB3e0) |  Old Tutorial [![Alt text](https://img.youtube.com/vi/RVDNxt2tyhY/0.jpg)](https://www.youtube.com/watch?v=RVDNxt2tyhY)  |
-| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |  ----------------------------------------------------------------------------------------------------------------- |
+| New Tutorial [![Alt text](https://img.youtube.com/vi/ArBy7uqSJkY/0.jpg)](https://www.youtube.com/watch?v=ArBy7uqSJkY) | Your First Card [![Alt text](https://img.youtube.com/vi/4qrDpDnPK6I/0.jpg)](https://youtu.be/4qrDpDnPK6I)  |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
 
 
 ## Installation
@@ -112,6 +112,12 @@ The objects array contains a list of
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
+  
+Here is a Tutorial for Object Groups:
+  
+| Object Groups Tutorial
+| ------------------------- 
+| [![Alt text](https://img.youtube.com/vi/eAbaDfNw93M/0.jpg)](https://www.youtube.com/watch?v=eAbaDfNw93M)  
   
 For each zoom in zoom_areas
   
