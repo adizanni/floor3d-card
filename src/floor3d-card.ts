@@ -745,7 +745,7 @@ export class Floor3dCard extends LitElement {
         this._position = [];
 
         this._config.entities.forEach((entity) => {
-          if (entity.entity !== '') {
+          if (hass.states[entity.entity]) {
             this._states.push(this._statewithtemplate(entity));
             this._canvas.push(null);
             if (hass.states[entity.entity].attributes['unit_of_measurement']) {
@@ -818,6 +818,9 @@ export class Floor3dCard extends LitElement {
             if (hass.states[entity.entity].attributes['brightness']) {
               this._brightness[j] = hass.states[entity.entity].attributes['brightness'];
             }
+          } else
+          {
+            console.log("Entity <" + entity.entity + "> not found");
           }
         });
         this._firstcall = false;
@@ -837,7 +840,7 @@ export class Floor3dCard extends LitElement {
           }
         }
         this._config.entities.forEach((entity, i) => {
-          if (entity.entity !== '') {
+          if (hass.states[entity.entity]) {
             let state = this._statewithtemplate(entity);
             if (entity.type3d == 'cover') {
               let toupdate = false;
@@ -966,6 +969,9 @@ export class Floor3dCard extends LitElement {
                 }
               }
             }
+          }
+          else {
+            console.log("Entity <" + entity.entity + "> not found");
           }
         });
         if (torerender) {
@@ -1860,362 +1866,366 @@ export class Floor3dCard extends LitElement {
       this._zoom = [];
 
       this._config.entities.forEach((entity, i) => {
-        this._objposition.push([0, 0, 0]);
-        this._pivot.push(null);
-        this._axis_for_door.push(null);
-        this._degrees.push(0);
-        this._slidingdoor.push(null);
-        this._slidingdoorposition.push([]);
-        if (entity.entity !== '') {
-          if (entity.type3d == 'rotate') {
-            this._round_per_seconds.push(entity.rotate.round_per_second);
-            this._axis_to_rotate.push(entity.rotate.axis);
-            this._rotation_state.push(0);
-            this._rotation_index.push(i);
-            let bbox: THREE.Box3;
-            let hinge: any;
-            if (entity.rotate.hinge) {
-              hinge = this._scene.getObjectByName(entity.rotate.hinge);
-            } else {
-              hinge = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
-            }
-            bbox = new THREE.Box3().setFromObject(hinge);
-            this._pivot[i] = new THREE.Vector3();
-            this._pivot[i].subVectors(bbox.max, bbox.min).multiplyScalar(0.5);
-            this._pivot[i].add(bbox.min);
-
-            this._object_ids[i].objects.forEach((element) => {
-              let _obj: any = this._scene.getObjectByName(element.object_id);
-              this._centerobjecttopivot(_obj, this._pivot[i]);
-              _obj.geometry.applyMatrix4(
-                new THREE.Matrix4().makeTranslation(-this._pivot[i].x, -this._pivot[i].y, -this._pivot[i].z),
-              );
-            });
-          }
-          if (entity.type3d == 'door') {
-            if (entity.door.doortype == 'swing') {
-              //console.log("Start Add Door Swing");
-              let position = new THREE.Vector3();
-              if (entity.door.hinge) {
-                let hinge: THREE.Mesh = this._scene.getObjectByName(entity.door.hinge) as THREE.Mesh;
-                hinge.geometry.computeBoundingBox();
-                let boundingBox = hinge.geometry.boundingBox;
-                position.subVectors(boundingBox.max, boundingBox.min);
-                switch (Math.max(position.x, position.y, position.z)) {
-                  case position.x:
-                    this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
-                    break;
-                  case position.z:
-                    this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
-                    break;
-                  case position.y:
-                  default:
-                    this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
-                }
-                position.multiplyScalar(0.5);
-                position.add(boundingBox.min);
-                position.applyMatrix4(hinge.matrixWorld);
+        try {
+          this._objposition.push([0, 0, 0]);
+          this._pivot.push(null);
+          this._axis_for_door.push(null);
+          this._degrees.push(0);
+          this._slidingdoor.push(null);
+          this._slidingdoorposition.push([]);
+          if (this._hass.states[entity.entity]) {
+            if (entity.type3d == 'rotate') {
+              this._round_per_seconds.push(entity.rotate.round_per_second);
+              this._axis_to_rotate.push(entity.rotate.axis);
+              this._rotation_state.push(0);
+              this._rotation_index.push(i);
+              let bbox: THREE.Box3;
+              let hinge: any;
+              if (entity.rotate.hinge) {
+                hinge = this._scene.getObjectByName(entity.rotate.hinge);
               } else {
-                let pane: THREE.Mesh;
-
-                if (entity.door.pane) {
-                  pane = this._scene.getObjectByName(entity.door.pane) as THREE.Mesh;
-                } else {
-                  pane = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id) as THREE.Mesh;
-                }
-
-                pane.geometry.computeBoundingBox();
-                let boundingBox = pane.geometry.boundingBox;
-                position.subVectors(boundingBox.max, boundingBox.min);
-                if (entity.door.side) {
-                  switch (entity.door.side) {
-                    case 'up':
-                      position.x = position.x / 2;
-                      position.z = position.z / 2;
-                      position.y = position.y;
-                      if (position.x > position.z) {
-                        this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
-                      } else {
-                        this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
-                      }
-                      break;
-                    case 'down':
-                      position.x = position.x / 2;
-                      position.z = position.z / 2;
-                      position.y = 0;
-                      if (position.x > position.z) {
-                        this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
-                      } else {
-                        this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
-                      }
-                      break;
-                    case 'left':
-                      if (position.x > position.z) {
-                        position.x = 0;
-                        position.z = position.z / 2;
-                      } else {
-                        position.z = 0;
-                        position.x = position.x / 2;
-                      }
-                      this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
-                      position.y = 0;
-                      break;
-                    case 'right':
-                      if (position.x > position.z) {
-                        position.z = position.z / 2;
-                      } else {
-                        position.x = position.x / 2;
-                      }
-                      this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
-                      position.y = 0;
-                      break;
-                  }
-                }
-                position.add(boundingBox.min);
-                position.applyMatrix4(pane.matrixWorld);
+                hinge = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id);
               }
+              bbox = new THREE.Box3().setFromObject(hinge);
+              this._pivot[i] = new THREE.Vector3();
+              this._pivot[i].subVectors(bbox.max, bbox.min).multiplyScalar(0.5);
+              this._pivot[i].add(bbox.min);
 
-              this._pivot[i] = position;
-              this._degrees[i] = entity.door.degrees ? entity.door.degrees : 90;
               this._object_ids[i].objects.forEach((element) => {
                 let _obj: any = this._scene.getObjectByName(element.object_id);
-
                 this._centerobjecttopivot(_obj, this._pivot[i]);
-
                 _obj.geometry.applyMatrix4(
                   new THREE.Matrix4().makeTranslation(-this._pivot[i].x, -this._pivot[i].y, -this._pivot[i].z),
                 );
               });
-
-              //console.log("End Add Door Swing");
-            } else if (entity.door.doortype == 'slide') {
-              //console.log("Start Add Door Slide");
-
-              this._object_ids[i].objects.forEach((element) => {
-                let _obj: any = this._scene.getObjectByName(element.object_id);
-                let objbbox = new THREE.Box3().setFromObject(_obj);
-                this._slidingdoorposition[i].push(objbbox.min);
-                this._centerobjecttopivot(_obj, objbbox.min);
-                _obj.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
-                );
-              });
-
-              //console.log("End Add Door Slide");
             }
-          }
-          if (entity.type3d == 'cover') {
-            const pane: THREE.Mesh = this._scene.getObjectByName(entity.cover.pane) as THREE.Mesh;
-
-            if (pane) {
-              this._object_ids[i].objects.forEach((element) => {
-                let _obj: any = this._scene.getObjectByName(element.object_id);
-                let objbbox = new THREE.Box3().setFromObject(_obj);
-                this._slidingdoorposition[i].push(objbbox.min);
-                this._centerobjecttopivot(_obj, objbbox.min);
-                _obj.geometry.applyMatrix4(
-                  new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
-                );
-              });
-
-              let boxpane: THREE.Box3 = new THREE.Box3().setFromObject(pane);
-
-              let panevertices: THREE.Vector3[] = [];
-
-              switch (entity.cover.side) {
-                case 'up':
-                  panevertices = [
-                    new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.min.z), // 000
-                    new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.max.z), // 001
-                    new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.min.z), // 010
-                    new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.max.z), // 011
-                  ];
-                  break;
-                case 'down':
-                  panevertices = [
-                    new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.min.z), // 000
-                    new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.max.z), // 001
-                    new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.min.z), // 010
-                    new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.max.z), // 011
-                  ];
-                  break;
-              }
-
-              panevertices.sort((firstel, secondel) => {
-                if (firstel.x < secondel.x) {
-                  return -1;
-                }
-                if (firstel.x > secondel.x) {
-                  return 1;
-                }
-                return 0;
-              });
-
-              const coverplane = new THREE.Plane();
-
-              coverplane.setFromCoplanarPoints(panevertices[2], panevertices[1], panevertices[0]);
-
-              const clipPlanes = [coverplane];
-
-              this._object_ids[i].objects.forEach((element) => {
-                let _obj: any = this._scene.getObjectByName(element.object_id);
-                (_obj.material as THREE.Material).clippingPlanes = clipPlanes;
-              });
-
-              //(pane.material as THREE.Material).clippingPlanes = clipPlanes;
-
-              if (this._config.shadow) {
-                if (this._config.shadow == 'yes') {
-                  (pane.material as THREE.Material).clipShadows = true;
+            if (entity.type3d == 'door') {
+              if (entity.door.doortype == 'swing') {
+                //console.log("Start Add Door Swing");
+                let position = new THREE.Vector3();
+                if (entity.door.hinge) {
+                  let hinge: THREE.Mesh = this._scene.getObjectByName(entity.door.hinge) as THREE.Mesh;
+                  hinge.geometry.computeBoundingBox();
+                  let boundingBox = hinge.geometry.boundingBox;
+                  position.subVectors(boundingBox.max, boundingBox.min);
+                  switch (Math.max(position.x, position.y, position.z)) {
+                    case position.x:
+                      this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                      break;
+                    case position.z:
+                      this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                      break;
+                    case position.y:
+                    default:
+                      this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                  }
+                  position.multiplyScalar(0.5);
+                  position.add(boundingBox.min);
+                  position.applyMatrix4(hinge.matrixWorld);
                 } else {
-                  (pane.material as THREE.Material).clipShadows = false;
+                  let pane: THREE.Mesh;
+
+                  if (entity.door.pane) {
+                    pane = this._scene.getObjectByName(entity.door.pane) as THREE.Mesh;
+                  } else {
+                    pane = this._scene.getObjectByName(this._object_ids[i].objects[0].object_id) as THREE.Mesh;
+                  }
+
+                  pane.geometry.computeBoundingBox();
+                  let boundingBox = pane.geometry.boundingBox;
+                  position.subVectors(boundingBox.max, boundingBox.min);
+                  if (entity.door.side) {
+                    switch (entity.door.side) {
+                      case 'up':
+                        position.x = position.x / 2;
+                        position.z = position.z / 2;
+                        position.y = position.y;
+                        if (position.x > position.z) {
+                          this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                        } else {
+                          this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                        }
+                        break;
+                      case 'down':
+                        position.x = position.x / 2;
+                        position.z = position.z / 2;
+                        position.y = 0;
+                        if (position.x > position.z) {
+                          this._axis_for_door[i] = new THREE.Vector3(1, 0, 0);
+                        } else {
+                          this._axis_for_door[i] = new THREE.Vector3(0, 0, 1);
+                        }
+                        break;
+                      case 'left':
+                        if (position.x > position.z) {
+                          position.x = 0;
+                          position.z = position.z / 2;
+                        } else {
+                          position.z = 0;
+                          position.x = position.x / 2;
+                        }
+                        this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                        position.y = 0;
+                        break;
+                      case 'right':
+                        if (position.x > position.z) {
+                          position.z = position.z / 2;
+                        } else {
+                          position.x = position.x / 2;
+                        }
+                        this._axis_for_door[i] = new THREE.Vector3(0, 1, 0);
+                        position.y = 0;
+                        break;
+                    }
+                  }
+                  position.add(boundingBox.min);
+                  position.applyMatrix4(pane.matrixWorld);
                 }
+
+                this._pivot[i] = position;
+                this._degrees[i] = entity.door.degrees ? entity.door.degrees : 90;
+                this._object_ids[i].objects.forEach((element) => {
+                  let _obj: any = this._scene.getObjectByName(element.object_id);
+
+                  this._centerobjecttopivot(_obj, this._pivot[i]);
+
+                  _obj.geometry.applyMatrix4(
+                    new THREE.Matrix4().makeTranslation(-this._pivot[i].x, -this._pivot[i].y, -this._pivot[i].z),
+                  );
+                });
+
+                //console.log("End Add Door Swing");
+              } else if (entity.door.doortype == 'slide') {
+                //console.log("Start Add Door Slide");
+
+                this._object_ids[i].objects.forEach((element) => {
+                  let _obj: any = this._scene.getObjectByName(element.object_id);
+                  let objbbox = new THREE.Box3().setFromObject(_obj);
+                  this._slidingdoorposition[i].push(objbbox.min);
+                  this._centerobjecttopivot(_obj, objbbox.min);
+                  _obj.geometry.applyMatrix4(
+                    new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
+                  );
+                });
+
+                //console.log("End Add Door Slide");
               }
-
-              //const planehelper = new THREE.PlaneHelper(coverplane, 200);
-              //this._scene.add(planehelper);
-
-              this._updatecover(entity, this._states[i], i);
             }
-          }
-          if (entity.type3d == 'light') {
-            // Add Virtual Light Objects
-            this._object_ids[i].objects.forEach((element) => {
-              const _foundobject: any = this._scene.getObjectByName(element.object_id);
-              if (_foundobject) {
-                const box: THREE.Box3 = new THREE.Box3();
-                box.setFromObject(_foundobject);
+            if (entity.type3d == 'cover') {
+              const pane: THREE.Mesh = this._scene.getObjectByName(entity.cover.pane) as THREE.Mesh;
 
-                let light = new THREE.Light();
+              if (pane) {
+                this._object_ids[i].objects.forEach((element) => {
+                  let _obj: any = this._scene.getObjectByName(element.object_id);
+                  let objbbox = new THREE.Box3().setFromObject(_obj);
+                  this._slidingdoorposition[i].push(objbbox.min);
+                  this._centerobjecttopivot(_obj, objbbox.min);
+                  _obj.geometry.applyMatrix4(
+                    new THREE.Matrix4().makeTranslation(-objbbox.min.x, -objbbox.min.y, -objbbox.min.z),
+                  );
+                });
 
-                let x: number, y: number, z: number;
+                let boxpane: THREE.Box3 = new THREE.Box3().setFromObject(pane);
 
-                x = (box.max.x - box.min.x) / 2 + box.min.x;
-                z = (box.max.z - box.min.z) / 2 + box.min.z;
-                y = (box.max.y - box.min.y) / 2 + box.min.y;
+                let panevertices: THREE.Vector3[] = [];
 
-                if (entity.light.vertical_alignment) {
-                  switch (entity.light.vertical_alignment) {
-                    case 'top':
-                      y = box.max.y;
-                      break;
-                    case 'middle':
-                      y = (box.max.y - box.min.y) / 2 + box.min.y;
-                      break;
-                    case 'bottom':
-                      y = box.min.y;
-                      break;
+                switch (entity.cover.side) {
+                  case 'up':
+                    panevertices = [
+                      new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.min.z), // 000
+                      new THREE.Vector3(boxpane.min.x, boxpane.max.y, boxpane.max.z), // 001
+                      new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.min.z), // 010
+                      new THREE.Vector3(boxpane.max.x, boxpane.max.y, boxpane.max.z), // 011
+                    ];
+                    break;
+                  case 'down':
+                    panevertices = [
+                      new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.min.z), // 000
+                      new THREE.Vector3(boxpane.min.x, boxpane.min.y, boxpane.max.z), // 001
+                      new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.min.z), // 010
+                      new THREE.Vector3(boxpane.max.x, boxpane.min.y, boxpane.max.z), // 011
+                    ];
+                    break;
+                }
+
+                panevertices.sort((firstel, secondel) => {
+                  if (firstel.x < secondel.x) {
+                    return -1;
+                  }
+                  if (firstel.x > secondel.x) {
+                    return 1;
+                  }
+                  return 0;
+                });
+
+                const coverplane = new THREE.Plane();
+
+                coverplane.setFromCoplanarPoints(panevertices[2], panevertices[1], panevertices[0]);
+
+                const clipPlanes = [coverplane];
+
+                this._object_ids[i].objects.forEach((element) => {
+                  let _obj: any = this._scene.getObjectByName(element.object_id);
+                  (_obj.material as THREE.Material).clippingPlanes = clipPlanes;
+                });
+
+                //(pane.material as THREE.Material).clippingPlanes = clipPlanes;
+
+                if (this._config.shadow) {
+                  if (this._config.shadow == 'yes') {
+                    (pane.material as THREE.Material).clipShadows = true;
+                  } else {
+                    (pane.material as THREE.Material).clipShadows = false;
                   }
                 }
 
-                let decay: number;
-                let distance: number;
+                //const planehelper = new THREE.PlaneHelper(coverplane, 200);
+                //this._scene.add(planehelper);
 
-                if (entity.light.decay) {
-                  decay = Number(entity.light.decay);
-                } else {
-                  decay = 2;
-                }
+                this._updatecover(entity, this._states[i], i);
+              }
+            }
+            if (entity.type3d == 'light') {
+              // Add Virtual Light Objects
+              this._object_ids[i].objects.forEach((element) => {
+                const _foundobject: any = this._scene.getObjectByName(element.object_id);
+                if (_foundobject) {
+                  const box: THREE.Box3 = new THREE.Box3();
+                  box.setFromObject(_foundobject);
 
-                if (entity.light.distance) {
-                  distance = Number(entity.light.distance);
-                } else {
-                  distance = 600;
-                }
+                  let light = new THREE.Light();
 
-                if (entity.light.light_target || entity.light.light_direction) {
-                  const angle = entity.light.angle ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10;
+                  let x: number, y: number, z: number;
 
-                  const slight: THREE.SpotLight = new THREE.SpotLight(
-                    new THREE.Color('#ffffff'),
-                    0,
-                    distance,
-                    angle,
-                    0.5,
-                    decay,
-                  );
-                  //this._bboxmodel.add(slight);
-                  this._levels[_foundobject.userData.level].add(slight);
-                  let target = new THREE.Object3D();
-                  //this._bboxmodel.add(target);
-                  this._levels[_foundobject.userData.level].add(target);
-                  slight.position.set(x, y, z);
-                  if (entity.light.light_direction) {
-                    target.position.set(
-                      x + entity.light.light_direction.x,
-                      y + entity.light.light_direction.y,
-                      z + entity.light.light_direction.z,
-                    );
-                  } else {
-                    const tobj: THREE.Object3D = this._scene.getObjectByName(entity.light.light_target);
+                  x = (box.max.x - box.min.x) / 2 + box.min.x;
+                  z = (box.max.z - box.min.z) / 2 + box.min.z;
+                  y = (box.max.y - box.min.y) / 2 + box.min.y;
 
-                    if (tobj) {
-                      const tbox: THREE.Box3 = new THREE.Box3();
-                      tbox.setFromObject(tobj);
-
-                      let tx: number, ty: number, tz: number;
-
-                      tx = (tbox.max.x - tbox.min.x) / 2 + tbox.min.x;
-                      tz = (tbox.max.z - tbox.min.z) / 2 + tbox.min.z;
-                      ty = (tbox.max.y - tbox.min.y) / 2 + tbox.min.y;
-
-                      target.position.set(tx, ty, tz);
+                  if (entity.light.vertical_alignment) {
+                    switch (entity.light.vertical_alignment) {
+                      case 'top':
+                        y = box.max.y;
+                        break;
+                      case 'middle':
+                        y = (box.max.y - box.min.y) / 2 + box.min.y;
+                        break;
+                      case 'bottom':
+                        y = box.min.y;
+                        break;
                     }
                   }
 
-                  if (target) {
-                    slight.target = target;
+                  let decay: number;
+                  let distance: number;
+
+                  if (entity.light.decay) {
+                    decay = Number(entity.light.decay);
+                  } else {
+                    decay = 2;
                   }
 
-                  light = slight;
-                } else {
-                  const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, distance, decay);
-                  this._levels[_foundobject.userData.level].add(plight);
-                  plight.position.set(x, y, z);
-                  light = plight;
+                  if (entity.light.distance) {
+                    distance = Number(entity.light.distance);
+                  } else {
+                    distance = 600;
+                  }
+
+                  if (entity.light.light_target || entity.light.light_direction) {
+                    const angle = entity.light.angle ? THREE.MathUtils.degToRad(entity.light.angle) : Math.PI / 10;
+
+                    const slight: THREE.SpotLight = new THREE.SpotLight(
+                      new THREE.Color('#ffffff'),
+                      0,
+                      distance,
+                      angle,
+                      0.5,
+                      decay,
+                    );
+                    //this._bboxmodel.add(slight);
+                    this._levels[_foundobject.userData.level].add(slight);
+                    let target = new THREE.Object3D();
+                    //this._bboxmodel.add(target);
+                    this._levels[_foundobject.userData.level].add(target);
+                    slight.position.set(x, y, z);
+                    if (entity.light.light_direction) {
+                      target.position.set(
+                        x + entity.light.light_direction.x,
+                        y + entity.light.light_direction.y,
+                        z + entity.light.light_direction.z,
+                      );
+                    } else {
+                      const tobj: THREE.Object3D = this._scene.getObjectByName(entity.light.light_target);
+
+                      if (tobj) {
+                        const tbox: THREE.Box3 = new THREE.Box3();
+                        tbox.setFromObject(tobj);
+
+                        let tx: number, ty: number, tz: number;
+
+                        tx = (tbox.max.x - tbox.min.x) / 2 + tbox.min.x;
+                        tz = (tbox.max.z - tbox.min.z) / 2 + tbox.min.z;
+                        ty = (tbox.max.y - tbox.min.y) / 2 + tbox.min.y;
+
+                        target.position.set(tx, ty, tz);
+                      }
+                    }
+
+                    if (target) {
+                      slight.target = target;
+                    }
+
+                    light = slight;
+                  } else {
+                    const plight: THREE.PointLight = new THREE.PointLight(new THREE.Color('#ffffff'), 0, distance, decay);
+                    this._levels[_foundobject.userData.level].add(plight);
+                    plight.position.set(x, y, z);
+                    light = plight;
+                  }
+
+                  this._setNoShadowLight(_foundobject);
+                  _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
+
+                  if (entity.light.shadow == 'no') {
+                    light.castShadow = false;
+                  } else {
+                    light.castShadow = true;
+                    light.shadow.bias = -0.0001;
+                  }
+                  light.name = element.object_id + '_light';
                 }
-
-                this._setNoShadowLight(_foundobject);
-                _foundobject.traverseAncestors(this._setNoShadowLight.bind(this));
-
-                if (entity.light.shadow == 'no') {
-                  light.castShadow = false;
-                } else {
-                  light.castShadow = true;
-                  light.shadow.bias = -0.0001;
+              });
+            }
+            if (entity.type3d == 'color') {
+              // Clone Material to allow object color changes based on Color Conditions Objects
+              let j = 0;
+              this._object_ids[i].objects.forEach((element) => {
+                let _foundobject: any = this._scene.getObjectByName(element.object_id);
+                this._initialmaterial[i][j] = _foundobject.material;
+                if (!Array.isArray(_foundobject.material)) {
+                  this._clonedmaterial[i][j] = _foundobject.material.clone();
                 }
-                light.name = element.object_id + '_light';
-              }
-            });
-          }
-          if (entity.type3d == 'color') {
-            // Clone Material to allow object color changes based on Color Conditions Objects
-            let j = 0;
-            this._object_ids[i].objects.forEach((element) => {
-              let _foundobject: any = this._scene.getObjectByName(element.object_id);
-              this._initialmaterial[i][j] = _foundobject.material;
-              if (!Array.isArray(_foundobject.material)) {
-                this._clonedmaterial[i][j] = _foundobject.material.clone();
-              }
-              j = j + 1;
-            });
-          }
-          if (entity.type3d == 'text') {
-            // Clone object to print the text
-            this._object_ids[i].objects.forEach((element) => {
-              let _foundobject: any = this._scene.getObjectByName(element.object_id);
+                j = j + 1;
+              });
+            }
+            if (entity.type3d == 'text') {
+              // Clone object to print the text
+              this._object_ids[i].objects.forEach((element) => {
+                let _foundobject: any = this._scene.getObjectByName(element.object_id);
 
-              let box: THREE.Box3 = new THREE.Box3();
-              box.setFromObject(_foundobject);
+                let box: THREE.Box3 = new THREE.Box3();
+                box.setFromObject(_foundobject);
 
-              let _newobject = _foundobject.clone();
+                let _newobject = _foundobject.clone();
 
-              //(_newobject as Mesh).scale.set(1.005, 1.005, 1.005);
-              _newobject.name = 'f3dobj_' + _foundobject.name;
-              //this._bboxmodel.add(_newobject);
-              this._levels[_foundobject.userData.level].add(_newobject);
-            });
+                //(_newobject as Mesh).scale.set(1.005, 1.005, 1.005);
+                _newobject.name = 'f3dobj_' + _foundobject.name;
+                //this._bboxmodel.add(_newobject);
+                this._levels[_foundobject.userData.level].add(_newobject);
+              });
+            }
           }
+        } catch {
+          throw new Error("Object issue for Entity: <"+ entity.entity + ">");
         }
       });
       this._config.entities.forEach((entity, i) => {
