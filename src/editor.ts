@@ -1069,7 +1069,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-textfield
                   label="Hide Levels Menu"
                   fullwidth
-                  .value=${config.hideLevelsMenu ? config.hideLevelsMenu : 'yes'}
+                  .value=${config.hideLevelsMenu ? config.hideLevelsMenu : 'no'}
                   .configObject=${config}
                   .configAttribute=${'hideLevelsMenu'}
                   @input=${this._valueChanged}
