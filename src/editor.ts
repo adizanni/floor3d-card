@@ -1066,6 +1066,14 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .configAttribute=${'backgroundColor'}
                   @input=${this._valueChanged}
                 ></floor3d-textfield>
+                <floor3d-textfield
+                  label="Hide Levels Menu"
+                  fullwidth
+                  .value=${config.hideLevelsMenu ? config.hideLevelsMenu : 'no'}
+                  .configObject=${config}
+                  .configAttribute=${'hideLevelsMenu'}
+                  @input=${this._valueChanged}
+                ></floor3d-textfield>
                 <floor3d-formfield alignEnd label="Global Scene Light (0..1)" >
                   <floor3d-textfield
                     type="number"

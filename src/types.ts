@@ -9,7 +9,7 @@ declare global {
 }
 
 // TODO Add your configuration elements here for type-checking
-export interface Floor3dCardConfig {
+export interface Floor3dCardConfig {  
   type: string;
   path: string;
   name: string;
@@ -22,6 +22,7 @@ export interface Floor3dCardConfig {
   header: string;
   backgroundColor: string;
   globalLightPower: string;
+  hideLevelsMenu: string;
   shadow: string;
   entities: any;
   lock_camera: string;
