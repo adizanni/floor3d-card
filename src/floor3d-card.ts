@@ -2523,11 +2523,15 @@ export class Floor3dCard extends LitElement {
   private _applyTextCanvas(canvas: HTMLCanvasElement, object: THREE.Object3D) {
     // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
     const _foundobject: any = object;
-
+    let fileExt = this._config.objfile.split('?')[0].split('.').pop();
+    
     if (_foundobject instanceof THREE.Mesh) {
       const texture = new THREE.CanvasTexture(canvas);
       texture.repeat.set(1, 1);
-
+      
+      if (fileExt == "glb"){ 
+        texture.flipY = false;
+      }
       if (((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
         ((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).map = texture;
       } else {
