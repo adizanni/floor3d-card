@@ -574,55 +574,59 @@ export class Floor3dCard extends LitElement {
 
   private _defaultaction(intersects: THREE.Intersection[]): void {
     if (intersects.length > 0 && intersects[0].object.name != '') {
-      if (getLovelace().editMode) {
+     if (getLovelace().editMode && this._config.editModeNotifications) {
         window.prompt('Object:', intersects[0].object.name);
-      } else {
-        this._config.entities.forEach((entity, i) => {
-          if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
-            for (let j = 0; j < this._object_ids[i].objects.length; j++) {
-              if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
-                if (entity.type3d == 'light') {
-                  this._hass.callService(entity.entity.split('.')[0], 'toggle', {
-                    entity_id: entity.entity,
-                  });
-                } else if (entity.type3d == 'gesture') {
-                  this._hass.callService(entity.gesture.domain, entity.gesture.service, {
-                    entity_id: entity.entity,
-                  });
-                } else if (entity.type3d == 'camera') {
-                  fireEvent(this, 'hass-more-info', { entityId: entity.entity });
-                  //this._hass.states[entity.entity].attributes["entity_picture"]
-                }
-                break;
+     }
+     console.log('Object:', intersects[0].object.name);
+
+      this._config.entities.forEach((entity, i) => {
+        if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
+          for (let j = 0; j < this._object_ids[i].objects.length; j++) {
+            if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
+              if (entity.type3d == 'light') {
+                this._hass.callService(entity.entity.split('.')[0], 'toggle', {
+                  entity_id: entity.entity,
+                });
+              } else if (entity.type3d == 'gesture') {
+                this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+                  entity_id: entity.entity,
+                });
+              } else if (entity.type3d == 'camera') {
+                fireEvent(this, 'hass-more-info', { entityId: entity.entity });
+                //this._hass.states[entity.entity].attributes["entity_picture"]
               }
+              break;
             }
           }
-        });
+        }
+      });
+    } else {
+      const cameraData = 'camera_position: { x: ' +
+        this._camera.position.x +
+        ', y: ' +
+        this._camera.position.y +
+        ', z: ' +
+        this._camera.position.z +
+        ' }\n' +
+        'camera_rotate: { x: ' +
+        this._camera.rotation.x +
+        ', y: ' +
+        this._camera.rotation.y +
+        ', z: ' +
+        this._camera.rotation.z +
+        ' }\n' +
+        'camera_target: { x: ' +
+        this._controls.target.x +
+        ', y: ' +
+        this._controls.target.y +
+        ', z: ' +
+        this._controls.target.z +
+        ' }';
+      if (getLovelace().editMode && this._config.editModeNotifications) {
+        window.prompt('YAML:', cameraData);
       }
-    } else if (getLovelace().editMode) {
-      window.prompt(
-        'YAML:',
-        'camera_position: { x: ' +
-          this._camera.position.x +
-          ', y: ' +
-          this._camera.position.y +
-          ', z: ' +
-          this._camera.position.z +
-          ' }\n' +
-          'camera_rotate: { x: ' +
-          this._camera.rotation.x +
-          ', y: ' +
-          this._camera.rotation.y +
-          ', z: ' +
-          this._camera.rotation.z +
-          ' }\n' +
-          'camera_target: { x: ' +
-          this._controls.target.x +
-          ', y: ' +
-          this._controls.target.y +
-          ', z: ' +
-          this._controls.target.z +
-          ' }',
+      console.log(
+        'YAML:', cameraData
       );
     }
   }
