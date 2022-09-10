@@ -1663,7 +1663,7 @@ export class Floor3dCard extends LitElement {
 
   private _getLevelBar(): TemplateResult {
     if (this._levels) {
-      if (this._levels.length > 1 && this._config.hideLevelsMenu == "no") {
+      if (this._levels.length > 1 && (this._config.hideLevelsMenu == null || this._config.hideLevelsMenu == "no")) {
         return html` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `;
       } else {
         return html``;

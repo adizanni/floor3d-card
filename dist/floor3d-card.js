@@ -2276,7 +2276,7 @@ const Eu=h`.mdc-button{-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:
             </floor3d-button>
             </font>
           </div>
-        `)})),t}_getLevelBar(){return this._levels&&this._levels.length>1&&"no"==this._config.hideLevelsMenu?H` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `:H``}_getLevelIcons(){const t=[];return t.push(H`
+        `)})),t}_getLevelBar(){return this._levels&&this._levels.length>1&&(null==this._config.hideLevelsMenu||"no"==this._config.hideLevelsMenu)?H` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `:H``}_getLevelIcons(){const t=[];return t.push(H`
       <div class="row" style="background-color:black;">
         <font color="white">
         <ha-icon
