@@ -100,7 +100,9 @@ export class Floor3dCard extends LitElement {
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _performActionListener: EventListener;
-  private _fireventListener: EventListener;
+  private _mouseMoved: boolean;
+  private _mousedownEventListener: EventListener;
+  private _firEventListener: EventListener;
   private _changeListener: EventListener;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -126,13 +128,22 @@ export class Floor3dCard extends LitElement {
   constructor() {
     super();
 
+    this._mouseMoved = false;
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => {
       this._resizeCanvasDebounce();
     });
     this._performActionListener = (evt) => this._performAction(evt);
-    this._fireventListener = (evt) => this._firevent(evt);
-    this._changeListener = () => this._render();
+    this._firEventListener = (evt) => {
+      if (this._mouseMoved) return;
+      this._firEvent(evt);
+    }
+    this._mousedownEventListener = (evt) => this._mousedownEvent(evt);
+    this._changeListener = () => {
+      // Mouse was used to move OrbitControls, ignore click event
+      this._mouseMoved = true;
+      this._render();
+    }
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
     this._card_id = 'ha-card-1';
@@ -516,7 +527,11 @@ export class Floor3dCard extends LitElement {
     return intersects;
   }
 
-  private _firevent(e: any): void {
+  private _mousedownEvent(_e: any): void {
+    this._mouseMoved = false;
+  }
+
+  private _firEvent(e: any): void {
     //double click on object to show the name
     const intersects = this._getintersect(e);
     if (intersects.length > 0 && intersects[0].object.name != '') {
@@ -1333,7 +1348,8 @@ export class Floor3dCard extends LitElement {
       this._selectedlevel = -1;
       render(this._getLevelBar(), this._levelbar);
       if (this._config.click == 'yes') {
-        this._content.addEventListener('click', this._fireventListener);
+        this._content.addEventListener('mousedown', this._mousedownEventListener);
+        this._content.addEventListener('click', this._firEventListener);
       }
 
       this._content.addEventListener('dblclick', this._performActionListener);
@@ -2524,12 +2540,12 @@ export class Floor3dCard extends LitElement {
     // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
     const _foundobject: any = object;
     let fileExt = this._config.objfile.split('?')[0].split('.').pop();
-    
+
     if (_foundobject instanceof THREE.Mesh) {
       const texture = new THREE.CanvasTexture(canvas);
       texture.repeat.set(1, 1);
-      
-      if (fileExt == "glb"){ 
+
+      if (fileExt == "glb"){
         texture.flipY = false;
       }
       if (((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
