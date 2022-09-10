@@ -1760,7 +1760,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _handleClearSelectionsClick(ev): void {
-    ev.preventDefault();
+    ev.stopPropagation();
     this._setSelectionMaterials(false);
     this._selectedobjects = [];
     console.log("Cleared selected objects")
@@ -1768,14 +1768,14 @@ export class Floor3dCard extends LitElement {
   }
 
   private _handleToggleSelectionMode(ev): void {
-    ev.preventDefault();
+    ev.stopPropagation();
     this._selectionModeEnabled = !this._selectionModeEnabled;
     this._setSelectionMaterials(this._selectionModeEnabled);
     render(this._getSelectionBar(), this._selectionbar);
   }
 
   private _handleZoomClick(ev): void {
-    ev.preventDefault();
+    ev.stopPropagation();
 
     if (ev.target.index == -1) {
 
@@ -1822,7 +1822,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _handleLevelClick(ev): void {
-    ev.preventDefault();
+    ev.stopPropagation();
 
     this._toggleVisibleLevel(ev.target.index);
 
