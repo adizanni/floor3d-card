@@ -23,6 +23,7 @@ export interface Floor3dCardConfig {
   backgroundColor: string;
   globalLightPower: string;
   hideLevelsMenu: string;
+  initialLevel: number;
   shadow: string;
   entities: any;
   lock_camera: string;

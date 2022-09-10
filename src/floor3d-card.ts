@@ -1346,7 +1346,7 @@ export class Floor3dCard extends LitElement {
       this._content.appendChild(this._zoombar);
       this._content.appendChild(this._renderer.domElement);
       this._selectedlevel = -1;
-      render(this._getLevelBar(), this._levelbar);
+
       if (this._config.click == 'yes') {
         this._content.addEventListener('mousedown', this._mousedownEventListener);
         this._content.addEventListener('click', this._firEventListener);
@@ -1392,7 +1392,17 @@ export class Floor3dCard extends LitElement {
 
       this._manageZoom();
 
-      this._setVisibleLevel(-1);
+      const initialLevel = typeof this._config.initialLevel === 'undefined' ? -1 : this._config.initialLevel;
+      this._levels.forEach((element, i) => {
+        if (initialLevel == -1) {
+          this._displaylevels[i] = true;
+        } else {
+          this._displaylevels[i] = (i == initialLevel);
+        }
+        element.visible = this._displaylevels[i];
+      });
+      this._updateRaycasting();
+      render(this._getLevelBar(), this._levelbar);
 
       this._resizeCanvas();
 
@@ -1529,26 +1539,23 @@ export class Floor3dCard extends LitElement {
     console.log('End Init Objects. Number of levels found: ' + this._levels.length);
   }
 
-  private _setVisibleLevel(level: number): void {
-
+  private _toggleVisibleLevel(level: number): void {
       this._levels.forEach((element, i) => {
         if (level == -1) {
-          element.visible = true;
           this._displaylevels[i] = true;
+        } else if (level == i) {
+          this._displaylevels[i] = !this._displaylevels[i];
         }
-        if (level == i) {
-          element.visible = !element.visible;
-          this._displaylevels[level] = !this._displaylevels[level];
-        } else {
-          element.visible = this._displaylevels[i];
-        }
+        element.visible = this._displaylevels[i];
       });
+      this._updateRaycasting();
+  }
 
+  private _updateRaycasting() {
     this._raycasting = [];
-
     this._displaylevels.forEach((visible, index) => {
       if (visible) {
-       this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
+        this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
       }
     });
   }
@@ -1701,7 +1708,7 @@ export class Floor3dCard extends LitElement {
 
   private _handleLevelClick(ev): void {
 
-    this._setVisibleLevel(ev.target.index);
+    this._toggleVisibleLevel(ev.target.index);
 
     render(this._getLevelBar(), this._levelbar);
 
