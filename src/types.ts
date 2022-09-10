@@ -25,7 +25,7 @@ export interface Floor3dCardConfig {
   hideLevelsMenu: string;
   initialLevel: number;
   selectionMode: string;
-  editModeNotifications: boolean;
+  editModeNotifications: string;
   shadow: string;
   entities: any;
   lock_camera: string;

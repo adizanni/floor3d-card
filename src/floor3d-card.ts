@@ -588,7 +588,7 @@ export class Floor3dCard extends LitElement {
     if (intersects.length > 0 && intersects[0].object && intersects[0].object.name != '') {
       const objectName = intersects[0].object.name;
 
-      if (getLovelace().editMode && this._config.editModeNotifications) {
+      if (getLovelace().editMode && this._config.editModeNotifications == 'yes') {
         window.prompt('Object:', objectName);
       }
       console.log('Object:', objectName);
@@ -661,7 +661,7 @@ export class Floor3dCard extends LitElement {
         ', z: ' +
         this._controls.target.z +
         ' }';
-      if (getLovelace().editMode && this._config.editModeNotifications) {
+      if (getLovelace().editMode && this._config.editModeNotifications == 'yes') {
         window.prompt('YAML:', cameraData);
       }
       console.log(
