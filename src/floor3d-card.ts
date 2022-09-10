@@ -54,6 +54,7 @@ export class Floor3dCard extends LitElement {
   private _renderer?: THREE.WebGLRenderer;
   private _levelbar?: HTMLElement;
   private _zoombar?: HTMLElement;
+  private _selectionbar?: HTMLElement;
   private _controls?: OrbitControls;
   private _hemiLight?: THREE.HemisphereLight;
   private _modelX?: number;
@@ -71,6 +72,10 @@ export class Floor3dCard extends LitElement {
   private _raycastinglevels: THREE.Object3D[][];
   private _initialmaterial?: THREE.Material[][];
   private _clonedmaterial?: THREE.Material[][];
+  private _selectedmaterial?: THREE.Material;
+  private _initialobjectmaterials: { [key:string]: THREE.Material }
+  private _selectedobjects: string[];
+  private _selectionModeEnabled: boolean;
   private _brightness?: number[];
   private _lights?: string[];
   private _rooms?: string[];
@@ -129,6 +134,9 @@ export class Floor3dCard extends LitElement {
     super();
 
     this._clickStart = 0;
+    this._initialobjectmaterials = {};
+    this._selectedobjects = [];
+
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => {
       this._resizeCanvasDebounce();
@@ -375,6 +383,8 @@ export class Floor3dCard extends LitElement {
     this._clonedmaterial = [];
     let i = 0;
 
+    this._selectionModeEnabled = this._config.selectionMode === 'yes'
+
     this._object_ids.forEach((entity) => {
       this._initialmaterial.push([]);
       this._clonedmaterial.push([]);
@@ -532,6 +542,11 @@ export class Floor3dCard extends LitElement {
     //double click on object to show the name
     const intersects = this._getintersect(e);
     if (intersects.length > 0 && intersects[0].object.name != '') {
+      if (this._selectionModeEnabled) {
+        this._defaultaction(intersects);
+        return;
+      }
+
       this._config.entities.forEach((entity, i) => {
         for (let j = 0; j < this._object_ids[i].objects.length; j++) {
           if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
@@ -570,11 +585,38 @@ export class Floor3dCard extends LitElement {
   }
 
   private _defaultaction(intersects: THREE.Intersection[]): void {
-    if (intersects.length > 0 && intersects[0].object.name != '') {
-     if (getLovelace().editMode && this._config.editModeNotifications) {
-        window.prompt('Object:', intersects[0].object.name);
-     }
-     console.log('Object:', intersects[0].object.name);
+    if (intersects.length > 0 && intersects[0].object && intersects[0].object.name != '') {
+      const objectName = intersects[0].object.name;
+
+      if (getLovelace().editMode && this._config.editModeNotifications) {
+        window.prompt('Object:', objectName);
+      }
+      console.log('Object:', objectName);
+
+      if (this._selectionModeEnabled) {
+        // Color objects blue when we click them, so we can build a list of
+        // rooms and walls to control a light
+        const object: any = intersects[0].object
+        if (!this._selectedmaterial) {
+          const newMaterial: any = new THREE.MeshStandardMaterial({ color: 0x7777FF });
+          this._selectedmaterial = newMaterial
+        }
+        if (!this._initialobjectmaterials[objectName]) {
+          this._initialobjectmaterials[objectName] = object.material
+        }
+        if (this._selectedobjects.includes(objectName)) {
+          this._selectedobjects = this._selectedobjects.filter(e => e !== objectName);
+          object.material = this._initialobjectmaterials[objectName];
+        } else {
+          this._selectedobjects.push(objectName);
+          object.material = this._selectedmaterial;
+        }
+        this._selectedobjects = this._selectedobjects.sort();
+        console.log('Selected object IDs:', this._selectedobjects);
+        this._render();
+        render(this._getSelectionBar(), this._selectionbar);
+        return;
+      }
 
       this._config.entities.forEach((entity, i) => {
         if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
@@ -1342,13 +1384,17 @@ export class Floor3dCard extends LitElement {
       console.log('Show canvas');
       this._levelbar = document.createElement('div');
       this._zoombar = document.createElement('div');
+      this._selectionbar = document.createElement('div');
       this._content.innerText = '';
       this._content.appendChild(this._levelbar);
       this._content.appendChild(this._zoombar);
+      this._content.appendChild(this._selectionbar);
       this._content.appendChild(this._renderer.domElement);
       this._selectedlevel = -1;
 
-      if (this._config.click == 'yes') {
+      render(this._getSelectionBar(), this._selectionbar);
+
+      if (this._config.click == 'yes' || this._selectionModeEnabled) {
         this._content.addEventListener('mousedown', this._mousedownEventListener);
         this._content.addEventListener('click', this._firEventListener);
       }
@@ -1580,7 +1626,6 @@ export class Floor3dCard extends LitElement {
   private _getZoomButtons(): TemplateResult[] {
     const iconArray: TemplateResult[] = [];
 
-
     iconArray.push(html`
       <div class="row" style="background-color:black;">
         <font color="white">
@@ -1667,6 +1712,66 @@ export class Floor3dCard extends LitElement {
     });
 
     return iconArray;
+  }
+
+  private _getSelectionBar(): TemplateResult {
+    if (this._config.selectionMode == 'yes') {
+      const buttonArray: TemplateResult[] = [];
+      buttonArray.push(html`
+        <div class="row" style="background-color:black;">
+          <font color="white">
+          <floor3d-button
+            style="opacity: 100%;"
+            label="clear selections (${this._selectedobjects.length})"
+            @click=${this._handleClearSelectionsClick.bind(this)}
+          >
+          </floor3d-button>
+          </font>
+        </div>
+      `);
+
+      buttonArray.push(html`
+        <div class="row" style="background-color:black;">
+          <font color="white">
+          <floor3d-button
+            style="opacity: 100%;"
+            label="${this._selectionModeEnabled ? 'Disable Selection' : 'Enable Selection'}"
+            @click=${this._handleToggleSelectionMode.bind(this)}
+          >
+          </floor3d-button>
+          </font>
+        </div>
+      `);
+
+      return html` <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; right: 0px">${buttonArray}</div> `;
+    } else {
+      return html``;
+    }
+  }
+
+  private _setSelectionMaterials(show: boolean): void {
+    this._selectedobjects.forEach((objectName) => {
+      let object: any = this._scene.getObjectByName(objectName);
+      if (object) {
+        object.material = show ? this._selectedmaterial : this._initialobjectmaterials[objectName];
+      }
+    });
+    this._render();
+  }
+
+  private _handleClearSelectionsClick(ev): void {
+    ev.preventDefault();
+    this._setSelectionMaterials(false);
+    this._selectedobjects = [];
+    console.log("Cleared selected objects")
+    render(this._getSelectionBar(), this._selectionbar);
+  }
+
+  private _handleToggleSelectionMode(ev): void {
+    ev.preventDefault();
+    this._selectionModeEnabled = !this._selectionModeEnabled;
+    this._setSelectionMaterials(this._selectionModeEnabled);
+    render(this._getSelectionBar(), this._selectionbar);
   }
 
   private _handleZoomClick(ev): void {

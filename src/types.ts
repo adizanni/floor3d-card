@@ -24,6 +24,7 @@ export interface Floor3dCardConfig {
   globalLightPower: string;
   hideLevelsMenu: string;
   initialLevel: number;
+  selectionMode: string;
   editModeNotifications: boolean;
   shadow: string;
   entities: any;
