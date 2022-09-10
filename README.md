@@ -44,7 +44,7 @@ When you are finished, configure a new card (either in panel mode or regular) wi
 ### Note: GLB format
 
 If you want to generate a glb file instead of the wavefront (obj) file to load the card (it is faster and more optimized), you can follow this procedure in Windows:
-Install nodejs here https://nodejs.org/dist/v16.14.2/node-v16.14.2-x64.msi 
+Install nodejs here https://nodejs.org/dist/v16.14.2/node-v16.14.2-x64.msi
 Once installed you can open a command prompt (or powershell) and type the following command:
 ```bash
 npm install -g obj2gltf
@@ -88,7 +88,7 @@ north:
   x: -1
   z: 0
 ```
-  
+
 For each entity in the entities list you need to specify the following options:
 
 | Name            | Type   | Default      | Description                                                                                                                                                                                                                                                                                         |
@@ -112,23 +112,24 @@ The objects array contains a list of
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
 | object_id | string | **Required** | object_id of the object in the group
-  
+
 Here is a Tutorial for Object Groups:
-  
+
 | Object Groups Tutorial
-| ------------------------- 
-| [![Alt text](https://img.youtube.com/vi/eAbaDfNw93M/0.jpg)](https://www.youtube.com/watch?v=eAbaDfNw93M)  
-  
+| -------------------------
+| [![Alt text](https://img.youtube.com/vi/eAbaDfNw93M/0.jpg)](https://www.youtube.com/watch?v=eAbaDfNw93M)
+
 For each zoom in zoom_areas
-  
+
 | Name             | Type   | Default      | Description                                                                                                                                                                |
 | ---------------- | ------ | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | zoom             | string | **Required** | the name of the zoom area (ex. Kitchen).                                                                                                                                    |
 | object_id        | string | **Required** | the object id of the target of the zoom (ex. room_1_1)                                                                                                                      |
 | rotation         | object | {x:0, y:0, z:0} | the rotation of the camera pointing to the area.                                                                                                                                                      |
-| direction        | object  | {x:0, y:0, z:0}   | the direction vector of the canera pointing to the area.                                                                                                                             |  
+| direction        | object  | {x:0, y:0, z:0}   | the direction vector of the canera pointing to the area.                                                                                                                             |
 | distance        | number  | 500   | the number of cm from the camera to the target point                                                                                              |
-  
+| level        | number  | - | the index of the level. If set, selecting this zoom level will show the level and hide the other levels.                                                                                 |
+
 
 ### Client Side Javascript template example
 
@@ -166,9 +167,9 @@ camera_rotate:
 When in edit mode you can double click in an empty model space to retrieve the current postition and rotation of the camera. You can retrieve the 2 sets of coordinates from the prompt box that will appear. You can then manually copy the content and paste to the card config in code editor mode. Thanks to this the new default position of the camera will be set to the configured coordinates.
 
 An image explaining the coordinate concepts:
-  
+
 ![image](https://user-images.githubusercontent.com/35622920/152559923-c8762f2d-c8c6-4cd2-bbc8-8429b8fa7101.png)
-  
+
 ## Overlay and action
 
 You first put overlay yes in the Appearance section of the card visual editor. Then a few other Overlay parameters appear to customize the overlay: alignment, size, fonts, colors, etc.
@@ -210,7 +211,7 @@ entities:
 ## Camera
 
 For camera, example config:
-  
+
 ```yaml
 entities
   - entity: camera.<camera name>
@@ -218,7 +219,7 @@ entities
     object_id: <an object_id in the model you want to associate with the camera>
 ```
 there are no specific parameters. Double clicking on the object will show a pop-up dialog with the camera picture.
-  
+
 ## Lights
 
 For **light** example config:
@@ -337,9 +338,9 @@ entities:
 Room will draw a parallelipiped highlighting the room. Pretty static for the moment, it will become more dynamic with new parameters. It works with all room (floor) objects containing the word "room" in the object name. Rooms that have not a rectangular shape will have a paralllipiped anyway (not managing complex shapes).
 
 You can add a colorcondition section for rooms.
-  
+
 ![image](https://user-images.githubusercontent.com/35622920/153704069-f0be858f-5453-4a7c-a592-2c33d44284d0.PNG)
-  
+
 ## Gesture
 
 For **gesture** (action) example config:
@@ -442,10 +443,10 @@ entities:
 It is an experimental implementation of cover entities.
 
 ![image](https://user-images.githubusercontent.com/35622920/154579836-8cc59d3c-f8e1-439d-a088-58d514fcf170.png)
-                
+
 ![image](https://user-images.githubusercontent.com/35622920/154579949-189ef2e4-bfc5-4701-8967-1811a8426d0c.png)
-                
-                
+
+
 ## Rotate
 
 For **rotate** example config:
@@ -509,12 +510,12 @@ globalLightPower: 0.4
 ```
 
 ### Working with levels (> v1.3.0)
-  
+
 If your Sweethome3d model has levels and you use the ExportToHass ([Download](https://github.com/adizanni/ExportToHASS/releases/latest/download/ExportToHASSPlugin.sh3p)) plugin, the card will show the levels with some buttons appearing at the top left of the 3d canvas. There is one button for each level and one butto for "all" levels. When you click on the button of the level, only that level will become visible in the card, and if you click on the "all" button all levels will appear in the card in a total view of your model.
-All other functionalities will work as before.  
+All other functionalities will work as before.
 
 ### Note about GPUs
-  
+
 For one who has a computer with 2 (or more) gpus, like in laptops with a second NVIDIA gpu, one may notice that either Chrome or Firefox actually use the internal Intel UHD Graphics instead of NVIDIA.
 That makes the rendering slow and the experience frustrating.
 Steps to dramatically improve the rendering.

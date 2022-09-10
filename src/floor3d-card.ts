@@ -1394,16 +1394,7 @@ export class Floor3dCard extends LitElement {
       this._manageZoom();
 
       const initialLevel = typeof this._config.initialLevel === 'undefined' ? -1 : this._config.initialLevel;
-      this._levels.forEach((element, i) => {
-        if (initialLevel == -1) {
-          this._displaylevels[i] = true;
-        } else {
-          this._displaylevels[i] = (i == initialLevel);
-        }
-        element.visible = this._displaylevels[i];
-      });
-      this._updateRaycasting();
-      render(this._getLevelBar(), this._levelbar);
+      this._setVisibleLevel(initialLevel);
 
       this._resizeCanvas();
 
@@ -1540,6 +1531,19 @@ export class Floor3dCard extends LitElement {
     console.log('End Init Objects. Number of levels found: ' + this._levels.length);
   }
 
+  private _setVisibleLevel(level: number) {
+    this._levels.forEach((element, i) => {
+      if (level == -1) {
+        this._displaylevels[i] = true;
+      } else {
+        this._displaylevels[i] = (i == level);
+      }
+      element.visible = this._displaylevels[i];
+    });
+    this._updateRaycasting();
+    render(this._getLevelBar(), this._levelbar);
+  }
+
   private _toggleVisibleLevel(level: number): void {
       this._levels.forEach((element, i) => {
         if (level == -1) {
@@ -1666,6 +1670,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _handleZoomClick(ev): void {
+    ev.preventDefault();
 
     if (ev.target.index == -1) {
 
@@ -1678,7 +1683,12 @@ export class Floor3dCard extends LitElement {
       this._render();
 
       return;
+    }
 
+    const zoom = this._zoom[ev.target.index];
+
+    if (zoom.level != null) {
+      this._setVisibleLevel(zoom.level);
     }
 
     this._camera.position.set(
@@ -1704,17 +1714,16 @@ export class Floor3dCard extends LitElement {
     this._controls.update();
 
     this._render();
-
   }
 
   private _handleLevelClick(ev): void {
+    ev.preventDefault();
 
     this._toggleVisibleLevel(ev.target.index);
 
     render(this._getLevelBar(), this._levelbar);
 
     this._render();
-
   }
 
   private _getOverlay(): void {
@@ -2282,7 +2291,6 @@ export class Floor3dCard extends LitElement {
   // manage all entity types
 
   private _manageZoom(): void {
-
     if (this._config.zoom_areas) {
 
     this._config.zoom_areas.forEach((element) => {
@@ -2311,8 +2319,7 @@ export class Floor3dCard extends LitElement {
             let positionVector: THREE.Vector3;
             if (element.direction) {
               positionVector = new THREE.Vector3(element.direction.x, element.direction.y, element.direction.z);
-            }
-            else {
+            } else {
               positionVector = new THREE.Vector3(0, 1, 0);
             }
             positionVector.normalize();
@@ -2331,10 +2338,10 @@ export class Floor3dCard extends LitElement {
                 "name": element.zoom,
                 "target": targetVector,
                 "position": positionVector,
-                "rotation": rotationVector
+                "rotation": rotationVector,
+                "level": element.level
               }
             );
-
           }
 
         }
