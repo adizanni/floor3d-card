@@ -54,6 +54,7 @@ export class Floor3dCard extends LitElement {
   private _renderer?: THREE.WebGLRenderer;
   private _levelbar?: HTMLElement;
   private _zoombar?: HTMLElement;
+  private _selectionbar?: HTMLElement;
   private _controls?: OrbitControls;
   private _hemiLight?: THREE.HemisphereLight;
   private _modelX?: number;
@@ -71,6 +72,10 @@ export class Floor3dCard extends LitElement {
   private _raycastinglevels: THREE.Object3D[][];
   private _initialmaterial?: THREE.Material[][];
   private _clonedmaterial?: THREE.Material[][];
+  private _selectedmaterial?: THREE.Material;
+  private _initialobjectmaterials: { [key:string]: THREE.Material }
+  private _selectedobjects: string[];
+  private _selectionModeEnabled: boolean;
   private _brightness?: number[];
   private _lights?: string[];
   private _rooms?: string[];
@@ -100,7 +105,9 @@ export class Floor3dCard extends LitElement {
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _performActionListener: EventListener;
-  private _fireventListener: EventListener;
+  private _clickStart: number;
+  private _mousedownEventListener: EventListener;
+  private _firEventListener: EventListener;
   private _changeListener: EventListener;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -126,12 +133,21 @@ export class Floor3dCard extends LitElement {
   constructor() {
     super();
 
+    this._clickStart = 0;
+    this._initialobjectmaterials = {};
+    this._selectedobjects = [];
+
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => {
       this._resizeCanvasDebounce();
     });
     this._performActionListener = (evt) => this._performAction(evt);
-    this._fireventListener = (evt) => this._firevent(evt);
+    this._firEventListener = (evt) => {
+      // Only handle mouse click events that are less than 200ms in duration
+      if (this._clickStart && Date.now() - this._clickStart > 200) return;
+      this._firEvent(evt);
+    }
+    this._mousedownEventListener = (evt) => this._mousedownEvent(evt);
     this._changeListener = () => this._render();
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
@@ -367,6 +383,8 @@ export class Floor3dCard extends LitElement {
     this._clonedmaterial = [];
     let i = 0;
 
+    this._selectionModeEnabled = this._config.selectionMode === 'yes'
+
     this._object_ids.forEach((entity) => {
       this._initialmaterial.push([]);
       this._clonedmaterial.push([]);
@@ -516,10 +534,19 @@ export class Floor3dCard extends LitElement {
     return intersects;
   }
 
-  private _firevent(e: any): void {
+  private _mousedownEvent(_e: any): void {
+    this._clickStart = Date.now();
+  }
+
+  private _firEvent(e: any): void {
     //double click on object to show the name
     const intersects = this._getintersect(e);
     if (intersects.length > 0 && intersects[0].object.name != '') {
+      if (this._selectionModeEnabled) {
+        this._defaultaction(intersects);
+        return;
+      }
+
       this._config.entities.forEach((entity, i) => {
         for (let j = 0; j < this._object_ids[i].objects.length; j++) {
           if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
@@ -558,56 +585,87 @@ export class Floor3dCard extends LitElement {
   }
 
   private _defaultaction(intersects: THREE.Intersection[]): void {
-    if (intersects.length > 0 && intersects[0].object.name != '') {
-      if (getLovelace().editMode) {
-        window.prompt('Object:', intersects[0].object.name);
-      } else {
-        this._config.entities.forEach((entity, i) => {
-          if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
-            for (let j = 0; j < this._object_ids[i].objects.length; j++) {
-              if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
-                if (entity.type3d == 'light') {
-                  this._hass.callService(entity.entity.split('.')[0], 'toggle', {
-                    entity_id: entity.entity,
-                  });
-                } else if (entity.type3d == 'gesture') {
-                  this._hass.callService(entity.gesture.domain, entity.gesture.service, {
-                    entity_id: entity.entity,
-                  });
-                } else if (entity.type3d == 'camera') {
-                  fireEvent(this, 'hass-more-info', { entityId: entity.entity });
-                  //this._hass.states[entity.entity].attributes["entity_picture"]
-                }
-                break;
+    if (intersects.length > 0 && intersects[0].object && intersects[0].object.name != '') {
+      const objectName = intersects[0].object.name;
+
+      if (getLovelace().editMode && this._config.editModeNotifications == 'yes') {
+        window.prompt('Object:', objectName);
+      }
+      console.log('Object:', objectName);
+
+      if (this._selectionModeEnabled) {
+        // Color objects blue when we click them, so we can build a list of
+        // rooms and walls to control a light
+        const object: any = intersects[0].object
+        if (!this._selectedmaterial) {
+          const newMaterial: any = new THREE.MeshStandardMaterial({ color: 0x7777FF });
+          this._selectedmaterial = newMaterial
+        }
+        if (!this._initialobjectmaterials[objectName]) {
+          this._initialobjectmaterials[objectName] = object.material
+        }
+        if (this._selectedobjects.includes(objectName)) {
+          this._selectedobjects = this._selectedobjects.filter(e => e !== objectName);
+          object.material = this._initialobjectmaterials[objectName];
+        } else {
+          this._selectedobjects.push(objectName);
+          object.material = this._selectedmaterial;
+        }
+        this._selectedobjects = this._selectedobjects.sort();
+        console.log('Selected object IDs:', this._selectedobjects);
+        this._render();
+        render(this._getSelectionBar(), this._selectionbar);
+        return;
+      }
+
+      this._config.entities.forEach((entity, i) => {
+        if (entity.type3d == 'light' || entity.type3d == 'gesture' || entity.type3d == 'camera') {
+          for (let j = 0; j < this._object_ids[i].objects.length; j++) {
+            if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
+              if (entity.type3d == 'light') {
+                this._hass.callService(entity.entity.split('.')[0], 'toggle', {
+                  entity_id: entity.entity,
+                });
+              } else if (entity.type3d == 'gesture') {
+                this._hass.callService(entity.gesture.domain, entity.gesture.service, {
+                  entity_id: entity.entity,
+                });
+              } else if (entity.type3d == 'camera') {
+                fireEvent(this, 'hass-more-info', { entityId: entity.entity });
+                //this._hass.states[entity.entity].attributes["entity_picture"]
               }
+              break;
             }
           }
-        });
+        }
+      });
+    } else {
+      const cameraData = 'camera_position: { x: ' +
+        this._camera.position.x +
+        ', y: ' +
+        this._camera.position.y +
+        ', z: ' +
+        this._camera.position.z +
+        ' }\n' +
+        'camera_rotate: { x: ' +
+        this._camera.rotation.x +
+        ', y: ' +
+        this._camera.rotation.y +
+        ', z: ' +
+        this._camera.rotation.z +
+        ' }\n' +
+        'camera_target: { x: ' +
+        this._controls.target.x +
+        ', y: ' +
+        this._controls.target.y +
+        ', z: ' +
+        this._controls.target.z +
+        ' }';
+      if (getLovelace().editMode && this._config.editModeNotifications == 'yes') {
+        window.prompt('YAML:', cameraData);
       }
-    } else if (getLovelace().editMode) {
-      window.prompt(
-        'YAML:',
-        'camera_position: { x: ' +
-          this._camera.position.x +
-          ', y: ' +
-          this._camera.position.y +
-          ', z: ' +
-          this._camera.position.z +
-          ' }\n' +
-          'camera_rotate: { x: ' +
-          this._camera.rotation.x +
-          ', y: ' +
-          this._camera.rotation.y +
-          ', z: ' +
-          this._camera.rotation.z +
-          ' }\n' +
-          'camera_target: { x: ' +
-          this._controls.target.x +
-          ', y: ' +
-          this._controls.target.y +
-          ', z: ' +
-          this._controls.target.z +
-          ' }',
+      console.log(
+        'YAML:', cameraData
       );
     }
   }
@@ -1326,14 +1384,19 @@ export class Floor3dCard extends LitElement {
       console.log('Show canvas');
       this._levelbar = document.createElement('div');
       this._zoombar = document.createElement('div');
+      this._selectionbar = document.createElement('div');
       this._content.innerText = '';
       this._content.appendChild(this._levelbar);
       this._content.appendChild(this._zoombar);
+      this._content.appendChild(this._selectionbar);
       this._content.appendChild(this._renderer.domElement);
       this._selectedlevel = -1;
-      render(this._getLevelBar(), this._levelbar);
-      if (this._config.click == 'yes') {
-        this._content.addEventListener('click', this._fireventListener);
+
+      render(this._getSelectionBar(), this._selectionbar);
+
+      if (this._config.click == 'yes' || this._selectionModeEnabled) {
+        this._content.addEventListener('mousedown', this._mousedownEventListener);
+        this._content.addEventListener('click', this._firEventListener);
       }
 
       this._content.addEventListener('dblclick', this._performActionListener);
@@ -1376,7 +1439,8 @@ export class Floor3dCard extends LitElement {
 
       this._manageZoom();
 
-      this._setVisibleLevel(-1);
+      const initialLevel = typeof this._config.initialLevel === 'undefined' ? -1 : this._config.initialLevel;
+      this._setVisibleLevel(initialLevel);
 
       this._resizeCanvas();
 
@@ -1513,26 +1577,36 @@ export class Floor3dCard extends LitElement {
     console.log('End Init Objects. Number of levels found: ' + this._levels.length);
   }
 
-  private _setVisibleLevel(level: number): void {
+  private _setVisibleLevel(level: number) {
+    this._levels.forEach((element, i) => {
+      if (level == -1) {
+        this._displaylevels[i] = true;
+      } else {
+        this._displaylevels[i] = (i == level);
+      }
+      element.visible = this._displaylevels[i];
+    });
+    this._updateRaycasting();
+    render(this._getLevelBar(), this._levelbar);
+  }
 
+  private _toggleVisibleLevel(level: number): void {
       this._levels.forEach((element, i) => {
         if (level == -1) {
-          element.visible = true;
           this._displaylevels[i] = true;
+        } else if (level == i) {
+          this._displaylevels[i] = !this._displaylevels[i];
         }
-        if (level == i) {
-          element.visible = !element.visible;
-          this._displaylevels[level] = !this._displaylevels[level];
-        } else {
-          element.visible = this._displaylevels[i];
-        }
+        element.visible = this._displaylevels[i];
       });
+      this._updateRaycasting();
+  }
 
+  private _updateRaycasting() {
     this._raycasting = [];
-
     this._displaylevels.forEach((visible, index) => {
       if (visible) {
-       this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
+        this._raycasting = this._raycasting.concat(this._raycastinglevels[index]);
       }
     });
   }
@@ -1551,7 +1625,6 @@ export class Floor3dCard extends LitElement {
 
   private _getZoomButtons(): TemplateResult[] {
     const iconArray: TemplateResult[] = [];
-
 
     iconArray.push(html`
       <div class="row" style="background-color:black;">
@@ -1590,7 +1663,7 @@ export class Floor3dCard extends LitElement {
 
   private _getLevelBar(): TemplateResult {
     if (this._levels) {
-      if (this._levels.length > 1 && this._config.hideLevelsMenu == "no") {
+      if (this._levels.length > 1 && (this._config.hideLevelsMenu == null || this._config.hideLevelsMenu == "no")) {
         return html` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `;
       } else {
         return html``;
@@ -1641,7 +1714,68 @@ export class Floor3dCard extends LitElement {
     return iconArray;
   }
 
+  private _getSelectionBar(): TemplateResult {
+    if (this._config.selectionMode == 'yes') {
+      const buttonArray: TemplateResult[] = [];
+      buttonArray.push(html`
+        <div class="row" style="background-color:black;">
+          <font color="white">
+          <floor3d-button
+            style="opacity: 100%;"
+            label="clear selections (${this._selectedobjects.length})"
+            @click=${this._handleClearSelectionsClick.bind(this)}
+          >
+          </floor3d-button>
+          </font>
+        </div>
+      `);
+
+      buttonArray.push(html`
+        <div class="row" style="background-color:black;">
+          <font color="white">
+          <floor3d-button
+            style="opacity: 100%;"
+            label="${this._selectionModeEnabled ? 'Disable Selection' : 'Enable Selection'}"
+            @click=${this._handleToggleSelectionMode.bind(this)}
+          >
+          </floor3d-button>
+          </font>
+        </div>
+      `);
+
+      return html` <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; right: 0px">${buttonArray}</div> `;
+    } else {
+      return html``;
+    }
+  }
+
+  private _setSelectionMaterials(show: boolean): void {
+    this._selectedobjects.forEach((objectName) => {
+      let object: any = this._scene.getObjectByName(objectName);
+      if (object) {
+        object.material = show ? this._selectedmaterial : this._initialobjectmaterials[objectName];
+      }
+    });
+    this._render();
+  }
+
+  private _handleClearSelectionsClick(ev): void {
+    ev.stopPropagation();
+    this._setSelectionMaterials(false);
+    this._selectedobjects = [];
+    console.log("Cleared selected objects")
+    render(this._getSelectionBar(), this._selectionbar);
+  }
+
+  private _handleToggleSelectionMode(ev): void {
+    ev.stopPropagation();
+    this._selectionModeEnabled = !this._selectionModeEnabled;
+    this._setSelectionMaterials(this._selectionModeEnabled);
+    render(this._getSelectionBar(), this._selectionbar);
+  }
+
   private _handleZoomClick(ev): void {
+    ev.stopPropagation();
 
     if (ev.target.index == -1) {
 
@@ -1654,7 +1788,12 @@ export class Floor3dCard extends LitElement {
       this._render();
 
       return;
+    }
 
+    const zoom = this._zoom[ev.target.index];
+
+    if (zoom.level != null) {
+      this._setVisibleLevel(zoom.level);
     }
 
     this._camera.position.set(
@@ -1680,17 +1819,16 @@ export class Floor3dCard extends LitElement {
     this._controls.update();
 
     this._render();
-
   }
 
   private _handleLevelClick(ev): void {
+    ev.stopPropagation();
 
-    this._setVisibleLevel(ev.target.index);
+    this._toggleVisibleLevel(ev.target.index);
 
     render(this._getLevelBar(), this._levelbar);
 
     this._render();
-
   }
 
   private _getOverlay(): void {
@@ -2258,7 +2396,6 @@ export class Floor3dCard extends LitElement {
   // manage all entity types
 
   private _manageZoom(): void {
-
     if (this._config.zoom_areas) {
 
     this._config.zoom_areas.forEach((element) => {
@@ -2287,8 +2424,7 @@ export class Floor3dCard extends LitElement {
             let positionVector: THREE.Vector3;
             if (element.direction) {
               positionVector = new THREE.Vector3(element.direction.x, element.direction.y, element.direction.z);
-            }
-            else {
+            } else {
               positionVector = new THREE.Vector3(0, 1, 0);
             }
             positionVector.normalize();
@@ -2307,10 +2443,10 @@ export class Floor3dCard extends LitElement {
                 "name": element.zoom,
                 "target": targetVector,
                 "position": positionVector,
-                "rotation": rotationVector
+                "rotation": rotationVector,
+                "level": element.level
               }
             );
-
           }
 
         }
@@ -2524,12 +2660,12 @@ export class Floor3dCard extends LitElement {
     // put the canvas texture with the text on top of the generic object: consider merge with the applyTextCanvasSprite
     const _foundobject: any = object;
     let fileExt = this._config.objfile.split('?')[0].split('.').pop();
-    
+
     if (_foundobject instanceof THREE.Mesh) {
       const texture = new THREE.CanvasTexture(canvas);
       texture.repeat.set(1, 1);
-      
-      if (fileExt == "glb"){ 
+
+      if (fileExt == "glb"){
         texture.flipY = false;
       }
       if (((_foundobject as THREE.Mesh).material as THREE.MeshBasicMaterial).name.startsWith('f3dmat')) {
