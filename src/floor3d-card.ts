@@ -100,7 +100,7 @@ export class Floor3dCard extends LitElement {
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _performActionListener: EventListener;
-  private _mouseMoved: boolean;
+  private _clickStart: number;
   private _mousedownEventListener: EventListener;
   private _firEventListener: EventListener;
   private _changeListener: EventListener;
@@ -128,22 +128,19 @@ export class Floor3dCard extends LitElement {
   constructor() {
     super();
 
-    this._mouseMoved = false;
+    this._clickStart = 0;
     this._cardObscured = false;
     this._resizeObserver = new ResizeObserver(() => {
       this._resizeCanvasDebounce();
     });
     this._performActionListener = (evt) => this._performAction(evt);
     this._firEventListener = (evt) => {
-      if (this._mouseMoved) return;
+      // Only handle mouse click events that are less than 200ms in duration
+      if (this._clickStart && Date.now() - this._clickStart > 200) return;
       this._firEvent(evt);
     }
     this._mousedownEventListener = (evt) => this._mousedownEvent(evt);
-    this._changeListener = () => {
-      // Mouse was used to move OrbitControls, ignore click event
-      this._mouseMoved = true;
-      this._render();
-    }
+    this._changeListener = () => this._render();
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
     this._card_id = 'ha-card-1';
@@ -528,7 +525,7 @@ export class Floor3dCard extends LitElement {
   }
 
   private _mousedownEvent(_e: any): void {
-    this._mouseMoved = false;
+    this._clickStart = Date.now();
   }
 
   private _firEvent(e: any): void {
