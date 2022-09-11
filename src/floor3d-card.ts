@@ -16,6 +16,7 @@ import type { Floor3dCardConfig } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 //import three.js libraries for 3D rendering
+import * as TWEEN from '@tweenjs/tween.js';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
@@ -24,7 +25,6 @@ import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Sky } from 'three/examples/jsm/objects/Sky';
 import { Object3D } from 'three';
 import '../elements/button';
-
 
 /* eslint no-console: 0 */
 console.info(
@@ -94,6 +94,7 @@ export class Floor3dCard extends LitElement {
   private _round_per_seconds: number[];
   private _rotation_state: number[];
   private _rotation_index: number[];
+  private _animated_transitions: any[];
   private _clock?: THREE.Clock;
   private _slidingdoor: THREE.Group[];
   private _overlay_entity: string;
@@ -169,7 +170,7 @@ export class Floor3dCard extends LitElement {
 
       if (this._to_animate) {
         this._clock = new THREE.Clock();
-        this._renderer.setAnimationLoop(() => this._rotateobjects());
+        this._renderer.setAnimationLoop(() => this._animationLoop());
       }
 
       if (this._ispanel() || this._issidebar()) {
@@ -701,7 +702,7 @@ export class Floor3dCard extends LitElement {
           if (this._to_animate) {
             console.log('Canvas visible again; starting animation');
             this._clock = new THREE.Clock();
-            this._renderer.setAnimationLoop(() => this._rotateobjects());
+            this._renderer.setAnimationLoop(() => this._animationLoop());
           }
         }
       }
@@ -1994,6 +1995,7 @@ export class Floor3dCard extends LitElement {
       this._axis_to_rotate = [];
       this._rotation_state = [];
       this._rotation_index = [];
+      this._animated_transitions = [];
       this._pivot = [];
       this._axis_for_door = [];
       this._degrees = [];
@@ -2905,48 +2907,56 @@ export class Floor3dCard extends LitElement {
       this._rotation_state[j] = 0 - this._rotation_state[j];
     }
 
-    //If every rotating entity is stopped, disable animation
-    if (this._rotation_state.every((item) => item === 0)) {
-      if (this._to_animate) {
-        this._to_animate = false;
-        this._clock = null;
-        this._renderer.setAnimationLoop(null);
-      }
-    }
+    this._startOrStopAnimationLoop()
+  }
 
-    //Otherwise, start an animation loop
-    else if (!this._to_animate) {
+  private _needsAnimationLoop() {
+    // Check rotations and Tween.getAll()
+    return this._rotation_state.some((item) => item !== 0) || TWEEN.getAll().length > 0
+  }
+
+  // If every rotating entity and Tween is stopped, disable animation
+  private _startOrStopAnimationLoop() {
+    if (this._needsAnimationLoop() ) {
+      if (this._to_animate) return;
       this._to_animate = true;
       this._clock = new THREE.Clock();
-      this._renderer.setAnimationLoop(() => this._rotateobjects());
+      this._renderer.setAnimationLoop(() => this._animationLoop());
+    } else {
+      this._to_animate = false;
+      this._clock = null;
+      this._renderer.setAnimationLoop(null);
     }
   }
 
-  private _rotateobjects() {
-    let moveBy = this._clock.getDelta() * Math.PI * 2;
+  private _animationLoop() {
+    const clockDelta = this._clock.getDelta()
+    let rotateBy = clockDelta * Math.PI * 2;
 
     this._rotation_state.forEach((state, index) => {
-      if (state != 0) {
-        this._object_ids[this._rotation_index[index]].objects.forEach((element) => {
-          let _obj = this._scene.getObjectByName(element.object_id);
-          if (_obj) {
-            switch (this._axis_to_rotate[index]) {
-              case 'x':
-                _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
-                break;
-              case 'y':
-                _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
-                break;
-              case 'z':
-                _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * moveBy;
-                break;
-            }
+      if (state == 0) return;
+
+      this._object_ids[this._rotation_index[index]].objects.forEach((element) => {
+        let _obj = this._scene.getObjectByName(element.object_id);
+        if (_obj) {
+          switch (this._axis_to_rotate[index]) {
+            case 'x':
+              _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
+            case 'y':
+              _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
+            case 'z':
+              _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
           }
-        });
-      }
-      this._renderer.shadowMap.needsUpdate = true;
+        }
+      });
     });
 
+    TWEEN.update()
+
+    this._renderer.shadowMap.needsUpdate = true;
     this._renderer.render(this._scene, this._camera);
   }
 
@@ -2964,15 +2974,6 @@ export class Floor3dCard extends LitElement {
     let bbox = new THREE.Box3().setFromObject(pane);
 
     size.subVectors(bbox.max, bbox.min);
-
-    this._object_ids[index].objects.forEach((element, j) => {
-      let _obj: any = this._scene.getObjectByName(element.object_id);
-      _obj.position.set(
-        this._slidingdoorposition[index][j].x,
-        this._slidingdoorposition[index][j].y,
-        this._slidingdoorposition[index][j].z,
-      );
-    });
 
     if (doorstate == 'on' || doorstate == 'open') {
       if (side == 'left') {
@@ -3004,11 +3005,32 @@ export class Floor3dCard extends LitElement {
         translate.x += 0;
         translate.z += 0;
       }
-      this._object_ids[index].objects.forEach((element) => {
-        let _obj: any = this._scene.getObjectByName(element.object_id);
-        _obj.applyMatrix4(new THREE.Matrix4().makeTranslation(translate.x, translate.y, translate.z));
-      });
     }
+
+    this._object_ids[index].objects.forEach((element, i) => {
+      let _obj: any = this._scene.getObjectByName(element.object_id);
+      const originalPosition = this._slidingdoorposition[index][i];
+
+      let targetPosition: THREE.Vector3 = new THREE.Vector3(
+        originalPosition.x + translate.x,
+        originalPosition.y + translate.y,
+        originalPosition.z + translate.z
+      );
+
+      new TWEEN.Tween(_obj.position)
+        .to(targetPosition, 1200)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .onComplete(() => {
+          // Stop animation loop if all tweens finished
+          if (TWEEN.getAll().length === 0) {
+            this._to_animate = false;
+            this._renderer.setAnimationLoop(null)
+          }
+        })
+        .start()
+    });
+
+    this._startOrStopAnimationLoop();
   }
 
   private _updateroomcolor(item: any, index: number): void {
