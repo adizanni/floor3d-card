@@ -2362,8 +2362,9 @@ export class Floor3dCard extends LitElement {
               });
             }
           }
-        } catch {
-          throw new Error("Object issue for Entity: <"+ entity.entity + ">");
+        } catch (error) {
+          console.log(error);
+          throw new Error("Object issue for Entity: <"+ entity.entity + "> " + error);
         }
       });
       this._config.entities.forEach((entity, i) => {
