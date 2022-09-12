@@ -106,9 +106,11 @@ export class Floor3dCard extends LitElement {
   private _resizeObserver: ResizeObserver;
   private _zIndexInterval: number;
   private _performActionListener: EventListener;
-  private _clickStart: number;
+  private _clickStart?: number;
   private _mousedownEventListener: EventListener;
-  private _firEventListener: EventListener;
+  private _longpressTimeout: any;
+  private _mouseupEventListener: EventListener;
+  private _currentIntersections: THREE.Intersection[];
   private _changeListener: EventListener;
   private _cardObscured: boolean;
   private _card?: HTMLElement;
@@ -134,7 +136,7 @@ export class Floor3dCard extends LitElement {
   constructor() {
     super();
 
-    this._clickStart = 0;
+    this._clickStart = null;
     this._initialobjectmaterials = {};
     this._selectedobjects = [];
 
@@ -142,15 +144,31 @@ export class Floor3dCard extends LitElement {
     this._resizeObserver = new ResizeObserver(() => {
       this._resizeCanvasDebounce();
     });
-    this._performActionListener = (evt) => this._performAction(evt);
-    this._firEventListener = (evt) => {
-      // Only handle mouse click events that are less than 200ms in duration
-      if (this._clickStart && Date.now() - this._clickStart > 200) return;
-      if (this._config.click != 'yes' || !this._selectionModeEnabled) return;
-      this._firEvent(evt);
+    this._performActionListener = (evt) => {
+      this._performAction(evt);
     }
     this._mousedownEventListener = (evt) => this._mousedownEvent(evt);
-    this._changeListener = () => this._render();
+    this._mouseupEventListener = (evt) => {
+      if (this._longpressTimeout){
+        clearTimeout(this._longpressTimeout);
+        this._longpressTimeout = null;
+      }
+
+      // Handle mouse click events that are less than 200ms in duration
+      if (this._clickStart && Date.now() - this._clickStart < 200) {
+        if (this._config.click == 'yes' || this._selectionModeEnabled) {
+          this._firEvent(evt);
+        }
+      }
+
+      this._clickStart = null;
+    }
+    this._changeListener = () => {
+      if (this._clickStart && Date.now() - this._clickStart > 200) {
+        this._clickStart = null;
+      }
+      this._render();
+    }
     this._haShadowRoot = document.querySelector('home-assistant').shadowRoot;
     this._eval = eval;
     this._card_id = 'ha-card-1';
@@ -536,8 +554,10 @@ export class Floor3dCard extends LitElement {
     return intersects;
   }
 
-  private _mousedownEvent(_e: any): void {
+  private _mousedownEvent(e: any): void {
+    this._currentIntersections = this._getintersect(e);
     this._clickStart = Date.now();
+    this._longpressTimeout = setTimeout(() => this._longPressEvent(e), 600);
   }
 
   private _firEvent(e: any): void {
@@ -576,6 +596,42 @@ export class Floor3dCard extends LitElement {
       });
     }
   }
+
+  // Hold down the mouse button on object
+  private _longPressEvent(_e: any): void {
+    if (this._clickStart == null) return
+    this._clickStart = null;
+
+    // Use intersections from the mousedown event
+    const intersects = this._currentIntersections;
+    this._currentIntersections = null;
+    if (intersects.length > 0 && intersects[0].object.name != '') {
+
+      this._config.entities.forEach((entity, i) => {
+        for (let j = 0; j < this._object_ids[i].objects.length; j++) {
+          if (this._object_ids[i].objects[j].object_id == intersects[0].object.name) {
+            if (this._config.entities[i].long_press_action) {
+              switch (this._config.entities[i].long_press_action) {
+                case 'more-info':
+                  fireEvent(this, 'hass-more-info', { entityId: entity.entity });
+                  break;
+                case 'overlay':
+                  if (this._overlay) {
+                    this._setoverlaycontent(entity.entity);
+                  }
+                  break;
+                case 'default':
+                default:
+                  this._defaultaction(intersects);
+              }
+              return;
+            }
+          }
+        }
+      });
+    }
+  }
+
 
   private _setoverlaycontent(entity_id: string): void {
     this._overlay_entity = entity_id;
@@ -1401,11 +1457,8 @@ export class Floor3dCard extends LitElement {
 
       render(this._getSelectionBar(), this._selectionbar);
 
-      if (this._config.click == 'yes' || this._selectionModeEnabled) {
-        this._content.addEventListener('mousedown', this._mousedownEventListener);
-        this._content.addEventListener('click', this._firEventListener);
-      }
-
+      this._content.addEventListener('mousedown', this._mousedownEventListener);
+      this._content.addEventListener('mouseup', this._mouseupEventListener);
       this._content.addEventListener('dblclick', this._performActionListener);
       this._content.addEventListener('touchstart', this._performActionListener);
       this._content.addEventListener('keydown', this._performActionListener);
