@@ -146,6 +146,7 @@ export class Floor3dCard extends LitElement {
     this._firEventListener = (evt) => {
       // Only handle mouse click events that are less than 200ms in duration
       if (this._clickStart && Date.now() - this._clickStart > 200) return;
+      if (this._config.click != 'yes' || !this._selectionModeEnabled) return;
       this._firEvent(evt);
     }
     this._mousedownEventListener = (evt) => this._mousedownEvent(evt);
