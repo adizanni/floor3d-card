@@ -2856,108 +2856,42 @@ export class Floor3dCard extends LitElement {
       let _obj: any = this._scene.getObjectByName(element.object_id);
 
       //this._centerobjecttopivot(_obj, this._pivot[index]);
+      const targetRotation: THREE.Vector3 = new THREE.Vector3(0, 0, 0)
 
       if (this._states[index] == 'on') {
         if (entity.door.direction == 'inner') {
           //_obj.rotateOnAxis(this._axis_for_door[index], -Math.PI * this._degrees[index] / 180);
-
           if (this._axis_for_door[index].y == 1) {
-            _obj.rotation.y = (-Math.PI * this._degrees[index]) / 180;
+            targetRotation.y = (-Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].x == 1) {
-            _obj.rotation.x = (-Math.PI * this._degrees[index]) / 180;
+            targetRotation.x = (-Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].z == 1) {
-            _obj.rotation.z = (-Math.PI * this._degrees[index]) / 180;
+            targetRotation.z = (-Math.PI * this._degrees[index]) / 180;
           }
         } else if (entity.door.direction == 'outer') {
           //_obj.rotateOnAxis(this._axis_for_door[index], Math.PI * this._degrees[index] / 180);
           if (this._axis_for_door[index].y == 1) {
-            _obj.rotation.y = (Math.PI * this._degrees[index]) / 180;
+            targetRotation.y = (Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].x == 1) {
-            _obj.rotation.x = (Math.PI * this._degrees[index]) / 180;
+            targetRotation.x = (Math.PI * this._degrees[index]) / 180;
           } else if (this._axis_for_door[index].z == 1) {
-            _obj.rotation.z = (Math.PI * this._degrees[index]) / 180;
+            targetRotation.z = (Math.PI * this._degrees[index]) / 180;
           }
         }
-      } else {
-        _obj.rotation.x = 0;
-        _obj.rotation.y = 0;
-        _obj.rotation.z = 0;
       }
+
+      if (targetRotation.equals(_obj.rotation)) return
+
+      new TWEEN.Tween(_obj.rotation)
+        .to(targetRotation, 1200)
+        .easing(TWEEN.Easing.Cubic.InOut)
+        .onComplete(() => {
+          // Stop animation loop if all tweens finished
+          this._startOrStopAnimationLoop();
+        })
+        .start()
+      this._startOrStopAnimationLoop();
     });
-  }
-
-  private _rotatecalc(entity: Floor3dCardConfig, i: number) {
-    let j = this._rotation_index.indexOf(i);
-
-    //1 if the entity is on, 0 if the entity is off
-    this._rotation_state[j] = this._states[i] == 'on' ? 1 : 0;
-
-    //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
-    //into a decimal and store it as the rotation state
-    if (this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
-      this._rotation_state[j] = this._hass.states[entity.entity].attributes['percentage'] / 100;
-    }
-
-    //If the entity is on and it is reversed, set the rotation state to the negative value of itself
-    if (
-      this._rotation_state[j] != 0 &&
-      this._hass.states[entity.entity].attributes['direction'] &&
-      this._hass.states[entity.entity].attributes['direction'] == 'reverse'
-    ) {
-      this._rotation_state[j] = 0 - this._rotation_state[j];
-    }
-
-    this._startOrStopAnimationLoop()
-  }
-
-  private _needsAnimationLoop() {
-    // Check rotations and Tween.getAll()
-    return this._rotation_state.some((item) => item !== 0) || TWEEN.getAll().length > 0
-  }
-
-  // If every rotating entity and Tween is stopped, disable animation
-  private _startOrStopAnimationLoop() {
-    if (this._needsAnimationLoop() ) {
-      if (this._to_animate) return;
-      this._to_animate = true;
-      this._clock = new THREE.Clock();
-      this._renderer.setAnimationLoop(() => this._animationLoop());
-    } else {
-      this._to_animate = false;
-      this._clock = null;
-      this._renderer.setAnimationLoop(null);
-    }
-  }
-
-  private _animationLoop() {
-    const clockDelta = this._clock.getDelta()
-    let rotateBy = clockDelta * Math.PI * 2;
-
-    this._rotation_state.forEach((state, index) => {
-      if (state == 0) return;
-
-      this._object_ids[this._rotation_index[index]].objects.forEach((element) => {
-        let _obj = this._scene.getObjectByName(element.object_id);
-        if (_obj) {
-          switch (this._axis_to_rotate[index]) {
-            case 'x':
-              _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
-              break;
-            case 'y':
-              _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
-              break;
-            case 'z':
-              _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
-              break;
-          }
-        }
-      });
-    });
-
-    TWEEN.update()
-
-    this._renderer.shadowMap.needsUpdate = true;
-    this._renderer.render(this._scene, this._camera);
   }
 
   private _translatedoor(pane: THREE.Object3D, percentage: number, side: string, index: number, doorstate: string) {
@@ -3017,15 +2951,14 @@ export class Floor3dCard extends LitElement {
         originalPosition.z + translate.z
       );
 
+      if (targetPosition.equals(_obj.position)) return
+
       new TWEEN.Tween(_obj.position)
         .to(targetPosition, 1200)
         .easing(TWEEN.Easing.Cubic.InOut)
         .onComplete(() => {
           // Stop animation loop if all tweens finished
-          if (TWEEN.getAll().length === 0) {
-            this._to_animate = false;
-            this._renderer.setAnimationLoop(null)
-          }
+          this._startOrStopAnimationLoop()
         })
         .start()
     });
@@ -3140,6 +3073,81 @@ export class Floor3dCard extends LitElement {
   protected shouldUpdate(_changedProps: PropertyValues): boolean {
     return true;
     //return hasConfigOrEntityChanged(this, _changedProps, false);
+  }
+
+
+  private _rotatecalc(entity: Floor3dCardConfig, i: number) {
+    let j = this._rotation_index.indexOf(i);
+
+    //1 if the entity is on, 0 if the entity is off
+    this._rotation_state[j] = this._states[i] == 'on' ? 1 : 0;
+
+    //If the entity is on and it has the 'percentage' attribute, convert the percentage integer
+    //into a decimal and store it as the rotation state
+    if (this._rotation_state[j] != 0 && this._hass.states[entity.entity].attributes['percentage']) {
+      this._rotation_state[j] = this._hass.states[entity.entity].attributes['percentage'] / 100;
+    }
+
+    //If the entity is on and it is reversed, set the rotation state to the negative value of itself
+    if (
+      this._rotation_state[j] != 0 &&
+      this._hass.states[entity.entity].attributes['direction'] &&
+      this._hass.states[entity.entity].attributes['direction'] == 'reverse'
+    ) {
+      this._rotation_state[j] = 0 - this._rotation_state[j];
+    }
+
+    this._startOrStopAnimationLoop()
+  }
+
+  private _needsAnimationLoop() {
+    // Check rotations and Tween.getAll()
+    return this._rotation_state.some((item) => item !== 0) || TWEEN.getAll().length > 0
+  }
+
+  // If every rotating entity and Tween is stopped, disable animation
+  private _startOrStopAnimationLoop() {
+    if (this._needsAnimationLoop() ) {
+      if (this._to_animate) return;
+      this._to_animate = true;
+      this._clock = new THREE.Clock();
+      this._renderer.setAnimationLoop(() => this._animationLoop());
+    } else {
+      this._to_animate = false;
+      this._clock = null;
+      this._renderer.setAnimationLoop(null);
+    }
+  }
+
+  private _animationLoop() {
+    const clockDelta = this._clock.getDelta()
+    let rotateBy = clockDelta * Math.PI * 2;
+
+    this._rotation_state.forEach((state, index) => {
+      if (state == 0) return;
+
+      this._object_ids[this._rotation_index[index]].objects.forEach((element) => {
+        let _obj = this._scene.getObjectByName(element.object_id);
+        if (_obj) {
+          switch (this._axis_to_rotate[index]) {
+            case 'x':
+              _obj.rotation.x += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
+            case 'y':
+              _obj.rotation.y += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
+            case 'z':
+              _obj.rotation.z += this._round_per_seconds[index] * this._rotation_state[index] * rotateBy;
+              break;
+          }
+        }
+      });
+    });
+
+    TWEEN.update()
+
+    this._renderer.shadowMap.needsUpdate = true;
+    this._renderer.render(this._scene, this._camera);
   }
 
   // https://lit-element.polymer-project.org/guide/templates
