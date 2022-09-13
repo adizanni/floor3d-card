@@ -28,6 +28,7 @@
     "@material/mwc-switch": "^0.25.3",
     "@material/mwc-textfield": "^0.25.3",
     "@mdi/font": "^6.5.95",
+    "@tweenjs/tween.js": "^18.6.4",
     "custom-card-helpers": "^1.7.2",
     "home-assistant-js-websocket": "^5.11.1",
     "lit": "^2.0.0",
