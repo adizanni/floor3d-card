@@ -901,7 +901,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   label="Overlay Background color"
                   fullwidth
                   size=20
-                  .value=${config.overlay_bgcolor ? config.overlay_bgcolor : ''}
+                  .value=${config.overlay_bgcolor ? config.overlay_bgcolor : 'transparent'}
                   .configObject=${config}
                   .configAttribute=${'overlay_bgcolor'}
                   @input=${this._valueChanged}
@@ -910,7 +910,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   label="Overlay Foreground color"
                   fullwidth
                   size=20
-                  .value=${config.overlay_fgcolor ? config.overlay_fgcolor : ''}
+                  .value=${config.overlay_fgcolor ? config.overlay_fgcolor : 'black'}
                   .configObject=${config}
                   .configAttribute=${'overlay_fgcolor'}
                   @input=${this._valueChanged}
@@ -919,7 +919,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   label="Overlay Alignment"
                   size=40
                   @selected=${this._valueChanged}
-                  .value=${config.overlay_alignment ? config.overlay_alignment : ''}
+                  .value=${config.overlay_alignment ? config.overlay_alignment : 'top-left'}
                   .configObject=${config}
                   .configAttribute=${'overlay_alignment'}
                   .ignoreNull=${false}
@@ -938,7 +938,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   max=100
                   fullwidth
                   .ignoreNull=${false}
-                  .value=${config.overlay_width ? config.overlay_width : null}
+                  .value=${config.overlay_width ? config.overlay_width : '33'}
                   .configObject=${config}
                   .configAttribute=${'overlay_width'}
                   @input=${this._valueChanged}
@@ -951,7 +951,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   max=100
                   fullwidth
                   .ignoreNull=${false}
-                  .value=${config.overlay_height ? config.overlay_height : null}
+                  .value=${config.overlay_height ? config.overlay_height : '20'}
                   .configObject=${config}
                   .configAttribute=${'overlay_height'}
                   @input=${this._valueChanged}
@@ -1009,7 +1009,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Lock Camera (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.lock_camera ? config.lock_camera : null}
+                  .value=${config.lock_camera ? config.lock_camera : 'no'}
                   .configObject=${config}
                   .configAttribute=${'lock_camera'}
                   .ignoreNull=${false}
@@ -1022,7 +1022,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Header (<yes>/no)"
                   @selected=${this._valueChanged}
-                  .value=${config.header ? config.header : null}
+                  .value=${config.header ? config.header : 'yes'}
                   .configObject=${config}
                   .configAttribute=${'header'}
                   .ignoreNull=${false}
@@ -1035,7 +1035,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Click (no dblclick, yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.click ? config.click : null}
+                  .value=${config.click ? config.click : 'no'}
                   .configObject=${config}
                   .configAttribute=${'click'}
                   .ignoreNull=${false}
@@ -1048,7 +1048,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Overlay (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.overlay ? config.overlay : null}
+                  .value=${config.overlay ? config.overlay : 'no'}
                   .configObject=${config}
                   .configAttribute=${'overlay'}
                   .ignoreNull=${false}
@@ -1061,18 +1061,24 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-textfield
                   label="Background Color"
                   fullwidth
-                  .value=${config.backgroundColor ? config.backgroundColor : ''}
+                  .value=${config.backgroundColor ? config.backgroundColor : '#aaaaaa'}
                   .configObject=${config}
                   .configAttribute=${'backgroundColor'}
                   @input=${this._valueChanged}
                 ></floor3d-textfield>
-                <floor3d-textfield
-                  label="Hide Levels Menu"
-                  fullwidth
+                <floor3d-select
+                  label="Hide Levels Menu (yes/<no>)"
+                  @selected=${this._valueChanged}
                   .value=${config.hideLevelsMenu ? config.hideLevelsMenu : 'no'}
                   .configObject=${config}
                   .configAttribute=${'hideLevelsMenu'}
-                  @input=${this._valueChanged}
+                  .ignoreNull=${false}
+                  @closed=${(ev) => ev.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </floor3d-select>
                 ></floor3d-textfield>
                 <floor3d-formfield alignEnd label="Global Scene Light (0..1)" >
                   <floor3d-textfield
@@ -1080,7 +1086,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     min=0.00
                     max=1.00
                     step=0.01
-                    .value=${config.globalLightPower ? config.globalLightPower : null}
+                    .value=${config.globalLightPower ? config.globalLightPower : '0.8'}
                     .configObject=${config}
                     .configAttribute=${'globalLightPower'}
                     .ignoreNull=${false}
@@ -1090,7 +1096,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Shadow (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.shadow ? config.shadow : null}
+                  .value=${config.shadow ? config.shadow : 'no'}
                   .configObject=${config}
                   .configAttribute=${'shadow'}
                   .ignoreNull=${false}
@@ -1103,7 +1109,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="+ Lights - Perf (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.extralightmode ? config.extralightmode : null}
+                  .value=${config.extralightmode ? config.extralightmode : 'no'}
                   .configObject=${config}
                   .configAttribute=${'extralightmode'}
                   .ignoreNull=${false}
@@ -1114,9 +1120,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     <mwc-list-item value="no">no</mwc-list-item>
                 </floor3d-select>
                 <floor3d-select
-                  label="Show Axes (yes/<no>"
+                  label="Show Axes (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.show_axes ? config.show_axes : null}
+                  .value=${config.show_axes ? config.show_axes : 'no'}
                   .configObject=${config}
                   .configAttribute=${'show_axes'}
                   .ignoreNull=${false}
@@ -1129,7 +1135,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <floor3d-select
                   label="Sky (yes/<no>)"
                   @selected=${this._valueChanged}
-                  .value=${config.sky ? config.sky : null}
+                  .value=${config.sky ? config.sky : 'no'}
                   .configObject=${config}
                   .configAttribute=${'sky'}
                   .ignoreNull=${false}
