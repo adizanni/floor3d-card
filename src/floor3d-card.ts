@@ -2565,8 +2565,8 @@ export class Floor3dCard extends LitElement {
     console.log('Create Room');
 
     const elevation: number = entity.room.elevation ? entity.room.elevation : 250;
-    const transparency: number = entity.room.transparency ? entity.room.transparency : 50;
     const color: string = entity.room.color ? entity.room.color : '#ffffff';
+    const transparency: number = entity.room.transparency ? entity.room.transparency : color == "transparent" ? 100 : 50;
 
     const _foundroom: THREE.Object3D = this._scene.getObjectByName(entity.object_id);
 
