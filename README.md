@@ -14,7 +14,7 @@ Javascript Module for the Home Assistant visualization Card for 3D Models with b
 
 The card is now accepted in the default repositories of HACS just search for floor3d in the HACS frontend section and install.
 
-You can also download the compiled js file from here (https://github.com/adizanni/floor3d-card/releases/download/latest/floor3d-card.js) and upload it to your www home assistant folder
+You can also download the compiled floor3d-card.js file from the latest release here (https://github.com/adizanni/floor3d-card/releases) and upload it to your www Home Assistant folder
 
 It's **required** to load this card as `module`.
 
@@ -22,6 +22,8 @@ It's **required** to load this card as `module`.
 - url: /local/pathtofile/floor3d-card.js
   type: module
 ```
+
+See Home Assistant documentation for adding custom cards (https://developers.home-assistant.io/docs/frontend/custom-ui/custom-card) and registering JavaScript resources (https://developers.home-assistant.io/docs/frontend/custom-ui/registering-resources).
 
 ## Model Design and Installation
 
@@ -96,7 +98,7 @@ For each entity in the entities list you need to specify the following options:
 | entity          | string | **Required** | your entity id or reference to an object_group via <object_group> reference (this last feature is not applicable for text and gesture                                                                                                                                                               |
 | entity_template | string | none         | a JavaScript template formatted as follow: [[[ template]]]. Template is a valid Javascript command. With $entity you specify the state of the entity                                                                                                                                                |
 | action          | string | none         | on-click behaviour: it can be 'more-info' to open the more-info dialog for the entity associated to the clicked objec; it can be 'overlay' to display the state of the entity in the ovelay panel; it can be 'default' to do the same action that used to be associated to the double click action. |
-| object_id       | string | **Required** | the name of the object in the model to biind to your entity.                                                                                                                                                                                                                                        |
+| object_id       | string | **Required** | the name of the object in the model to bind to your entity.                                                                                                                                                                                                                                        |
 | type3d          | string | **Required** | the type of object binding. Values are: light, hide, color, text, gesture, door, rotate                                                                                                                                                                                                             |
 
 **Note: to facilitate the configuration you can load the model without entity bindings and you will be able to show the object_id you want to bind to by double clicking on the object**
