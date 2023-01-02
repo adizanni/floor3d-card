@@ -563,7 +563,8 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
       <div class="sub-category" style="display: flex; flex-direction: row; align-items: left;">
         <ha-icon @click=${this._config_changed} icon="mdi:refresh" class="ha-icon-large"> </ha-icon>
       </div>
-      ${this._createModelElement()} ${this._createAppearanceElement()} ${t?H` ${this._createOverlayElement()} `:""} ${this._createEntitiesElement()}
+      ${this._createModelElement()} ${this._createAppearanceElement()}
+      ${t?H` ${this._createOverlayElement()} `:""} ${this._createEntitiesElement()}
       ${this._createObjectGroupsElement()} ${this._createZoomAreasElement()}
     `}_preview_card(){let t=document.querySelector("home-assistant");t=t&&t.shadowRoot,t=t&&t.querySelector("hui-dialog-edit-card"),t=t&&t.shadowRoot,t=t&&t.querySelector("ha-dialog");const e=t.getElementsByTagName("floor3d-card");return 0==e.length?null:e.item(0)}_config_changed(){console.log("Config change start");let t=this._preview_card();t&&t.rerender()}_createObjectGroupsValues(){if(!this.hass||!this._config)return[H``];const t=this._options.object_groups,e=[];for(const i of this._configObjectArray){const n=this._configObjectArray.indexOf(i);e.push(H`
         <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
@@ -589,7 +590,6 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
             <floor3d-textfield
               label="Object Group"
               @input=${this._valueChanged}
-
               .configAttribute=${"object_group"}
               .configObject=${this._configObjectArray[n]}
               .value=${i.object_group?i.object_group:""}
@@ -661,14 +661,14 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
             ></ha-icon>
           </div>
           <div class="values" style="flex-grow: 1;">
-                  <floor3d-textfield
-                    label="Zoom"
-                    @input=${this._valueChanged}
-                    .configAttribute=${"zoom"}
-                    .configObject=${this._configZoomArray[n]}
-                    .value=${i.zoom?i.zoom:""}
-                  >
-                  </floor3d-textfield>
+            <floor3d-textfield
+              label="Zoom"
+              @input=${this._valueChanged}
+              .configAttribute=${"zoom"}
+              .configObject=${this._configZoomArray[n]}
+              .value=${i.zoom?i.zoom:""}
+            >
+            </floor3d-textfield>
           </div>
           ${0!==n?H`
                 <ha-icon
@@ -703,12 +703,7 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
             .configIndex=${n}
           ></ha-icon>
         </div>
-        ${t.options.zoom_areas[n].show?H`
-              <div class="options">
-                ${this._createZoomElement(n)}
-              </div>
-            `:""}
-
+        ${t.options.zoom_areas[n].show?H` <div class="options">${this._createZoomElement(n)}</div> `:""}
       `)}return e}_createEntitiesValues(){if(!this.hass||!this._config)return[H``];const t=this._options.entities;this._entity_ids||(this._entity_ids=Object.keys(this.hass.states).sort((function(t,e){return t.toLowerCase().localeCompare(e.toLowerCase())})));const e=[];for(const i of this._configArray){const n=this._configArray.indexOf(i);e.push(H`
         <div class="sub-category" style="display: flex; flex-direction: row; align-items: center;">
           <div style="display: flex; align-items: center; flex-direction: column;">
@@ -731,19 +726,20 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
           </div>
           <div class="values" style="flex-grow: 1;">
             ${this._entity_ids.length*this._configArray.length<5e3?H` <floor3d-select
-                      label="Entity (Required)"
-                      .value=${i.entity}
-                      @selected=${this._valueChanged}
-                      .configAttribute=${"entity"}
-                      .configObject=${this._configArray[n]}
-                      .ignoreNull=${!1}
-                      @closed=${t=>t.stopPropagation()}
-                      fixedMenuPosition
-                      naturalMenuWidth
-                      required
-                      id="entity">
-                      ${this._entity_ids.map((t=>H` <mwc-list-item .value=${t}>${t}</mwc-list-item> `))}
-                  </floor3d-select>`:H`
+                  label="Entity (Required)"
+                  .value=${i.entity}
+                  @selected=${this._valueChanged}
+                  .configAttribute=${"entity"}
+                  .configObject=${this._configArray[n]}
+                  .ignoreNull=${!1}
+                  @closed=${t=>t.stopPropagation()}
+                  fixedMenuPosition
+                  naturalMenuWidth
+                  required
+                  id="entity"
+                >
+                  ${this._entity_ids.map((t=>H` <mwc-list-item .value=${t}>${t}</mwc-list-item> `))}
+                </floor3d-select>`:H`
                   <floor3d-textfield
                     label="Entity"
                     @input=${this._valueChanged}
@@ -891,7 +887,8 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                   .value=${t.name?t.name:""}
                   .configObject=${t}
                   .configAttribute=${"name"}
-                  @input=${this._valueChanged}>
+                  @input=${this._valueChanged}
+                >
                 </floor3d-textfield>
                 <floor3d-textfield
                   label="Path"
@@ -938,11 +935,11 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
           <div class="secondary">${e.secondary}</div>
         </div>
         ${e.show?H`
-         <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+              <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 <floor3d-textfield
                   label="Overlay Background color"
                   fullwidth
-                  size=20
+                  size="20"
                   .value=${t.overlay_bgcolor?t.overlay_bgcolor:"transparent"}
                   .configObject=${t}
                   .configAttribute=${"overlay_bgcolor"}
@@ -951,7 +948,7 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                 <floor3d-textfield
                   label="Overlay Foreground color"
                   fullwidth
-                  size=20
+                  size="20"
                   .value=${t.overlay_fgcolor?t.overlay_fgcolor:"black"}
                   .configObject=${t}
                   .configAttribute=${"overlay_fgcolor"}
@@ -959,7 +956,7 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                 ></floor3d-textfield>
                 <ha-select
                   label="Overlay Alignment"
-                  size=40
+                  size="40"
                   @selected=${this._valueChanged}
                   .value=${t.overlay_alignment?t.overlay_alignment:"top-left"}
                   .configObject=${t}
@@ -967,41 +964,41 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                   .ignoreNull=${!1}
                   @closed=${t=>t.stopPropagation()}
                 >
-                    <ha-list-item></ha-list-item>
-                    <ha-list-item value="top-left">top-left</ha-list-item>
-                    <ha-list-item value="top-right">top-right</ha-list-item>
-                    <ha-list-item value="bottom-left">bottom-left</ha-list-item>
-                    <ha-list-item value="bottom-right">bottom-right</ha-list-item>
+                  <ha-list-item></ha-list-item>
+                  <ha-list-item value="top-left">top-left</ha-list-item>
+                  <ha-list-item value="top-right">top-right</ha-list-item>
+                  <ha-list-item value="bottom-left">bottom-left</ha-list-item>
+                  <ha-list-item value="bottom-right">bottom-right</ha-list-item>
                 </ha-select>
-                <floor3d-formfield alignEnd label="Overlay Width %" >
-                <floor3d-textfield
-                  type="number"
-                  min=0
-                  max=100
-                  fullwidth
-                  .ignoreNull=${!1}
-                  .value=${t.overlay_width?t.overlay_width:"33"}
-                  .configObject=${t}
-                  .configAttribute=${"overlay_width"}
-                  @input=${this._valueChanged}
-                ></floor3d-textfield>
+                <floor3d-formfield alignEnd label="Overlay Width %">
+                  <floor3d-textfield
+                    type="number"
+                    min="0"
+                    max="100"
+                    fullwidth
+                    .ignoreNull=${!1}
+                    .value=${t.overlay_width?t.overlay_width:"33"}
+                    .configObject=${t}
+                    .configAttribute=${"overlay_width"}
+                    @input=${this._valueChanged}
+                  ></floor3d-textfield>
                 </floor3d-formfield>
-                <floor3d-formfield alignEnd label="Overlay Height %" >
-                <floor3d-textfield
-                  type="number"
-                  min=0
-                  max=100
-                  fullwidth
-                  .ignoreNull=${!1}
-                  .value=${t.overlay_height?t.overlay_height:"20"}
-                  .configObject=${t}
-                  .configAttribute=${"overlay_height"}
-                  @input=${this._valueChanged}
-                ></floor3d-textfield>
+                <floor3d-formfield alignEnd label="Overlay Height %">
+                  <floor3d-textfield
+                    type="number"
+                    min="0"
+                    max="100"
+                    fullwidth
+                    .ignoreNull=${!1}
+                    .value=${t.overlay_height?t.overlay_height:"20"}
+                    .configObject=${t}
+                    .configAttribute=${"overlay_height"}
+                    @input=${this._valueChanged}
+                  ></floor3d-textfield>
                 </floor3d-formfield>
                 <floor3d-textfield
                   label="Overlay Font"
-                  size=40
+                  size="40"
                   .value="${t.overlay_font?t.overlay_font:""}"
                   .configObject=${t}
                   .configAttribute=${"overlay_font"}
@@ -1022,7 +1019,7 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
         <div class="sub-category" @click=${this._toggleThing} .options=${e} .optionsTarget=${this._options}>
           <div class="row">
             <ha-icon .icon=${`mdi:${e.icon}`}></ha-icon>
-             <div class="title">${e.name}</div>
+            <div class="title">${e.name}</div>
             <ha-icon .icon=${e.show?"mdi:chevron-up":"mdi:chevron-down"} style="margin-left: auto;"></ha-icon>
           </div>
           <div class="secondary">${e.secondary}</div>
@@ -1042,6 +1039,32 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                   .value=${t.lock_camera?t.lock_camera:"no"}
                   .configObject=${t}
                   .configAttribute=${"lock_camera"}
+                  .ignoreNull=${!1}
+                  @closed=${t=>t.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </floor3d-select>
+                <floor3d-select
+                  label="Selection Mode (yes/<no>)"
+                  @selected=${this._valueChanged}
+                  .value=${t.selectionMode?t.selectionMode:"no"}
+                  .configObject=${t}
+                  .configAttribute=${"selectionMode"}
+                  .ignoreNull=${!1}
+                  @closed=${t=>t.stopPropagation()}
+                >
+                    <mwc-list-item></mwc-list-item>
+                    <mwc-list-item value="yes">yes</mwc-list-item>
+                    <mwc-list-item value="no">no</mwc-list-item>
+                </floor3d-select>
+                <floor3d-select
+                  label="Edit Mode PopUp (<yes>/no)"
+                  @selected=${this._valueChanged}
+                  .value=${t.editModeNotifications?t.editModeNotifications:"yes"}
+                  .configObject=${t}
+                  .configAttribute=${"editModeNotifications"}
                   .ignoreNull=${!1}
                   @closed=${t=>t.stopPropagation()}
                 >
@@ -1227,78 +1250,83 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
         </div>
         ${e.show?H`
               <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                  <floor3d-textfield
-                    label="Entity template"
-                    fullwidth
-                    .value=${i.entity_template?i.entity_template:""}
-                    .configAttribute=${"entity_template"}
-                    .configObject=${i}
-                    @input=${this._valueChanged}
-                  ></floor3d-textfield>
-                  <floor3d-select
-                    label="Action"
-                    @selected=${this._valueChanged}
-                    .value=${i.action?i.action:null}
-                    .optionTgt=${this._options.entities.options.entities[t].options}
-                    .configObject=${i}
-                    .configAttribute=${"action"}
-                    .ignoreNull=${!1}
-                    @closed=${t=>t.stopPropagation()}
-                  >
-                    <mwc-list-item></mwc-list-item>
-                    <mwc-list-item value="more-info">more-info</mwc-list-item>
-                    <mwc-list-item value="overlay">overlay</mwc-list-item>
-                    <mwc-list-item value="default">default</mwc-list-item>
+                <floor3d-textfield
+                  label="Entity template"
+                  fullwidth
+                  .value=${i.entity_template?i.entity_template:""}
+                  .configAttribute=${"entity_template"}
+                  .configObject=${i}
+                  @input=${this._valueChanged}
+                ></floor3d-textfield>
+                <floor3d-select
+                  label="Action"
+                  @selected=${this._valueChanged}
+                  .value=${i.action?i.action:null}
+                  .optionTgt=${this._options.entities.options.entities[t].options}
+                  .configObject=${i}
+                  .configAttribute=${"action"}
+                  .ignoreNull=${!1}
+                  @closed=${t=>t.stopPropagation()}
+                >
+                  <mwc-list-item></mwc-list-item>
+                  <mwc-list-item value="more-info">more-info</mwc-list-item>
+                  <mwc-list-item value="overlay">overlay</mwc-list-item>
+                  <mwc-list-item value="default">default</mwc-list-item>
                 </floor3d-select>
                 <floor3d-select
-                    label="3D Type"
-                    @selected=${this._typeChanged}
-                    .value=${i.type3d?i.type3d:null}
-                    .optionTgt=${this._options.entities.options.entities[t].options}
-                    .configObject=${i}
-                    .configAttribute=${"type3d"}
-                    .ignoreNull=${!1}
-                    .configIndex=${t}
-                    fixedMenuPosition
-                    naturalMenuWidth
-                    @closed=${t=>t.stopPropagation()}
-                  >
-                    <mwc-list-item></mwc-list-item>
-                    <mwc-list-item value="light">light</mwc-list-item>
-                    <mwc-list-item value="color">color</mwc-list-item>
-                    <mwc-list-item value="room">room</mwc-list-item>
-                    <mwc-list-item value="hide">hide</mwc-list-item>
-                    <mwc-list-item value="show">show</mwc-list-item>
-                    <mwc-list-item value="text">text</mwc-list-item>
-                    <mwc-list-item value="door">door</mwc-list-item>
-                    <mwc-list-item value="cover">cover</mwc-list-item>
-                    <mwc-list-item value="rotate">rotate</mwc-list-item>
-                    <mwc-list-item value="gesture">gesture</mwc-list-item>
-                    <mwc-list-item value="camera">camera</mwc-list-item>
+                  label="3D Type"
+                  @selected=${this._typeChanged}
+                  .value=${i.type3d?i.type3d:null}
+                  .optionTgt=${this._options.entities.options.entities[t].options}
+                  .configObject=${i}
+                  .configAttribute=${"type3d"}
+                  .ignoreNull=${!1}
+                  .configIndex=${t}
+                  fixedMenuPosition
+                  naturalMenuWidth
+                  @closed=${t=>t.stopPropagation()}
+                >
+                  <mwc-list-item></mwc-list-item>
+                  <mwc-list-item value="light">light</mwc-list-item>
+                  <mwc-list-item value="color">color</mwc-list-item>
+                  <mwc-list-item value="room">room</mwc-list-item>
+                  <mwc-list-item value="hide">hide</mwc-list-item>
+                  <mwc-list-item value="show">show</mwc-list-item>
+                  <mwc-list-item value="text">text</mwc-list-item>
+                  <mwc-list-item value="door">door</mwc-list-item>
+                  <mwc-list-item value="cover">cover</mwc-list-item>
+                  <mwc-list-item value="rotate">rotate</mwc-list-item>
+                  <mwc-list-item value="gesture">gesture</mwc-list-item>
+                  <mwc-list-item value="camera">camera</mwc-list-item>
                 </floor3d-select>
-                  ${this._objects?H`
-                        <floor3d-select
-                          label="Object id"
-                          @selected=${this._valueChanged}
-                          .value=${i.object_id}
-                          .configAttribute=${"object_id"}
-                          .configObject=${i}
-                          .ignoreNull=${!1}
-                          required
-                          @closed=${t=>t.stopPropagation()}
-                        >   ${this._objects.map((t=>H` <mwc-list-item value="${t}">${t}</mwc-list-item> `))}
-                            ${this._configObjectArray.map((t=>H` <mwc-list-item value="${"<"+t.object_group+">"}">${"<"+t.object_group+">"}</mwc-list-item> `))}
-                        </floor3d-select>
-                      `:H`
-                        <floor3d-textfield
-                          label="Object"
-                          .value=${i.object_id?i.object_id:""}
-                          .configAttribute=${"object_id"}
-                          .configObject=${i}
-                          @input=${this._valueChanged}
-                          required
-                        ></floor3d-textfield>
-                      `}
+                ${this._objects?H`
+                      <floor3d-select
+                        label="Object id"
+                        @selected=${this._valueChanged}
+                        .value=${i.object_id}
+                        .configAttribute=${"object_id"}
+                        .configObject=${i}
+                        .ignoreNull=${!1}
+                        required
+                        @closed=${t=>t.stopPropagation()}
+                      >
+                        ${this._objects.map((t=>H` <mwc-list-item value="${t}">${t}</mwc-list-item> `))}
+                        ${this._configObjectArray.map((t=>H`
+                            <mwc-list-item value="${"<"+t.object_group+">"}"
+                              >${"<"+t.object_group+">"}</mwc-list-item
+                            >
+                          `))}
+                      </floor3d-select>
+                    `:H`
+                      <floor3d-textfield
+                        label="Object"
+                        .value=${i.object_id?i.object_id:""}
+                        .configAttribute=${"object_id"}
+                        .configObject=${i}
+                        @input=${this._valueChanged}
+                        required
+                      ></floor3d-textfield>
+                    `}
               </div>
             `:""}
       </div>
@@ -1487,105 +1515,105 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                            <floor3d-formfield alignEnd  label="Lumens (0-5000) <800>" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  max=5000
-                                  step=50
-                                  .value=${i.light.lumens?i.light.lumens:null}
-                                  .configObject=${i.light}
-                                  .configAttribute=${"lumens"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
+                      ${null!==t?H`
+                            <floor3d-formfield alignEnd label="Lumens (0-5000) <800>">
                               <floor3d-textfield
-                                label="Color"
-                                .value=${i.light.color?i.light.color:""}
+                                type="number"
+                                min="0"
+                                max="5000"
+                                step="50"
+                                .value=${i.light.lumens?i.light.lumens:null}
                                 .configObject=${i.light}
-                                .configAttribute=${"color"}
+                                .configAttribute=${"lumens"}
+                                .ignoreNull=${!1}
                                 @input=${this._valueChanged}
                               ></floor3d-textfield>
-                              <floor3d-formfield alignEnd label="Decay (0-inifinity, <2>)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.light.decay?i.light.decay:null}
-                                  .configObject=${i.light}
-                                  .configAttribute=${"decay"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-formfield alignEnd label="Distance (cm: 0=inifinity, <600>)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.light.distance?i.light.distance:null}
-                                  .configObject=${i.light}
-                                  .configAttribute=${"distance"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-select
-                                label="Shadow (yes/<no>)"
-                                @selected=${this._valueChanged}
-                                .value=${i.light.shadow?i.light.shadow:null}
-                                .configObject=${i.light}
-                                .configAttribute=${"shadow"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item></mwc-list-item>
-                                  <mwc-list-item value="yes">yes</mwc-list-item>
-                                  <mwc-list-item value="no">no</mwc-list-item>
-                              </floor3d-select>
-                              <paper-input
-                                editable
-                                label="Light Direction (spot)"
-                                .value=${i.light.light_direction?i.light.light_direction:""}
-                                .configObject=${i.light}
-                                .configAttribute=${"light_direction"}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
+                            </floor3d-formfield>
+                            <floor3d-textfield
+                              label="Color"
+                              .value=${i.light.color?i.light.color:""}
+                              .configObject=${i.light}
+                              .configAttribute=${"color"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-formfield alignEnd label="Decay (0-inifinity, <2>)">
                               <floor3d-textfield
-                                label="Light Target Object (spot)"
-                                .value=${i.light.light_target?i.light.light_target:""}
+                                type="number"
+                                min="0"
+                                .value=${i.light.decay?i.light.decay:null}
                                 .configObject=${i.light}
-                                .configAttribute=${"light_target"}
+                                .configAttribute=${"decay"}
+                                .ignoreNull=${!1}
                                 @input=${this._valueChanged}
                               ></floor3d-textfield>
-                              <floor3d-formfield alignEnd label="Angle degrees (spot)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  max=180
-                                  .value=${i.light.angle?i.light.angle:null}
-                                  .configObject=${i.light}
-                                  .configAttribute=${"angle"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-select
-                                label="Light Vertical Alignment"
-                                @selected=${this._valueChanged}
-                                .value=${i.light.vertical_alignment?i.light.vertical_alignment:null}
+                            </floor3d-formfield>
+                            <floor3d-formfield alignEnd label="Distance (cm: 0=inifinity, <600>)">
+                              <floor3d-textfield
+                                type="number"
+                                min="0"
+                                .value=${i.light.distance?i.light.distance:null}
                                 .configObject=${i.light}
-                                .configAttribute=${"vertical_alignment"}
+                                .configAttribute=${"distance"}
                                 .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item></mwc-list-item>
-                                  <mwc-list-item value="bottom">bottom</mwc-list-item>
-                                  <mwc-list-item value="middle">middle</mwc-list-item>
-                                  <mwc-list-item value="top">top</mwc-list-item>
-                              </floor3d-select>
-                            `:""}
-                      </div>
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-select
+                              label="Shadow (yes/<no>)"
+                              @selected=${this._valueChanged}
+                              .value=${i.light.shadow?i.light.shadow:null}
+                              .configObject=${i.light}
+                              .configAttribute=${"shadow"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="yes">yes</mwc-list-item>
+                              <mwc-list-item value="no">no</mwc-list-item>
+                            </floor3d-select>
+                            <paper-input
+                              editable
+                              label="Light Direction (spot)"
+                              .value=${i.light.light_direction?i.light.light_direction:""}
+                              .configObject=${i.light}
+                              .configAttribute=${"light_direction"}
+                              @value-changed=${this._valueChanged}
+                            ></paper-input>
+                            <floor3d-textfield
+                              label="Light Target Object (spot)"
+                              .value=${i.light.light_target?i.light.light_target:""}
+                              .configObject=${i.light}
+                              .configAttribute=${"light_target"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-formfield alignEnd label="Angle degrees (spot)">
+                              <floor3d-textfield
+                                type="number"
+                                min="0"
+                                max="180"
+                                .value=${i.light.angle?i.light.angle:null}
+                                .configObject=${i.light}
+                                .configAttribute=${"angle"}
+                                .ignoreNull=${!1}
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-select
+                              label="Light Vertical Alignment"
+                              @selected=${this._valueChanged}
+                              .value=${i.light.vertical_alignment?i.light.vertical_alignment:null}
+                              .configObject=${i.light}
+                              .configAttribute=${"vertical_alignment"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="bottom">bottom</mwc-list-item>
+                              <mwc-list-item value="middle">middle</mwc-list-item>
+                              <mwc-list-item value="top">top</mwc-list-item>
+                            </floor3d-select>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -1610,204 +1638,205 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                             <floor3d-formfield alignEnd label="Transparency %" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  max=100
-                                  .value=${i.room.transparency?i.room.transparency:null}
-                                  .configObject=${i.room}
-                                  .configAttribute=${"transparency"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
+                      ${null!==t?H` <floor3d-formfield alignEnd label="Transparency %">
                               <floor3d-textfield
-                                label="Color"
-                                .value=${i.room.color?i.room.color:""}
+                                type="number"
+                                min="0"
+                                max="100"
+                                .value=${i.room.transparency?i.room.transparency:null}
                                 .configObject=${i.room}
-                                .configAttribute=${"color"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-formfield alignEnd label="Elevation (cm)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.room.elevation?i.room.elevation:""}
-                                  .configObject=${i.room}
-                                  .configAttribute=${"elevation"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-textfield
-                                label="Label"
-                                fullwidth
-                                .value=${i.room.label?i.room.label:""}
-                                .configObject=${i.room}
-                                .configAttribute=${"label"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-select
-                                label="Label text (state or template)"
-                                @selected=${this._valueChanged}
-                                .value=${i.room.label_text?i.room.label_text:null}
-                                .configObject=${i.room}
-                                .configAttribute=${"label_text"}
+                                .configAttribute=${"transparency"}
                                 .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item></mwc-list-item>
-                                  <mwc-list-item value="state">state</mwc-list-item>
-                                  <mwc-list-item value="template">template</mwc-list-item>
-                              </floor3d-select>
-                              <floor3d-formfield alignEnd  label="Label Width (scaled cm)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.room.width?i.room.width:null}
-                                  .configObject=${i.room}
-                                  .configAttribute=${"width"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-formfield alignEnd  label="Label Height (scaled cm)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.room.height?i.room.height:null}
-                                  .configObject=${i.room}
-                                  .configAttribute=${"height"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              ${this._createTextSubElement(i.room)}`:""}
-                      </div>
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-textfield
+                              label="Color"
+                              .value=${i.room.color?i.room.color:""}
+                              .configObject=${i.room}
+                              .configAttribute=${"color"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-formfield alignEnd label="Elevation (cm)">
+                              <floor3d-textfield
+                                type="number"
+                                min="0"
+                                .value=${i.room.elevation?i.room.elevation:""}
+                                .configObject=${i.room}
+                                .configAttribute=${"elevation"}
+                                .ignoreNull=${!1}
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-textfield
+                              label="Label"
+                              fullwidth
+                              .value=${i.room.label?i.room.label:""}
+                              .configObject=${i.room}
+                              .configAttribute=${"label"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-select
+                              label="Label text (state or template)"
+                              @selected=${this._valueChanged}
+                              .value=${i.room.label_text?i.room.label_text:null}
+                              .configObject=${i.room}
+                              .configAttribute=${"label_text"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="state">state</mwc-list-item>
+                              <mwc-list-item value="template">template</mwc-list-item>
+                            </floor3d-select>
+                            <floor3d-formfield alignEnd label="Label Width (scaled cm)">
+                              <floor3d-textfield
+                                type="number"
+                                min="0"
+                                .value=${i.room.width?i.room.width:null}
+                                .configObject=${i.room}
+                                .configAttribute=${"width"}
+                                .ignoreNull=${!1}
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-formfield alignEnd label="Label Height (scaled cm)">
+                              <floor3d-textfield
+                                type="number"
+                                min="0"
+                                .value=${i.room.height?i.room.height:null}
+                                .configObject=${i.room}
+                                .configAttribute=${"height"}
+                                .ignoreNull=${!1}
+                                @input=${this._valueChanged}
+                              ></floor3d-textfield>
+                            </floor3d-formfield>
+                            ${this._createTextSubElement(i.room)}`:""}
+                    </div>
                   `:""}
             </div>
           `:""}
     `}_createZoomElement(t){const e=this._options.zoom_areas.options.zoom_areas[t].options.zoom,i=this._configZoomArray[t];return H`
-            <div class="category" id="light">
-              <div
-                class="sub-category"
-                @click=${this._toggleThing}
-                .options=${e}
-                .optionsTarget=${this._options.zoom_areas.options.zoom_areas[t].options}
-              >
-                <div class="row">
-                  <ha-icon .icon=${`mdi:${e.icon}`}></ha-icon>
-                  <div class="title">${e.name}</div>
-                  <ha-icon
-                    .icon=${e.show?"mdi:chevron-up":"mdi:chevron-down"}
-                    style="margin-left: auto;"
-                  ></ha-icon>
-                </div>
-                <div class="secondary">${e.secondary}</div>
+      <div class="category" id="light">
+        <div
+          class="sub-category"
+          @click=${this._toggleThing}
+          .options=${e}
+          .optionsTarget=${this._options.zoom_areas.options.zoom_areas[t].options}
+        >
+          <div class="row">
+            <ha-icon .icon=${`mdi:${e.icon}`}></ha-icon>
+            <div class="title">${e.name}</div>
+            <ha-icon .icon=${e.show?"mdi:chevron-up":"mdi:chevron-down"} style="margin-left: auto;"></ha-icon>
+          </div>
+          <div class="secondary">${e.secondary}</div>
+        </div>
+        ${e.show?H`
+              <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                ${null!==t?H`
+                      ${this._objects?H`
+                            <floor3d-select
+                              label="Object id"
+                              @selected=${this._valueChanged}
+                              .value=${i.object_id}
+                              .configAttribute=${"object_id"}
+                              .configObject=${i}
+                              .ignoreNull=${!1}
+                              required
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              ${this._objects.map((t=>H` <mwc-list-item value="${t}">${t}</mwc-list-item> `))}
+                              ${this._configObjectArray.map((t=>H`
+                                  <mwc-list-item value="${"<"+t.object_group+">"}"
+                                    >${"<"+t.object_group+">"}</mwc-list-item
+                                  >
+                                `))}
+                            </floor3d-select>
+                          `:H`
+                            <floor3d-textfield
+                              label="Object"
+                              .value=${i.object_id?i.object_id:""}
+                              .configAttribute=${"object_id"}
+                              .configObject=${i}
+                              @input=${this._valueChanged}
+                              required
+                            ></floor3d-textfield>
+                          `}
+                      <paper-input
+                        editable
+                        label="Zoom Direction {x: xxxx,y: yyyy, z: zzzz }"
+                        .value=${i.direction?i.direction:null}
+                        .configObject=${i}
+                        .configAttribute=${"direction"}
+                        @value-changed=${this._valueChanged}
+                      ></paper-input>
+                      <paper-input
+                        editable
+                        label="Zoom Rotation {x: xxxx,y: yyyy, z: zzzz }"
+                        .value=${i.rotation?i.rotation:null}
+                        .configObject=${i}
+                        .configAttribute=${"rotation"}
+                        @value-changed=${this._valueChanged}
+                      ></paper-input>
+                      <floor3d-formfield alignEnd label="Distance (cm)">
+                        <floor3d-textfield
+                          type="number"
+                          min="0"
+                          .value=${i.distance?i.distance:null}
+                          .configObject=${i}
+                          .configAttribute=${"distance"}
+                          .ignoreNull=${!1}
+                          @input=${this._valueChanged}
+                        ></floor3d-textfield>
+                      </floor3d-formfield>
+                    `:""}
               </div>
-              ${e.show?H`
-                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              ${this._objects?H`
-                                    <floor3d-select
-                                      label="Object id"
-                                      @selected=${this._valueChanged}
-                                      .value=${i.object_id}
-                                      .configAttribute=${"object_id"}
-                                      .configObject=${i}
-                                      .ignoreNull=${!1}
-                                      required
-                                      @closed=${t=>t.stopPropagation()}
-                                    >   ${this._objects.map((t=>H` <mwc-list-item value="${t}">${t}</mwc-list-item> `))}
-                                        ${this._configObjectArray.map((t=>H` <mwc-list-item value="${"<"+t.object_group+">"}">${"<"+t.object_group+">"}</mwc-list-item> `))}
-                                    </floor3d-select>
-                                  `:H`
-                                  <floor3d-textfield
-                                    label="Object"
-                                    .value=${i.object_id?i.object_id:""}
-                                    .configAttribute=${"object_id"}
-                                    .configObject=${i}
-                                    @input=${this._valueChanged}
-                                    required
-                                  ></floor3d-textfield>
-                                `}
-                              <paper-input
-                                editable
-                                label="Zoom Direction {x: xxxx,y: yyyy, z: zzzz }"
-                                .value=${i.direction?i.direction:null}
-                                .configObject=${i}
-                                .configAttribute=${"direction"}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <paper-input
-                                editable
-                                label="Zoom Rotation {x: xxxx,y: yyyy, z: zzzz }"
-                                .value=${i.rotation?i.rotation:null}
-                                .configObject=${i}
-                                .configAttribute=${"rotation"}
-                                @value-changed=${this._valueChanged}
-                              ></paper-input>
-                              <floor3d-formfield alignEnd label="Distance (cm)" >
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  .value=${i.distance?i.distance:null}
-                                  .configObject=${i}
-                                  .configAttribute=${"distance"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                        `:""}
-                      </div>
-                  `:""}
-            </div>
+            `:""}
+      </div>
     `}_createTextSubElement(t){return H`
-                              <floor3d-textfield
-                                label="Attribute"
-                                fullwidth
-                                .value=${t.attribute?t.room.attribute:""}
-                                .configObject=${t}
-                                .configAttribute=${"attribute"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-textfield
-                                label="font"
-                                fullwidth
-                                .value=${t.font?t.font:""}
-                                .configObject=${t}
-                                .configAttribute=${"font"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-formfield alignEnd  label="Span percentage" >
-                                <floor3d-textfield
-                                  label="Span percentage"
-                                  type="number"
-                                  min=0
-                                  max=100
-                                  .value=${t.span?t.span:null}
-                                  .configObject=${t}
-                                  .configAttribute=${"span"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-textfield
-                                label="Text Background Color"
-                                .value=${t.textbgcolor?t.textbgcolor:""}
-                                .configObject=${t}
-                                .configAttribute=${"textbgcolor"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-textfield
-                                label="Text Foreground Color"
-                                .value=${t.textfgcolor?t.textfgcolor:""}
-                                .configObject=${t}
-                                .configAttribute=${"textfgcolor"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
+      <floor3d-textfield
+        label="Attribute"
+        fullwidth
+        .value=${t.attribute?t.room.attribute:""}
+        .configObject=${t}
+        .configAttribute=${"attribute"}
+        @input=${this._valueChanged}
+      ></floor3d-textfield>
+      <floor3d-textfield
+        label="font"
+        fullwidth
+        .value=${t.font?t.font:""}
+        .configObject=${t}
+        .configAttribute=${"font"}
+        @input=${this._valueChanged}
+      ></floor3d-textfield>
+      <floor3d-formfield alignEnd label="Span percentage">
+        <floor3d-textfield
+          label="Span percentage"
+          type="number"
+          min="0"
+          max="100"
+          .value=${t.span?t.span:null}
+          .configObject=${t}
+          .configAttribute=${"span"}
+          .ignoreNull=${!1}
+          @input=${this._valueChanged}
+        ></floor3d-textfield>
+      </floor3d-formfield>
+      <floor3d-textfield
+        label="Text Background Color"
+        .value=${t.textbgcolor?t.textbgcolor:""}
+        .configObject=${t}
+        .configAttribute=${"textbgcolor"}
+        @input=${this._valueChanged}
+      ></floor3d-textfield>
+      <floor3d-textfield
+        label="Text Foreground Color"
+        .value=${t.textfgcolor?t.textfgcolor:""}
+        .configObject=${t}
+        .configAttribute=${"textfgcolor"}
+        @input=${this._valueChanged}
+      ></floor3d-textfield>
     `}_createTextElement(t){const e=this._options.entities.options.entities[t].options.text,i=this._configArray[t],n=!!i.type3d&&"text"===i.type3d;return n&&(i.text=Object.assign({},i.text)),H`
       ${n?H`
             <div class="category" id="text">
@@ -1829,10 +1858,8 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                      ${null!==t?H`
-                               ${this._createTextSubElement(i.text)}
-                            `:""}
-                      </div>
+                      ${null!==t?H` ${this._createTextSubElement(i.text)} `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -1857,89 +1884,89 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              <floor3d-select
-                                label="Door Type"
-                                @selected=${this._valueChanged}
-                                .value=${i.door.doortype?i.door.doortype:null}
-                                .configObject=${i.door}
-                                .configAttribute=${"doortype"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item ></mwc-list-item>
-                                  <mwc-list-item value="swing">swing</mwc-list-item>
-                                  <mwc-list-item value="slide">slide</mwc-list-item>
-                              </floor3d-select>
-                              <floor3d-select
-                                label="Side"
-                                @selected=${this._valueChanged}
-                                .value=${i.door.side?i.door.side:null}
-                                .configObject=${i.door}
-                                .configAttribute=${"side"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item ></mwc-list-item>
-                                  <mwc-list-item value="up">up</mwc-list-item>
-                                  <mwc-list-item value="down">down</mwc-list-item>
-                                  <mwc-list-item value="left">left</mwc-list-item>
-                                  <mwc-list-item value="right">right</mwc-list-item>
-                              </floor3d-select>
-                              <floor3d-select
-                                label="Direction"
-                                @selected=${this._valueChanged}
-                                .value=${i.door.direction?i.door.direction:null}
-                                .configObject=${i.door}
-                                .configAttribute=${"direction"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item ></mwc-list-item>
-                                  <mwc-list-item value="inner">inner</mwc-list-item>
-                                  <mwc-list-item value="outer">outer</mwc-list-item>
-                              </floor3d-select>
-                              <floor3d-formfield alignEnd  label="Degrees (for Swing)">
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  max=180
-                                  .value=${i.door.degrees?i.door.degrees:null}
-                                  .configObject=${i.door}
-                                  .configAttribute=${"degrees"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
-                              <floor3d-formfield alignEnd  label="Percentage open (for slide)">
-                                <floor3d-textfield
-                                  type="number"
-                                  min=0
-                                  max=100
-                                  label="Percentage open (for slide)"
-                                  .value=${i.door.percentage?i.door.percentage:null}
-                                  .configObject=${i.door}
-                                  .configAttribute=${"percentage"}
-                                  .ignoreNull=${!1}
-                                  @input=${this._valueChanged}
-                                ></floor3d-textfield>
-                              </floor3d-formfield>
+                      ${null!==t?H`
+                            <floor3d-select
+                              label="Door Type"
+                              @selected=${this._valueChanged}
+                              .value=${i.door.doortype?i.door.doortype:null}
+                              .configObject=${i.door}
+                              .configAttribute=${"doortype"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="swing">swing</mwc-list-item>
+                              <mwc-list-item value="slide">slide</mwc-list-item>
+                            </floor3d-select>
+                            <floor3d-select
+                              label="Side"
+                              @selected=${this._valueChanged}
+                              .value=${i.door.side?i.door.side:null}
+                              .configObject=${i.door}
+                              .configAttribute=${"side"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="up">up</mwc-list-item>
+                              <mwc-list-item value="down">down</mwc-list-item>
+                              <mwc-list-item value="left">left</mwc-list-item>
+                              <mwc-list-item value="right">right</mwc-list-item>
+                            </floor3d-select>
+                            <floor3d-select
+                              label="Direction"
+                              @selected=${this._valueChanged}
+                              .value=${i.door.direction?i.door.direction:null}
+                              .configObject=${i.door}
+                              .configAttribute=${"direction"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="inner">inner</mwc-list-item>
+                              <mwc-list-item value="outer">outer</mwc-list-item>
+                            </floor3d-select>
+                            <floor3d-formfield alignEnd label="Degrees (for Swing)">
                               <floor3d-textfield
-                                label="Pane object"
-                                .value=${i.door.pane?i.door.pane:""}
+                                type="number"
+                                min="0"
+                                max="180"
+                                .value=${i.door.degrees?i.door.degrees:null}
                                 .configObject=${i.door}
-                                .configAttribute=${"pane"}
+                                .configAttribute=${"degrees"}
+                                .ignoreNull=${!1}
                                 @input=${this._valueChanged}
                               ></floor3d-textfield>
+                            </floor3d-formfield>
+                            <floor3d-formfield alignEnd label="Percentage open (for slide)">
                               <floor3d-textfield
-                                label="Hinge object"
-                                .value=${i.door.hinge?i.door.hinge:""}
+                                type="number"
+                                min="0"
+                                max="100"
+                                label="Percentage open (for slide)"
+                                .value=${i.door.percentage?i.door.percentage:null}
                                 .configObject=${i.door}
-                                .configAttribute=${"hinge"}
+                                .configAttribute=${"percentage"}
+                                .ignoreNull=${!1}
                                 @input=${this._valueChanged}
                               ></floor3d-textfield>
-                            `:""}
-                      </div>
+                            </floor3d-formfield>
+                            <floor3d-textfield
+                              label="Pane object"
+                              .value=${i.door.pane?i.door.pane:""}
+                              .configObject=${i.door}
+                              .configAttribute=${"pane"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-textfield
+                              label="Hinge object"
+                              .value=${i.door.hinge?i.door.hinge:""}
+                              .configObject=${i.door}
+                              .configAttribute=${"hinge"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -1964,29 +1991,29 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              <floor3d-textfield
-                                label="Pane object"
-                                .value=${i.cover.pane?i.cover.pane:""}
-                                .configObject=${i.cover}
-                                .configAttribute=${"pane"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-select
-                                label="Side"
-                                @selected=${this._valueChanged}
-                                .value=${i.cover.side?i.cover.side:null}
-                                .configObject=${i.cover}
-                                .configAttribute=${"side"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item ></mwc-list-item>
-                                  <mwc-list-item value="up">up</mwc-list-item>
-                                  <mwc-list-item value="down">down</mwc-list-item>
-                              </floor3d-select>
-                            `:""}
-                      </div>
+                      ${null!==t?H`
+                            <floor3d-textfield
+                              label="Pane object"
+                              .value=${i.cover.pane?i.cover.pane:""}
+                              .configObject=${i.cover}
+                              .configAttribute=${"pane"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-select
+                              label="Side"
+                              @selected=${this._valueChanged}
+                              .value=${i.cover.side?i.cover.side:null}
+                              .configObject=${i.cover}
+                              .configAttribute=${"side"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="up">up</mwc-list-item>
+                              <mwc-list-item value="down">down</mwc-list-item>
+                            </floor3d-select>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -2011,25 +2038,25 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              <floor3d-textfield
-                                label="domain"
-                                fullwidth
-                                .value=${i.gesture.domain?i.gesture.domain:""}
-                                .configObject=${i.gesture}
-                                .configAttribute=${"domain"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-textfield
-                                label="service"
-                                fullwidth
-                                .value=${i.gesture.service?i.gesture.service:""}
-                                .configObject=${i.gesture}
-                                .configAttribute=${"service"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                            `:""}
-                      </div>
+                      ${null!==t?H`
+                            <floor3d-textfield
+                              label="domain"
+                              fullwidth
+                              .value=${i.gesture.domain?i.gesture.domain:""}
+                              .configObject=${i.gesture}
+                              .configAttribute=${"domain"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-textfield
+                              label="service"
+                              fullwidth
+                              .value=${i.gesture.service?i.gesture.service:""}
+                              .configObject=${i.gesture}
+                              .configAttribute=${"service"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -2053,38 +2080,38 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                 <div class="secondary">${e.secondary}</div>
               </div>
               ${e.show?H`
-                   <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                      ${null!==t?H`
                             <floor3d-select
-                                label="Axis"
-                                @selected=${this._valueChanged}
-                                .value=${i.rotate.axis?i.rotate.axis:null}
-                                .configObject=${i.rotate}
-                                .configAttribute=${"axis"}
-                                .ignoreNull=${!1}
-                                @closed=${t=>t.stopPropagation()}
-                              >
-                                  <mwc-list-item ></mwc-list-item>
-                                  <mwc-list-item value="x">x</mwc-list-item>
-                                  <mwc-list-item value="y">y</mwc-list-item>
-                                  <mwc-list-item value="z">z</mwc-list-item>
-                              </floor3d-select>
-                              <floor3d-textfield
-                                label="Hinge-pivot object "
-                                .value=${i.rotate.hinge?i.rotate.hinge:""}
-                                .configObject=${i.rotate}
-                                .configAttribute=${"hinge"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                              <floor3d-textfield
-                                label="Round per seconds (2 or less recommended)"
-                                .value=${i.rotate.round_per_second?i.rotate.round_per_second:""}
-                                .configObject=${i.rotate}
-                                .configAttribute=${"round_per_second"}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                            `:""}
-                      </div>
+                              label="Axis"
+                              @selected=${this._valueChanged}
+                              .value=${i.rotate.axis?i.rotate.axis:null}
+                              .configObject=${i.rotate}
+                              .configAttribute=${"axis"}
+                              .ignoreNull=${!1}
+                              @closed=${t=>t.stopPropagation()}
+                            >
+                              <mwc-list-item></mwc-list-item>
+                              <mwc-list-item value="x">x</mwc-list-item>
+                              <mwc-list-item value="y">y</mwc-list-item>
+                              <mwc-list-item value="z">z</mwc-list-item>
+                            </floor3d-select>
+                            <floor3d-textfield
+                              label="Hinge-pivot object "
+                              .value=${i.rotate.hinge?i.rotate.hinge:""}
+                              .configObject=${i.rotate}
+                              .configAttribute=${"hinge"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                            <floor3d-textfield
+                              label="Round per seconds (2 or less recommended)"
+                              .value=${i.rotate.round_per_second?i.rotate.round_per_second:""}
+                              .configObject=${i.rotate}
+                              .configAttribute=${"round_per_second"}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -2109,15 +2136,15 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
               </div>
               ${e.show?H`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              <floor3d-textfield
-                                label="state"
-                                .value=${i.hide.state?i.hide.state:""}
-                                .configAttribute=${"state"}
-                                .configObject=${i.hide}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                            `:""}
+                      ${null!==t?H`
+                            <floor3d-textfield
+                              label="state"
+                              .value=${i.hide.state?i.hide.state:""}
+                              .configAttribute=${"state"}
+                              .configObject=${i.hide}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                          `:""}
                     </div>
                   `:""}
             </div>
@@ -2142,17 +2169,17 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
                 <div class="secondary">${e.secondary}</div>
               </div>
               ${e.show?H`
-                   <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
-                        ${null!==t?H`
-                              <floor3d-textfield
-                                label="state"
-                                .value=${i.show.state?i.show.state:""}
-                                .configAttribute=${"state"}
-                                .configObject=${i.show}
-                                @input=${this._valueChanged}
-                              ></floor3d-textfield>
-                            `:""}
-                      </div>
+                    <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
+                      ${null!==t?H`
+                            <floor3d-textfield
+                              label="state"
+                              .value=${i.show.state?i.show.state:""}
+                              .configAttribute=${"state"}
+                              .configObject=${i.show}
+                              @input=${this._valueChanged}
+                            ></floor3d-textfield>
+                          `:""}
+                    </div>
                   `:""}
             </div>
           `:""}
@@ -2182,10 +2209,10 @@ const yi=h`.mdc-floating-label{-moz-osx-font-smoothing:grayscale;-webkit-font-sm
         display: grid;
       }
       .cards .card-options {
-          display: flex;
-          justify-content: flex-end;
-          width: 100%;
-        }
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+      }
       ha-formfield {
         padding-bottom: 8px;
       }
@@ -2259,78 +2286,75 @@ return function(t,e,i){const n=t.constructor;if(!i){const t=`__${e}`;if(!(i=n.ge
  * Copyright 2021 Google LLC
  * SPDX-LIcense-Identifier: Apache-2.0
  */
-const Du=h`.mdc-button{-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;font-family:Roboto, sans-serif;font-family:var(--mdc-typography-button-font-family, var(--mdc-typography-font-family, Roboto, sans-serif));font-size:0.875rem;font-size:var(--mdc-typography-button-font-size, 0.875rem);line-height:2.25rem;line-height:var(--mdc-typography-button-line-height, 2.25rem);font-weight:500;font-weight:var(--mdc-typography-button-font-weight, 500);letter-spacing:0.0892857143em;letter-spacing:var(--mdc-typography-button-letter-spacing, 0.0892857143em);text-decoration:none;text-decoration:var(--mdc-typography-button-text-decoration, none);text-transform:uppercase;text-transform:var(--mdc-typography-button-text-transform, uppercase)}.mdc-touch-target-wrapper{display:inline}.mdc-elevation-overlay{position:absolute;border-radius:inherit;pointer-events:none;opacity:0;opacity:var(--mdc-elevation-overlay-opacity, 0);transition:opacity 280ms cubic-bezier(0.4, 0, 0.2, 1);background-color:#fff;background-color:var(--mdc-elevation-overlay-color, #fff)}.mdc-button{position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:64px;border:none;outline:none;line-height:inherit;user-select:none;-webkit-appearance:none;overflow:visible;vertical-align:middle;background:transparent}.mdc-button .mdc-elevation-overlay{width:100%;height:100%;top:0;left:0}.mdc-button::-moz-focus-inner{padding:0;border:0}.mdc-button:active{outline:none}.mdc-button:hover{cursor:pointer}.mdc-button:disabled{cursor:default;pointer-events:none}.mdc-button .mdc-button__icon{margin-left:0;margin-right:8px;display:inline-block;position:relative;vertical-align:top}[dir=rtl] .mdc-button .mdc-button__icon,.mdc-button .mdc-button__icon[dir=rtl]{margin-left:8px;margin-right:0}.mdc-button .mdc-button__label{position:relative}.mdc-button .mdc-button__touch{position:absolute;top:50%;height:48px;left:0;right:0;transform:translateY(-50%)}.mdc-button__label+.mdc-button__icon{margin-left:8px;margin-right:0}[dir=rtl] .mdc-button__label+.mdc-button__icon,.mdc-button__label+.mdc-button__icon[dir=rtl]{margin-left:0;margin-right:8px}svg.mdc-button__icon{fill:currentColor}.mdc-button--touch{margin-top:6px;margin-bottom:6px}.mdc-button{padding:0 8px 0 8px}.mdc-button--unelevated{transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);padding:0 16px 0 16px}.mdc-button--unelevated.mdc-button--icon-trailing{padding:0 12px 0 16px}.mdc-button--unelevated.mdc-button--icon-leading{padding:0 16px 0 12px}.mdc-button--raised{transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);padding:0 16px 0 16px}.mdc-button--raised.mdc-button--icon-trailing{padding:0 12px 0 16px}.mdc-button--raised.mdc-button--icon-leading{padding:0 16px 0 12px}.mdc-button--outlined{border-style:solid;transition:border 280ms cubic-bezier(0.4, 0, 0.2, 1)}.mdc-button--outlined .mdc-button__ripple{border-style:solid;border-color:transparent}.mdc-button{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button:not(:disabled){color:#6200ee;color:var(--mdc-theme-primary, #6200ee)}.mdc-button:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--raised,.mdc-button--unelevated{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--raised:not(:disabled),.mdc-button--unelevated:not(:disabled){background-color:#6200ee;background-color:var(--mdc-theme-primary, #6200ee)}.mdc-button--raised:disabled,.mdc-button--unelevated:disabled{background-color:rgba(0, 0, 0, 0.12)}.mdc-button--raised:not(:disabled),.mdc-button--unelevated:not(:disabled){color:#fff;color:var(--mdc-theme-on-primary, #fff)}.mdc-button--raised:disabled,.mdc-button--unelevated:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button--raised .mdc-button__icon,.mdc-button--unelevated .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button--raised .mdc-button__ripple,.mdc-button--unelevated .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--outlined{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px);padding:0 15px 0 15px;border-width:1px}.mdc-button--outlined:not(:disabled){color:#6200ee;color:var(--mdc-theme-primary, #6200ee)}.mdc-button--outlined:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button--outlined .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button--outlined .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--outlined:not(:disabled){border-color:rgba(0, 0, 0, 0.12)}.mdc-button--outlined:disabled{border-color:rgba(0, 0, 0, 0.12)}.mdc-button--outlined.mdc-button--icon-trailing{padding:0 11px 0 15px}.mdc-button--outlined.mdc-button--icon-leading{padding:0 15px 0 11px}.mdc-button--outlined .mdc-button__ripple{top:calc(-1 * 1px);left:calc(-1 * 1px);border-width:1px}.mdc-button--outlined .mdc-button__touch{left:calc(-1 * 1px);width:calc(100% + 2 * 1px)}.mdc-button--raised{box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.2),0px 2px 2px 0px rgba(0, 0, 0, 0.14),0px 1px 5px 0px rgba(0,0,0,.12);transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1)}.mdc-button--raised:hover,.mdc-button--raised:focus{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2),0px 4px 5px 0px rgba(0, 0, 0, 0.14),0px 1px 10px 0px rgba(0,0,0,.12)}.mdc-button--raised:active{box-shadow:0px 5px 5px -3px rgba(0, 0, 0, 0.2),0px 8px 10px 1px rgba(0, 0, 0, 0.14),0px 3px 14px 2px rgba(0,0,0,.12)}.mdc-button--raised:disabled{box-shadow:0px 0px 0px 0px rgba(0, 0, 0, 0.2),0px 0px 0px 0px rgba(0, 0, 0, 0.14),0px 0px 0px 0px rgba(0,0,0,.12)}:host{display:inline-flex;outline:none;-webkit-tap-highlight-color:transparent;vertical-align:top}:host([fullwidth]){width:100%}:host([raised]),:host([unelevated]){--mdc-ripple-color:#fff;--mdc-ripple-focus-opacity:0.24;--mdc-ripple-hover-opacity:0.08;--mdc-ripple-press-opacity:0.24}.trailing-icon ::slotted(*),.trailing-icon .mdc-button__icon,.leading-icon ::slotted(*),.leading-icon .mdc-button__icon{margin-left:0;margin-right:8px;display:inline-block;position:relative;vertical-align:top;font-size:1.125rem;height:1.125rem;width:1.125rem}[dir=rtl] .trailing-icon ::slotted(*),[dir=rtl] .trailing-icon .mdc-button__icon,[dir=rtl] .leading-icon ::slotted(*),[dir=rtl] .leading-icon .mdc-button__icon,.trailing-icon ::slotted(*[dir=rtl]),.trailing-icon .mdc-button__icon[dir=rtl],.leading-icon ::slotted(*[dir=rtl]),.leading-icon .mdc-button__icon[dir=rtl]{margin-left:8px;margin-right:0}.trailing-icon ::slotted(*),.trailing-icon .mdc-button__icon{margin-left:8px;margin-right:0}[dir=rtl] .trailing-icon ::slotted(*),[dir=rtl] .trailing-icon .mdc-button__icon,.trailing-icon ::slotted(*[dir=rtl]),.trailing-icon .mdc-button__icon[dir=rtl]{margin-left:0;margin-right:8px}.slot-container{display:inline-flex;align-items:center;justify-content:center}.slot-container.flex{flex:auto}.mdc-button{flex:auto;overflow:hidden;padding-left:8px;padding-left:var(--mdc-button-horizontal-padding, 8px);padding-right:8px;padding-right:var(--mdc-button-horizontal-padding, 8px)}.mdc-button--raised{box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow, 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised:focus{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-focus, var(--mdc-button-raised-box-shadow-hover, 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12)))}.mdc-button--raised:hover{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-hover, 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised:active{box-shadow:0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-active, 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12))}.mdc-button--raised:disabled{box-shadow:0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-disabled, 0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised,.mdc-button--unelevated{padding-left:16px;padding-left:var(--mdc-button-horizontal-padding, 16px);padding-right:16px;padding-right:var(--mdc-button-horizontal-padding, 16px)}.mdc-button--outlined{border-width:1px;border-width:var(--mdc-button-outline-width, 1px);padding-left:calc(16px - 1px);padding-left:calc(var(--mdc-button-horizontal-padding, 16px) - var(--mdc-button-outline-width, 1px));padding-right:calc(16px - 1px);padding-right:calc(var(--mdc-button-horizontal-padding, 16px) - var(--mdc-button-outline-width, 1px))}.mdc-button--outlined:not(:disabled){border-color:rgba(0, 0, 0, 0.12);border-color:var(--mdc-button-outline-color, rgba(0, 0, 0, 0.12))}.mdc-button--outlined .ripple{top:calc(-1 * 1px);top:calc(-1 * var(--mdc-button-outline-width, 1px));left:calc(-1 * 1px);left:calc(-1 * var(--mdc-button-outline-width, 1px));right:initial;right:initial;border-width:1px;border-width:var(--mdc-button-outline-width, 1px);border-style:solid;border-color:transparent}[dir=rtl] .mdc-button--outlined .ripple,.mdc-button--outlined .ripple[dir=rtl]{left:initial;left:initial;right:calc(-1 * 1px);right:calc(-1 * var(--mdc-button-outline-width, 1px))}.mdc-button--dense{height:28px;margin-top:0;margin-bottom:0}.mdc-button--dense .mdc-button__touch{height:100%}:host([disabled]){pointer-events:none}:host([disabled]) .mdc-button{color:rgba(0, 0, 0, 0.38);color:var(--mdc-button-disabled-ink-color, rgba(0, 0, 0, 0.38))}:host([disabled]) .mdc-button--raised,:host([disabled]) .mdc-button--unelevated{background-color:rgba(0, 0, 0, 0.12);background-color:var(--mdc-button-disabled-fill-color, rgba(0, 0, 0, 0.12))}:host([disabled]) .mdc-button--outlined{border-color:rgba(0, 0, 0, 0.12);border-color:var(--mdc-button-disabled-outline-color, rgba(0, 0, 0, 0.12))}`;let zu=class extends Nu{static get styles(){return Du}};zu=r([lt("floor3d-button")],zu),console.info(`%c  FLOOR3D-CARD \n%c  ${Ci("common.version")} 1.5.0    `,"color: orange; font-weight: bold; background: black","color: white; font-weight: bold; background: dimgray"),window.customCards=window.customCards||[],window.customCards.push({type:"floor3d-card",name:"Floor3d Card",preview:!0,description:"A custom card to visualize and activate entities in a live 3D model"});class ku{}ku.OBJ=0,ku.GLB=1;let Fu=class extends st{constructor(){super(),this._configArray=[],this._object_ids=[],this._clickStart=null,this._initialobjectmaterials={},this._selectedobjects=[],this._cardObscured=!1,this._resizeObserver=new ResizeObserver((()=>{this._resizeCanvasDebounce()})),this._performActionListener=t=>{this._performAction(t)},this._mousedownEventListener=t=>this._mousedownEvent(t),this._mouseupEventListener=t=>{this._longpressTimeout&&(clearTimeout(this._longpressTimeout),this._longpressTimeout=null),this._clickStart&&Date.now()-this._clickStart<200&&("yes"==this._config.click||this._selectionModeEnabled)&&this._firEvent(t),this._clickStart=null},this._changeListener=()=>{this._clickStart&&Date.now()-this._clickStart>200&&(this._clickStart=null),this._render()},this._haShadowRoot=document.querySelector("home-assistant").shadowRoot,this._eval=eval,this._card_id="ha-card-1",console.log("New Card")}connectedCallback(){super.connectedCallback(),this._modelready&&((this._ispanel()||this._issidebar())&&this._resizeObserver.observe(this._card),this._zIndexInterval=window.setInterval((()=>{this._zIndexChecker()}),250),this._to_animate&&(this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))),(this._ispanel()||this._issidebar())&&this._resizeCanvas())}disconnectedCallback(){super.disconnectedCallback(),this._resizeObserver.disconnect(),window.clearInterval(this._zIndexInterval),this._modelready&&this._to_animate&&(this._clock=null,this._renderer.setAnimationLoop(null))}static async getConfigElement(){return await Promise.resolve().then((function(){return Mi})),document.createElement("floor3d-card-editor")}static getStubConfig(t,e,i){console.log("Stub started");const n=(t,e,i,r,o,s)=>{const a=[];(null==o?void 0:o.length)&&a.push((t=>o.includes(t.split(".")[0]))),s&&a.push((e=>t.states[e]&&s(t.states[e])));const l=((t,e,i)=>{(!i||i>t.length)&&(i=t.length);const n=[];for(let r=0;r<t.length&&n.length<i;r++){let i=!0;for(const n of e)if(!n(t[r])){i=!1;break}i&&n.push(t[r])}return n})(i,a,e);if(l.length<e&&r.length){const i=n(t,e-l.length,r,[],o,s);l.push(...i)}return l};let r=["binary_sensor"],o=2,s=n(t,o,e,i,r);const a=new URL(import.meta.url);let l=a.pathname.split("/").pop(),c=a.pathname.replace(l,"");c.includes("hacsfiles")&&(c="/local/community/floor3d-card/");const d={path:c,name:"Home",objfile:"home.glb",lock_camera:"no",header:"yes",click:"no",overlay:"no",backgroundColor:"#aaaaaa",hideLevelsMenu:"no",globalLightPower:"0.8",shadow:"no",extralightmode:"no",show_axes:"no",sky:"no",overlay_bgcolor:"transparent",overlay_fgcolor:"black",overlay_alignment:"top-left",overlay_width:"33",overlay_height:"20",north:{x:0,z:-1},camera_position:{x:609.3072605703628,y:905.5330092468828,z:376.66437610591277},camera_rotate:{x:-1.0930244719682243,y:.5200808414019678,z:.7648717152512469},camera_target:{x:37.36890424945437,y:18.64464320782064,z:-82.55051697031719},object_groups:[{object_group:"RoundTable",objects:[{object_id:"Round_table_1"},{object_id:"Round_table_2"},{object_id:"Round_table_3"}]},{object_group:"EntranceDoor",objects:[{object_id:"Door_9"},{object_id:"Door_7"},{object_id:"Door_5"}]}],entities:[]};let h=0;s[0]&&(d.entities.push({entity:s[0],type3d:"door",object_id:"<EntranceDoor>",door:{doortype:"swing",direction:"inner",hinge:"Door_3",percentage:"90"}}),h+=1),s[1]&&(d.entities.push({entity:s[1],type3d:"hide",object_id:"<RoundTable>",hide:{state:"off"}}),h+=1),r=["light"],o=1;let u=n(t,o,e,i,r);return u[0]&&(d.entities.push({entity:u[0],type3d:"light",object_id:"Bowl_2",light:{lumens:"800"}}),h+=1),0==h&&d.entities.push({entity:""}),console.log(d),console.log("Stub ended"),d}setConfig(t){if(console.log("floor3d-card: Set Config Start"),!t)throw new Error(Ci("common.invalid_configuration"));this._config=t,this._configArray=function(t){const e=[];if(t.entities){for(const i of t.entities)if("string"==typeof i){const n=Et({},t);delete n.entities;const r=Et(n,{entity:i});e.push(r)}else if("object"==typeof i){const n=Et({},t);delete n.entities;const r=Et(n,i);e.push(r)}}else e.push(t);return e}(this._config),this._object_ids=function(t){const e=[];if(t.entities)for(const i of t.entities)if(i.object_id)if("<"==i.object_id.charAt(0)&&">"==i.object_id.charAt(i.object_id.length-1)){const n=i.object_id.substr(1,i.object_id.length-2);for(const r of t.object_groups)if(r.object_group==n){const t=Et({},{entity:i.entity,objects:r.objects});e.push(t);break}}else if(""!==i.object_id){const t=Et({},{entity:i.entity,objects:[{object_id:i.object_id}]});e.push(t)}else""!=i.entity&&console.log("ERROR: Object is empty for entity"+i.entity);else""!=i.entity&&console.log("ERROR: Object is empty for entity"+i.entity);return e}(this._config),this._initialmaterial=[],this._clonedmaterial=[];let e=0;this._selectionModeEnabled="yes"===this._config.selectionMode,this._object_ids.forEach((t=>{this._initialmaterial.push([]),this._clonedmaterial.push([]),t.objects.forEach((()=>{this._initialmaterial[e].push(null),this._clonedmaterial[e].push(null)})),e+=1})),console.log("floor3d-card: Set Config End"),this._config.show_warning?V(this._showWarning(Ci("common.show_warning")),this._card):this._config.show_error&&V(this._showError(Ci("common.show_error")),this._card)}rerender(){this._content.removeEventListener("dblclick",this._performActionListener),this._content.removeEventListener("touchstart",this._performActionListener),this._content.removeEventListener("keydown",this._performActionListener),this._controls.removeEventListener("change",this._changeListener),this._renderer.setAnimationLoop(null),this._resizeObserver.disconnect(),window.clearInterval(this._zIndexInterval),this._renderer.domElement.remove(),this._renderer=null,this._states=null,this.hass=this._hass,this.display3dmodel()}_ispanel(){let t=document.querySelector("home-assistant");t=t&&t.shadowRoot,t=t&&t.querySelector("home-assistant-main"),t=t&&t.shadowRoot,t=t&&t.querySelector("app-drawer-layout partial-panel-resolver"),t=t&&t.shadowRoot||t,t=t&&t.querySelector("ha-panel-lovelace"),t=t&&t.shadowRoot,t=t&&t.querySelector("hui-root"),t=t&&t.shadowRoot,t=t&&t.querySelector("ha-app-layout");return 0!=t.getElementsByTagName("HUI-PANEL-VIEW").length}_issidebar(){let t=document.querySelector("home-assistant");t=t&&t.shadowRoot,t=t&&t.querySelector("home-assistant-main"),t=t&&t.shadowRoot,t=t&&t.querySelector("app-drawer-layout partial-panel-resolver"),t=t&&t.shadowRoot||t,t=t&&t.querySelector("ha-panel-lovelace"),t=t&&t.shadowRoot,t=t&&t.querySelector("hui-root"),t=t&&t.shadowRoot,t=t&&t.querySelector("ha-app-layout");return 0!=t.getElementsByTagName("HUI-SIDEBAR-VIEW").length}getCardSize(){return console.log("Get Card Size Called"),this._renderer,10}firstUpdated(){if(console.log("First updated start"),this._card=this.shadowRoot.getElementById(this._card_id),this._card){if(this._content||(this._content=document.createElement("div"),this._content.style.width="100%",this._content.style.height="100%",this._content.style.alignContent="center",this._card.appendChild(this._content)),!this._ispanel()){const t=this._config.header?this._config.header:"yes";this._card.header="yes"==t?this._config.name?this._config.name:"Floor 3d":""}this._content&&!this._renderer&&this.display3dmodel(),console.log("First updated end")}}_render(){this._torch&&(this._torch.position.copy(this._camera.position),this._torch.rotation.copy(this._camera.rotation),this._camera.getWorldDirection(this._torch.target.position)),this._renderer.render(this._scene,this._camera)}_getintersect(t){const e=new an;e.x=t.offsetX/this._content.clientWidth*2-1,e.y=-t.offsetY/this._content.clientHeight*2+1;const i=new dh;i.setFromCamera(e,this._camera);return i.intersectObjects(this._raycasting,!1)}_mousedownEvent(t){this._currentIntersections=this._getintersect(t),this._clickStart=Date.now(),this._longpressTimeout=setTimeout((()=>this._longPressEvent(t)),600)}_firEvent(t){const e=this._getintersect(t);if(e.length>0&&""!=e[0].object.name){if(this._selectionModeEnabled)return void this._defaultaction(e);this._config.entities.forEach(((t,i)=>{for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==e[0].object.name){if(this._config.entities[i].action){switch(this._config.entities[i].action){case"more-info":yt(this,"hass-more-info",{entityId:t.entity});break;case"overlay":this._overlay&&this._setoverlaycontent(t.entity);break;default:this._defaultaction(e)}return}return void this._defaultaction(e)}}))}}_longPressEvent(t){if(null==this._clickStart)return;this._clickStart=null;const e=this._currentIntersections;this._currentIntersections=null,e.length>0&&""!=e[0].object.name&&this._config.entities.forEach(((t,i)=>{for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==e[0].object.name&&this._config.entities[i].long_press_action){switch(this._config.entities[i].long_press_action){case"more-info":yt(this,"hass-more-info",{entityId:t.entity});break;case"overlay":this._overlay&&this._setoverlaycontent(t.entity);break;default:this._defaultaction(e)}return}}))}_setoverlaycontent(t){this._overlay_entity=t;const e=this._hass.states[t].attributes.friendly_name?this._hass.states[t].attributes.friendly_name:t;this._overlay.textContent=e+": "+this._hass.states[t].state,this._overlay_state=this._hass.states[t].state}_defaultaction(t){if(t.length>0&&t[0].object&&""!=t[0].object.name){const e=t[0].object.name;if(Mt().editMode&&"yes"==this._config.editModeNotifications&&window.prompt("Object:",e),console.log("Object:",e),this._selectionModeEnabled){const i=t[0].object;if(!this._selectedmaterial){const t=new Jc({color:7829503});this._selectedmaterial=t}return this._initialobjectmaterials[e]||(this._initialobjectmaterials[e]=i.material),this._selectedobjects.includes(e)?(this._selectedobjects=this._selectedobjects.filter((t=>t!==e)),i.material=this._initialobjectmaterials[e]):(this._selectedobjects.push(e),i.material=this._selectedmaterial),this._selectedobjects=this._selectedobjects.sort(),console.log("Selected object IDs:",this._selectedobjects),this._render(),void V(this._getSelectionBar(),this._selectionbar)}this._config.entities.forEach(((e,i)=>{if("light"==e.type3d||"gesture"==e.type3d||"camera"==e.type3d)for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==t[0].object.name){"light"==e.type3d?this._hass.callService(e.entity.split(".")[0],"toggle",{entity_id:e.entity}):"gesture"==e.type3d?this._hass.callService(e.gesture.domain,e.gesture.service,{entity_id:e.entity}):"camera"==e.type3d&&yt(this,"hass-more-info",{entityId:e.entity});break}}))}else{const t="camera_position: { x: "+this._camera.position.x+", y: "+this._camera.position.y+", z: "+this._camera.position.z+" }\ncamera_rotate: { x: "+this._camera.rotation.x+", y: "+this._camera.rotation.y+", z: "+this._camera.rotation.z+" }\ncamera_target: { x: "+this._controls.target.x+", y: "+this._controls.target.y+", z: "+this._controls.target.z+" }";Mt().editMode&&"yes"==this._config.editModeNotifications&&window.prompt("YAML:",t),console.log("YAML:",t)}}_performAction(t){const e=this._getintersect(t);this._defaultaction(e)}_zIndexChecker(){let t=(this._card.getBoundingClientRect().left+this._card.getBoundingClientRect().right)/2,e=(this._card.getBoundingClientRect().top+this._card.getBoundingClientRect().bottom)/2,i=this._haShadowRoot.elementFromPoint(t,e);if(null!=i){let t=this._getZIndex(i.shadowRoot.firstElementChild);this._getZIndex(this._card)!=t?this._cardObscured||(this._cardObscured=!0,this._to_animate&&(console.log("Canvas Obscured; stopping animation"),this._clock=null,this._renderer.setAnimationLoop(null))):this._cardObscured&&(this._cardObscured=!1,this._to_animate&&(console.log("Canvas visible again; starting animation"),this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))))}}_getZIndex(t){let e;if(null==t&&(e="0"),null==t.parentNode)return"0";if(e=getComputedStyle(t).getPropertyValue("--dialog-z-index"),""==e&&(e=getComputedStyle(t).getPropertyValue("z-index")),""==e||"auto"==e){if(null!=t.parentNode.constructor)return"ShadowRoot"==t.parentNode.constructor.name?this._getZIndex(t.parentNode.host):"HTMLDocument"==t.parentNode.constructor.name?"0":this._getZIndex(t.parentNode);e="0"}return e}_resizeCanvasDebounce(){window.clearTimeout(this._resizeTimeout),this._resizeTimeout=window.setTimeout((()=>{this._resizeCanvas()}),50)}_resizeCanvas(){console.log("Resize canvas start"),this._renderer.domElement.parentElement.clientWidth===this._renderer.domElement.width&&this._renderer.domElement.parentElement.clientHeight===this._renderer.domElement.height||(this._camera.aspect=this._renderer.domElement.parentElement.clientWidth/this._renderer.domElement.parentElement.clientHeight,this._camera.updateProjectionMatrix(),this._renderer.setSize(this._renderer.domElement.parentElement.clientWidth,this._renderer.domElement.parentElement.clientHeight,!this._issidebar()),this._renderer.render(this._scene,this._camera)),console.log("Resize canvas end")}_statewithtemplate(t){if(this._hass.states[t.entity]){let e=this._hass.states[t.entity].state;if(t.entity_template){const i=t.entity_template.trim();if("[[["===i.substring(0,3)&&"]]]"===i.slice(-3)&&i.includes("$entity")){const t=i.slice(3,-3).replace(/\$entity/g,e);e=this._eval(t)}}return e}return""}set hass(t){try{if(this._hass=t,this._config.entities&&(this._states||(this._states=[],this._unit_of_measurement=[],this._color=[],this._brightness=[],this._lights=[],this._rooms=[],this._sprites=[],this._canvas=[],this._text=[],this._spritetext=[],this._position=[],this._config.entities.forEach((e=>{if(t.states[e.entity]){this._states.push(this._statewithtemplate(e)),this._canvas.push(null),t.states[e.entity].attributes.unit_of_measurement?this._unit_of_measurement.push(t.states[e.entity].attributes.unit_of_measurement):this._unit_of_measurement.push(""),"text"==e.type3d?e.text.attribute&&t.states[e.entity].attributes[e.text.attribute]?this._text.push(t.states[e.entity].attributes[e.text.attribute]):this._text.push(this._statewithtemplate(e)):this._text.push(""),"room"==e.type3d?(this._rooms.push(e.object_id+"_room"),this._sprites.push(e.object_id+"_sprites"),e.room.attribute?t.states[e.entity].attributes[e.room.attribute]?this._spritetext.push(t.states[e.entity].attributes[e.room.attribute]):this._spritetext.push(this._statewithtemplate(e)):e.room.label_text&&("template"==e.room.label_text?(this._spritetext.push(this._statewithtemplate(e)),this._unit_of_measurement.pop(),this._unit_of_measurement.push("")):this._spritetext.push(this._hass.states[e.entity].state))):(this._spritetext.push(""),this._rooms.push(""),this._sprites.push("")),"cover"==e.type3d&&(t.states[e.entity].attributes.current_position?this._position.push(t.states[e.entity].attributes.current_position):this._position.push(null)),"light"==e.type3d?this._lights.push(e.object_id+"_light"):this._lights.push("");let i=this._color.push([255,255,255])-1;t.states[e.entity].attributes.color_mode&&(t.states[e.entity].attributes.color_mode="color_temp")&&(this._color[i]=this._TemperatureToRGB(parseInt(t.states[e.entity].attributes.color_temp))),(t.states[e.entity].attributes.color_mode="rgb")&&t.states[e.entity].attributes.rgb_color!==this._color[i]&&(this._color[i]=t.states[e.entity].attributes.rgb_color);let n=this._brightness.push(-1)-1;t.states[e.entity].attributes.brightness&&(this._brightness[n]=t.states[e.entity].attributes.brightness)}else console.log("Entity <"+e.entity+"> not found")})),this._firstcall=!1),this._renderer&&this._modelready)){let e=!1;this._config.overlay&&"yes"==this._config.overlay&&this._overlay_entity&&this._overlay_state&&this._overlay_state!=t.states[this._overlay_entity].state&&this._setoverlaycontent(this._overlay_entity),this._config.entities.forEach(((i,n)=>{if(t.states[i.entity]){let r=this._statewithtemplate(i);if("cover"==i.type3d){let o=!1;t.states[i.entity].attributes.current_position?this._position[n]!=t.states[i.entity].attributes.current_position&&(this._position[n]=t.states[i.entity].attributes.current_position,o=!0):r!=this._states[n]&&(o=!0,this._states[n]=r),o&&(this._updatecover(i,this._states[n],n),e=!0)}if("light"==i.type3d){let o=!1;this._states[n]!==r&&(this._states[n]=r,o=!0),t.states[i.entity].attributes.color_mode&&((t.states[i.entity].attributes.color_mode="color_temp")&&this._TemperatureToRGB(parseInt(t.states[i.entity].attributes.color_temp))!==this._color[n]&&(o=!0,this._color[n]=this._TemperatureToRGB(parseInt(t.states[i.entity].attributes.color_temp))),(t.states[i.entity].attributes.color_mode="rgb")&&t.states[i.entity].attributes.rgb_color!==this._color[n]&&(o=!0,this._color[n]=t.states[i.entity].attributes.rgb_color)),t.states[i.entity].attributes.brightness&&t.states[i.entity].attributes.brightness!==this._brightness[n]&&(o=!0,this._brightness[n]=t.states[i.entity].attributes.brightness),o&&(this._updatelight(i,n),e=!0)}else if("text"==i.type3d){let r=!1;i.text.attribute?t.states[i.entity].attributes[i.text.attribute]?this._text[n]!=t.states[i.entity].attributes[i.text.attribute]&&(this._text[n]=t.states[i.entity].attributes[i.text.attribute],r=!0):(this._text[n]="",r=!0):this._text[n]!=this._statewithtemplate(i)&&(this._text[n]=this._statewithtemplate(i),r=!0),this._canvas[n]&&r&&(this._updatetext(i,this._text[n],this._canvas[n],this._unit_of_measurement[n]),e=!0)}else if("rotate"==i.type3d)this._states[n]=r,this._rotatecalc(i,n);else if(this._states[n]!==r)if(this._states[n]=r,"color"==i.type3d)this._updatecolor(i,n),e=!0;else if("hide"==i.type3d)this._updatehide(i,n),e=!0;else if("show"==i.type3d)this._updateshow(i,n),e=!0;else if("door"==i.type3d)this._updatedoor(i,n),e=!0;else if("room"==i.type3d){let r=!1;i.room.attribute?t.states[i.entity].attributes[i.room.attribute]?this._spritetext[n]!=t.states[i.entity].attributes[i.room.attribute]&&(this._spritetext[n]=t.states[i.entity].attributes[i.room.attribute],r=!0):(this._spritetext[n]="",r=!0):i.room.label_text&&("template"==i.room.label_text?this._spritetext[n]!=this._statewithtemplate(i)&&(this._spritetext[n]=this._statewithtemplate(i),r=!0):this._spritetext[n]!=this._states[n]&&(this._spritetext[n]=this._states[n],r=!0)),this._canvas[n]&&r&&(this._updateroom(i,this._spritetext[n],this._unit_of_measurement[n],n),this._updateroomcolor(i,n),e=!0)}}else console.log("Entity <"+i.entity+"> not found")})),e&&this._render()}}catch(t){throw console.log(t),new Error("Error in hass: "+t)}}_initSky(){const t={turbidity:10,rayleigh:3,mieCoefficient:.005,mieDirectionalG:.7,elevation:15,azimuth:0};console.log("Init Sky"),this._sky=new Pu,this._sky.scale.setScalar(1e5),this._scene.add(this._sky);const e=this._sky.material.uniforms;e.turbidity.value=t.turbidity,e.rayleigh.value=t.rayleigh,e.mieCoefficient.value=t.mieCoefficient,e.mieDirectionalG.value=t.mieDirectionalG,console.log("Init Ground");const i=new $o(1e4,1e4),n=new td({color:16777215});n.color.setHSL(.095,1,.75);const r=new bo(i,n);r.position.y=-5,r.rotation.x=-Math.PI/2,r.receiveShadow=!1,r.castShadow=!1,this._scene.add(r),console.log("Init Sun"),this._sun=new $d(16777215,2);const o=new vn;let s,a;this._scene.add(this._sun),this._hass.states["sun.sun"].attributes.azimuth&&(t.azimuth=Number(this._hass.states["sun.sun"].attributes.azimuth)),this._hass.states["sun.sun"].attributes.elevation&&(t.elevation=Number(this._hass.states["sun.sun"].attributes.elevation)),s=new vn,this._config.north?(s.x=-this._config.north.x,s.z=-this._config.north.z,s.y=0):(s.x=0,s.z=1,s.y=0),a=new ph,a.setFromVector3(s),a.phi=sn.degToRad(90-t.elevation),a.theta=sn.degToRad(sn.radToDeg(a.theta)-t.azimuth),o.setFromSphericalCoords(1,a.phi,a.theta),o.y<0&&(this._sun.intensity=0),e.sunPosition.value.copy(o),this._sun.position.copy(o.multiplyScalar(5e3));const l=1e3;this._sun.shadow.camera,this._sun.castShadow=!0,this._sun.shadow.mapSize.width=1024,this._sun.shadow.mapSize.height=1024,this._sun.shadow.camera.near=4e3,this._sun.shadow.camera.far=6e3,this._sun.shadow.camera.left=-l,this._sun.shadow.camera.right=l,this._sun.shadow.camera.top=l,this._sun.shadow.camera.bottom=-l,this._renderer.shadowMap.needsUpdate=!0}_initTorch(){this._torch=new $d(16777215,.2),this._torchTarget=new yr,this._torchTarget.name="Torch Target",this._torch.target=this._torchTarget,this._torch.matrixAutoUpdate=!0,this._scene.add(this._torch),this._scene.add(this._torchTarget),this._torch.castShadow=!1,this._torch.position.copy(this._camera.position),this._torch.rotation.copy(this._camera.rotation),this._camera.getWorldDirection(this._torch.target.position),this._hass.states[this._config.globalLightPower]?Number.isNaN(this._hass.states[this._config.globalLightPower].state)||(this._torch.intensity=Number(this._hass.states[this._config.globalLightPower].state)):this._config.globalLightPower&&(this._torch.intensity=Number(this._config.globalLightPower))}_initAmbient(){let t=.5;this._hass.states[this._config.globalLightPower]?Number.isNaN(this._hass.states[this._config.globalLightPower].state)||(t=Number(this._hass.states[this._config.globalLightPower].state)):this._config.globalLightPower&&(t=Number(this._config.globalLightPower)),"yes"==this._config.sky?(this._ambient_light=new Ld(16777215,0,.2),this._ambient_light.groundColor.setHSL(.095,1,.75),this._ambient_light.intensity=t):(this._ambient_light=new jd(16777215,.2),this._ambient_light.intensity=t),this._scene.add(this._ambient_light)}display3dmodel(){if(console.log("Start Build Renderer"),this._modelready=!1,this._scene=new el,this._camera=new Co(45,1,.1,1e4),this._renderer=new tl({antialias:!0,logarithmicDepthBuffer:!0,alpha:!0}),this._maxtextureimage=this._renderer.capabilities.maxTextures,console.log("Max Texture Image Units: "+this._maxtextureimage),console.log("Max Texture Image Units: number of lights casting shadow should be less than the above number"),Math.max(6,this._maxtextureimage-4),this._renderer.domElement.style.width="100%",this._renderer.domElement.style.height="100%",this._renderer.domElement.style.display="block",this._config.backgroundColor?"transparent"==this._config.backgroundColor?this._renderer.setClearColor(0,0):this._scene.background=new Hr(this._config.backgroundColor):this._scene.background=new Hr("#aaaaaa"),this._config.sky&&"yes"==this._config.sky&&(this._renderer.outputEncoding=3001),this._renderer.toneMapping=1,this._renderer.toneMappingExposure=.6,this._renderer.localClippingEnabled=!0,this._renderer.physicallyCorrectLights=!1,!this._config.path||""==this._config.path)throw new Error("Path is empty");{let t=this._config.path;const e=t.charAt(t.length-1);"."==e?t="":"/"!=e&&(t+="/"),console.log("Path: "+t);let i=this._config.objfile.split("?")[0].split(".").pop();if("obj"==i){if(this._config.mtlfile&&""!=this._config.mtlfile){const e=new zh;e.setPath(t),e.load(this._config.mtlfile,this._onLoaded3DMaterials.bind(this),this._onLoadMaterialProgress.bind(this),(function(t){throw new Error(t.error)}))}else{(new Dh).load(t+this._config.objfile,this._onLoaded3DModel.bind(this),this._onLoadObjectProgress.bind(this),(function(t){throw new Error(t.error)}))}this._modeltype=ku.OBJ}else if("glb"==i){(new Fh).setPath(t).load(this._config.objfile,this._onLoadedGLTF3DModel.bind(this),this._onloadedGLTF3DProgress.bind(this),(function(t){throw new Error(t.error)})),this._modeltype=ku.GLB}}console.log("End Build Renderer")}_onLoadError(t){this._showError(t.error)}_onloadedGLTF3DProgress(t){this._content.innerText="Loading: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadMaterialProgress(t){this._content.innerText="1/2: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadObjectProgress(t){this._content.innerText="2/2: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadedGLTF3DModel(t){this._onLoaded3DModel(t.scene)}_onLoaded3DModel(t){if(console.log("Object loaded start"),this._initobjects(t),this._bboxmodel=new yr,this._levels.forEach((t=>{this._bboxmodel.add(t)})),this._scene.add(this._bboxmodel),this._bboxmodel.updateMatrixWorld(!0),this._content.innerText="Finished with errors: check the console log",this._config.show_axes&&"yes"==this._config.show_axes&&this._scene.add(new vh(300)),this._config.shadow&&"yes"==this._config.shadow?(console.log("Shadow On"),this._renderer.shadowMap.enabled=!0,this._renderer.shadowMap.type=2,this._renderer.shadowMap.autoUpdate=!1):(console.log("Shadow Off"),this._renderer.shadowMap.enabled=!1),this._add3dObjects(),console.log("Object loaded end"),this._content&&this._renderer){this._modelready=!0,console.log("Show canvas"),this._levelbar=document.createElement("div"),this._zoombar=document.createElement("div"),this._selectionbar=document.createElement("div"),this._content.innerText="",this._content.appendChild(this._levelbar),this._content.appendChild(this._zoombar),this._content.appendChild(this._selectionbar),this._content.appendChild(this._renderer.domElement),this._selectedlevel=-1,V(this._getSelectionBar(),this._selectionbar),this._content.addEventListener("mousedown",this._mousedownEventListener),this._content.addEventListener("mouseup",this._mouseupEventListener),this._content.addEventListener("dblclick",this._performActionListener),this._content.addEventListener("touchstart",this._performActionListener),this._content.addEventListener("keydown",this._performActionListener),this._setCamera(),this._controls=new Eh(this._camera,this._renderer.domElement),this._renderer.setPixelRatio(window.devicePixelRatio),this._controls.maxPolarAngle=.85*Math.PI/2,this._controls.addEventListener("change",this._changeListener),this._setLookAt(),this._controls.update(),"yes"==this._config.lock_camera&&(this._controls.enabled=!1),this._config.sky&&"yes"==this._config.sky&&this._initSky(),this._config.sky&&"no"!=this._config.sky||this._initTorch(),this._initAmbient(),this._getOverlay(),this._manageZoom();const t=void 0===this._config.initialLevel?-1:this._config.initialLevel;this._setVisibleLevel(t),this._resizeCanvas(),this._zIndexInterval=window.setInterval((()=>{this._zIndexChecker()}),250),(this._ispanel()||this._issidebar())&&this._resizeObserver.observe(this._card)}}_initobjects(t){console.log("Ïnit Objects, Levels and Raycasting");let e=0;this._levels=[],this._raycasting=[],this._raycastinglevels=[],console.log("Found level 0"),this._levels[0]=new yr,this._raycastinglevels[0]=[];const i=/lvl(?<level>\d{3})/;let n=[];t.traverse((t=>{n.push(t)})),n.forEach((t=>{var n,r,o,s,a,l,c;let d;if(d=t.name.match(i),d?(this._levels[Number(null===(n=d.groups)||void 0===n?void 0:n.level)]||(console.log("Found level "+(null===(r=d.groups)||void 0===r?void 0:r.level)),this._levels[Number(null===(o=d.groups)||void 0===o?void 0:o.level)]=new yr,this._raycastinglevels[Number(null===(s=d.groups)||void 0===s?void 0:s.level)]=[]),t.userData={level:Number(null===(a=d.groups)||void 0===a?void 0:a.level)},t.name=t.name.slice(6),this._levels[Number(null===(l=d.groups)||void 0===l?void 0:l.level)].add(t),e=Number(null===(c=d.groups)||void 0===c?void 0:c.level)):(t.userData={level:0},this._levels[0].add(t),e=0),t.receiveShadow=!0,t.name.includes("transparent_slab"))return t.castShadow=!0,void(t.material instanceof Qc||t.material instanceof Ur?t.material.depthWrite=!1:t.material instanceof Jc&&(t.material.transparent=!0,t.material.opacity=0,t.material.depthWrite=!1));if(this._modeltype==ku.GLB&&t.name.includes("_hole_"))return t.castShadow=!1,void(t.material instanceof Jc&&(t.material.transparent=!0,t.material.opacity=0));if(this._raycastinglevels[e].push(t),t instanceof bo&&!Array.isArray(t.material)&&1!=t.material.opacity)return(t.material instanceof Qc||t.material instanceof Ur||t.material instanceof Jc)&&(t.material.depthWrite=!1),void(t.castShadow=!1);const h=this._config.shadow?this._config.shadow:"no";t.castShadow="no"!=h})),this._displaylevels=[],this._levels.forEach(((t,e)=>{t&&(this._displaylevels.push(!0),this._raycasting=this._raycasting.concat(this._raycastinglevels[e]))})),console.log("End Init Objects. Number of levels found: "+this._levels.length)}_setVisibleLevel(t){this._levels.forEach(((e,i)=>{this._displaylevels[i]=-1==t||i==t,e.visible=this._displaylevels[i]})),this._updateRaycasting(),V(this._getLevelBar(),this._levelbar)}_toggleVisibleLevel(t){this._levels.forEach(((e,i)=>{-1==t?this._displaylevels[i]=!0:t==i&&(this._displaylevels[i]=!this._displaylevels[i]),e.visible=this._displaylevels[i]})),this._updateRaycasting()}_updateRaycasting(){this._raycasting=[],this._displaylevels.forEach(((t,e)=>{t&&(this._raycasting=this._raycasting.concat(this._raycastinglevels[e]))}))}_getZoomBar(){return this._levels&&this._zoom.length>0?H` <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; left: 0px">${this._getZoomButtons()}</div> `:H``}_getZoomButtons(){const t=[];return t.push(H`
+const Du=h`.mdc-button{-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased;font-family:Roboto, sans-serif;font-family:var(--mdc-typography-button-font-family, var(--mdc-typography-font-family, Roboto, sans-serif));font-size:0.875rem;font-size:var(--mdc-typography-button-font-size, 0.875rem);line-height:2.25rem;line-height:var(--mdc-typography-button-line-height, 2.25rem);font-weight:500;font-weight:var(--mdc-typography-button-font-weight, 500);letter-spacing:0.0892857143em;letter-spacing:var(--mdc-typography-button-letter-spacing, 0.0892857143em);text-decoration:none;text-decoration:var(--mdc-typography-button-text-decoration, none);text-transform:uppercase;text-transform:var(--mdc-typography-button-text-transform, uppercase)}.mdc-touch-target-wrapper{display:inline}.mdc-elevation-overlay{position:absolute;border-radius:inherit;pointer-events:none;opacity:0;opacity:var(--mdc-elevation-overlay-opacity, 0);transition:opacity 280ms cubic-bezier(0.4, 0, 0.2, 1);background-color:#fff;background-color:var(--mdc-elevation-overlay-color, #fff)}.mdc-button{position:relative;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:64px;border:none;outline:none;line-height:inherit;user-select:none;-webkit-appearance:none;overflow:visible;vertical-align:middle;background:transparent}.mdc-button .mdc-elevation-overlay{width:100%;height:100%;top:0;left:0}.mdc-button::-moz-focus-inner{padding:0;border:0}.mdc-button:active{outline:none}.mdc-button:hover{cursor:pointer}.mdc-button:disabled{cursor:default;pointer-events:none}.mdc-button .mdc-button__icon{margin-left:0;margin-right:8px;display:inline-block;position:relative;vertical-align:top}[dir=rtl] .mdc-button .mdc-button__icon,.mdc-button .mdc-button__icon[dir=rtl]{margin-left:8px;margin-right:0}.mdc-button .mdc-button__label{position:relative}.mdc-button .mdc-button__touch{position:absolute;top:50%;height:48px;left:0;right:0;transform:translateY(-50%)}.mdc-button__label+.mdc-button__icon{margin-left:8px;margin-right:0}[dir=rtl] .mdc-button__label+.mdc-button__icon,.mdc-button__label+.mdc-button__icon[dir=rtl]{margin-left:0;margin-right:8px}svg.mdc-button__icon{fill:currentColor}.mdc-button--touch{margin-top:6px;margin-bottom:6px}.mdc-button{padding:0 8px 0 8px}.mdc-button--unelevated{transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);padding:0 16px 0 16px}.mdc-button--unelevated.mdc-button--icon-trailing{padding:0 12px 0 16px}.mdc-button--unelevated.mdc-button--icon-leading{padding:0 16px 0 12px}.mdc-button--raised{transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1);padding:0 16px 0 16px}.mdc-button--raised.mdc-button--icon-trailing{padding:0 12px 0 16px}.mdc-button--raised.mdc-button--icon-leading{padding:0 16px 0 12px}.mdc-button--outlined{border-style:solid;transition:border 280ms cubic-bezier(0.4, 0, 0.2, 1)}.mdc-button--outlined .mdc-button__ripple{border-style:solid;border-color:transparent}.mdc-button{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button:not(:disabled){color:#6200ee;color:var(--mdc-theme-primary, #6200ee)}.mdc-button:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--raised,.mdc-button--unelevated{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--raised:not(:disabled),.mdc-button--unelevated:not(:disabled){background-color:#6200ee;background-color:var(--mdc-theme-primary, #6200ee)}.mdc-button--raised:disabled,.mdc-button--unelevated:disabled{background-color:rgba(0, 0, 0, 0.12)}.mdc-button--raised:not(:disabled),.mdc-button--unelevated:not(:disabled){color:#fff;color:var(--mdc-theme-on-primary, #fff)}.mdc-button--raised:disabled,.mdc-button--unelevated:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button--raised .mdc-button__icon,.mdc-button--unelevated .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button--raised .mdc-button__ripple,.mdc-button--unelevated .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--outlined{height:36px;border-radius:4px;border-radius:var(--mdc-shape-small, 4px);padding:0 15px 0 15px;border-width:1px}.mdc-button--outlined:not(:disabled){color:#6200ee;color:var(--mdc-theme-primary, #6200ee)}.mdc-button--outlined:disabled{color:rgba(0, 0, 0, 0.38)}.mdc-button--outlined .mdc-button__icon{font-size:1.125rem;width:1.125rem;height:1.125rem}.mdc-button--outlined .mdc-button__ripple{border-radius:4px;border-radius:var(--mdc-shape-small, 4px)}.mdc-button--outlined:not(:disabled){border-color:rgba(0, 0, 0, 0.12)}.mdc-button--outlined:disabled{border-color:rgba(0, 0, 0, 0.12)}.mdc-button--outlined.mdc-button--icon-trailing{padding:0 11px 0 15px}.mdc-button--outlined.mdc-button--icon-leading{padding:0 15px 0 11px}.mdc-button--outlined .mdc-button__ripple{top:calc(-1 * 1px);left:calc(-1 * 1px);border-width:1px}.mdc-button--outlined .mdc-button__touch{left:calc(-1 * 1px);width:calc(100% + 2 * 1px)}.mdc-button--raised{box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.2),0px 2px 2px 0px rgba(0, 0, 0, 0.14),0px 1px 5px 0px rgba(0,0,0,.12);transition:box-shadow 280ms cubic-bezier(0.4, 0, 0.2, 1)}.mdc-button--raised:hover,.mdc-button--raised:focus{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2),0px 4px 5px 0px rgba(0, 0, 0, 0.14),0px 1px 10px 0px rgba(0,0,0,.12)}.mdc-button--raised:active{box-shadow:0px 5px 5px -3px rgba(0, 0, 0, 0.2),0px 8px 10px 1px rgba(0, 0, 0, 0.14),0px 3px 14px 2px rgba(0,0,0,.12)}.mdc-button--raised:disabled{box-shadow:0px 0px 0px 0px rgba(0, 0, 0, 0.2),0px 0px 0px 0px rgba(0, 0, 0, 0.14),0px 0px 0px 0px rgba(0,0,0,.12)}:host{display:inline-flex;outline:none;-webkit-tap-highlight-color:transparent;vertical-align:top}:host([fullwidth]){width:100%}:host([raised]),:host([unelevated]){--mdc-ripple-color:#fff;--mdc-ripple-focus-opacity:0.24;--mdc-ripple-hover-opacity:0.08;--mdc-ripple-press-opacity:0.24}.trailing-icon ::slotted(*),.trailing-icon .mdc-button__icon,.leading-icon ::slotted(*),.leading-icon .mdc-button__icon{margin-left:0;margin-right:8px;display:inline-block;position:relative;vertical-align:top;font-size:1.125rem;height:1.125rem;width:1.125rem}[dir=rtl] .trailing-icon ::slotted(*),[dir=rtl] .trailing-icon .mdc-button__icon,[dir=rtl] .leading-icon ::slotted(*),[dir=rtl] .leading-icon .mdc-button__icon,.trailing-icon ::slotted(*[dir=rtl]),.trailing-icon .mdc-button__icon[dir=rtl],.leading-icon ::slotted(*[dir=rtl]),.leading-icon .mdc-button__icon[dir=rtl]{margin-left:8px;margin-right:0}.trailing-icon ::slotted(*),.trailing-icon .mdc-button__icon{margin-left:8px;margin-right:0}[dir=rtl] .trailing-icon ::slotted(*),[dir=rtl] .trailing-icon .mdc-button__icon,.trailing-icon ::slotted(*[dir=rtl]),.trailing-icon .mdc-button__icon[dir=rtl]{margin-left:0;margin-right:8px}.slot-container{display:inline-flex;align-items:center;justify-content:center}.slot-container.flex{flex:auto}.mdc-button{flex:auto;overflow:hidden;padding-left:8px;padding-left:var(--mdc-button-horizontal-padding, 8px);padding-right:8px;padding-right:var(--mdc-button-horizontal-padding, 8px)}.mdc-button--raised{box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow, 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised:focus{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-focus, var(--mdc-button-raised-box-shadow-hover, 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12)))}.mdc-button--raised:hover{box-shadow:0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-hover, 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised:active{box-shadow:0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-active, 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12))}.mdc-button--raised:disabled{box-shadow:0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12);box-shadow:var(--mdc-button-raised-box-shadow-disabled, 0px 0px 0px 0px rgba(0, 0, 0, 0.2), 0px 0px 0px 0px rgba(0, 0, 0, 0.14), 0px 0px 0px 0px rgba(0, 0, 0, 0.12))}.mdc-button--raised,.mdc-button--unelevated{padding-left:16px;padding-left:var(--mdc-button-horizontal-padding, 16px);padding-right:16px;padding-right:var(--mdc-button-horizontal-padding, 16px)}.mdc-button--outlined{border-width:1px;border-width:var(--mdc-button-outline-width, 1px);padding-left:calc(16px - 1px);padding-left:calc(var(--mdc-button-horizontal-padding, 16px) - var(--mdc-button-outline-width, 1px));padding-right:calc(16px - 1px);padding-right:calc(var(--mdc-button-horizontal-padding, 16px) - var(--mdc-button-outline-width, 1px))}.mdc-button--outlined:not(:disabled){border-color:rgba(0, 0, 0, 0.12);border-color:var(--mdc-button-outline-color, rgba(0, 0, 0, 0.12))}.mdc-button--outlined .ripple{top:calc(-1 * 1px);top:calc(-1 * var(--mdc-button-outline-width, 1px));left:calc(-1 * 1px);left:calc(-1 * var(--mdc-button-outline-width, 1px));right:initial;right:initial;border-width:1px;border-width:var(--mdc-button-outline-width, 1px);border-style:solid;border-color:transparent}[dir=rtl] .mdc-button--outlined .ripple,.mdc-button--outlined .ripple[dir=rtl]{left:initial;left:initial;right:calc(-1 * 1px);right:calc(-1 * var(--mdc-button-outline-width, 1px))}.mdc-button--dense{height:28px;margin-top:0;margin-bottom:0}.mdc-button--dense .mdc-button__touch{height:100%}:host([disabled]){pointer-events:none}:host([disabled]) .mdc-button{color:rgba(0, 0, 0, 0.38);color:var(--mdc-button-disabled-ink-color, rgba(0, 0, 0, 0.38))}:host([disabled]) .mdc-button--raised,:host([disabled]) .mdc-button--unelevated{background-color:rgba(0, 0, 0, 0.12);background-color:var(--mdc-button-disabled-fill-color, rgba(0, 0, 0, 0.12))}:host([disabled]) .mdc-button--outlined{border-color:rgba(0, 0, 0, 0.12);border-color:var(--mdc-button-disabled-outline-color, rgba(0, 0, 0, 0.12))}`;let zu=class extends Nu{static get styles(){return Du}};zu=r([lt("floor3d-button")],zu),console.info(`%c  FLOOR3D-CARD \n%c  ${Ci("common.version")} 1.5.1    `,"color: orange; font-weight: bold; background: black","color: white; font-weight: bold; background: dimgray"),window.customCards=window.customCards||[],window.customCards.push({type:"floor3d-card",name:"Floor3d Card",preview:!0,description:"A custom card to visualize and activate entities in a live 3D model"});class ku{}ku.OBJ=0,ku.GLB=1;let Fu=class extends st{constructor(){super(),this._configArray=[],this._object_ids=[],this._clickStart=null,this._initialobjectmaterials={},this._selectedobjects=[],this._cardObscured=!1,this._resizeObserver=new ResizeObserver((()=>{this._resizeCanvasDebounce()})),this._performActionListener=t=>{this._performAction(t)},this._mousedownEventListener=t=>this._mousedownEvent(t),this._mouseupEventListener=t=>{this._longpressTimeout&&(clearTimeout(this._longpressTimeout),this._longpressTimeout=null),this._clickStart&&Date.now()-this._clickStart<200&&("yes"==this._config.click||this._selectionModeEnabled)&&this._firEvent(t),this._clickStart=null},this._changeListener=()=>{this._clickStart&&Date.now()-this._clickStart>200&&(this._clickStart=null),this._render()},this._haShadowRoot=document.querySelector("home-assistant").shadowRoot,this._eval=eval,this._card_id="ha-card-1",console.log("New Card")}connectedCallback(){super.connectedCallback(),this._modelready&&((this._ispanel()||this._issidebar())&&this._resizeObserver.observe(this._card),this._zIndexInterval=window.setInterval((()=>{this._zIndexChecker()}),250),this._to_animate&&(this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))),(this._ispanel()||this._issidebar())&&this._resizeCanvas())}disconnectedCallback(){super.disconnectedCallback(),this._resizeObserver.disconnect(),window.clearInterval(this._zIndexInterval),this._modelready&&this._to_animate&&(this._clock=null,this._renderer.setAnimationLoop(null))}static async getConfigElement(){return await Promise.resolve().then((function(){return Mi})),document.createElement("floor3d-card-editor")}static getStubConfig(t,e,i){console.log("Stub started");const n=(t,e,i,r,o,s)=>{const a=[];(null==o?void 0:o.length)&&a.push((t=>o.includes(t.split(".")[0]))),s&&a.push((e=>t.states[e]&&s(t.states[e])));const l=((t,e,i)=>{(!i||i>t.length)&&(i=t.length);const n=[];for(let r=0;r<t.length&&n.length<i;r++){let i=!0;for(const n of e)if(!n(t[r])){i=!1;break}i&&n.push(t[r])}return n})(i,a,e);if(l.length<e&&r.length){const i=n(t,e-l.length,r,[],o,s);l.push(...i)}return l};let r=["binary_sensor"],o=2,s=n(t,o,e,i,r);const a=new URL(import.meta.url);let l=a.pathname.split("/").pop(),c=a.pathname.replace(l,"");c.includes("hacsfiles")&&(c="/local/community/floor3d-card/");const d={path:c,name:"Home",objfile:"home.glb",lock_camera:"no",header:"yes",click:"no",overlay:"no",backgroundColor:"#aaaaaa",hideLevelsMenu:"no",globalLightPower:"0.8",shadow:"no",extralightmode:"no",show_axes:"no",sky:"no",overlay_bgcolor:"transparent",overlay_fgcolor:"black",overlay_alignment:"top-left",overlay_width:"33",overlay_height:"20",north:{x:0,z:-1},camera_position:{x:609.3072605703628,y:905.5330092468828,z:376.66437610591277},camera_rotate:{x:-1.0930244719682243,y:.5200808414019678,z:.7648717152512469},camera_target:{x:37.36890424945437,y:18.64464320782064,z:-82.55051697031719},object_groups:[{object_group:"RoundTable",objects:[{object_id:"Round_table_1"},{object_id:"Round_table_2"},{object_id:"Round_table_3"}]},{object_group:"EntranceDoor",objects:[{object_id:"Door_9"},{object_id:"Door_7"},{object_id:"Door_5"}]}],entities:[]};let h=0;s[0]&&(d.entities.push({entity:s[0],type3d:"door",object_id:"<EntranceDoor>",door:{doortype:"swing",direction:"inner",hinge:"Door_3",percentage:"90"}}),h+=1),s[1]&&(d.entities.push({entity:s[1],type3d:"hide",object_id:"<RoundTable>",hide:{state:"off"}}),h+=1),r=["light"],o=1;let u=n(t,o,e,i,r);return u[0]&&(d.entities.push({entity:u[0],type3d:"light",object_id:"Bowl_2",light:{lumens:"800"}}),h+=1),0==h&&d.entities.push({entity:""}),console.log(d),console.log("Stub ended"),d}setConfig(t){if(console.log("floor3d-card: Set Config Start"),!t)throw new Error(Ci("common.invalid_configuration"));this._config=t,this._configArray=function(t){const e=[];if(t.entities){for(const i of t.entities)if("string"==typeof i){const n=Et({},t);delete n.entities;const r=Et(n,{entity:i});e.push(r)}else if("object"==typeof i){const n=Et({},t);delete n.entities;const r=Et(n,i);e.push(r)}}else e.push(t);return e}(this._config),this._object_ids=function(t){const e=[];if(t.entities)for(const i of t.entities)if(i.object_id)if("<"==i.object_id.charAt(0)&&">"==i.object_id.charAt(i.object_id.length-1)){const n=i.object_id.substr(1,i.object_id.length-2);for(const r of t.object_groups)if(r.object_group==n){const t=Et({},{entity:i.entity,objects:r.objects});e.push(t);break}}else if(""!==i.object_id){const t=Et({},{entity:i.entity,objects:[{object_id:i.object_id}]});e.push(t)}else""!=i.entity&&console.log("ERROR: Object is empty for entity"+i.entity);else""!=i.entity&&console.log("ERROR: Object is empty for entity"+i.entity);return e}(this._config),this._initialmaterial=[],this._clonedmaterial=[];let e=0;this._selectionModeEnabled="yes"===this._config.selectionMode,this._object_ids.forEach((t=>{this._initialmaterial.push([]),this._clonedmaterial.push([]),t.objects.forEach((()=>{this._initialmaterial[e].push(null),this._clonedmaterial[e].push(null)})),e+=1})),console.log("floor3d-card: Set Config End"),this._config.show_warning?V(this._showWarning(Ci("common.show_warning")),this._card):this._config.show_error&&V(this._showError(Ci("common.show_error")),this._card)}rerender(){this._content.removeEventListener("dblclick",this._performActionListener),this._content.removeEventListener("touchstart",this._performActionListener),this._content.removeEventListener("keydown",this._performActionListener),this._controls.removeEventListener("change",this._changeListener),this._renderer.setAnimationLoop(null),this._resizeObserver.disconnect(),window.clearInterval(this._zIndexInterval),this._renderer.domElement.remove(),this._renderer=null,this._states=null,this.hass=this._hass,this.display3dmodel()}_ispanel(){let t=document.querySelector("home-assistant");t=t&&t.shadowRoot,t=t&&t.querySelector("home-assistant-main"),t=t&&t.shadowRoot,t=t&&t.querySelector("app-drawer-layout partial-panel-resolver"),t=t&&t.shadowRoot||t,t=t&&t.querySelector("ha-panel-lovelace"),t=t&&t.shadowRoot,t=t&&t.querySelector("hui-root"),t=t&&t.shadowRoot,t=t&&t.querySelector("ha-app-layout");return 0!=t.getElementsByTagName("HUI-PANEL-VIEW").length}_issidebar(){let t=document.querySelector("home-assistant");t=t&&t.shadowRoot,t=t&&t.querySelector("home-assistant-main"),t=t&&t.shadowRoot,t=t&&t.querySelector("app-drawer-layout partial-panel-resolver"),t=t&&t.shadowRoot||t,t=t&&t.querySelector("ha-panel-lovelace"),t=t&&t.shadowRoot,t=t&&t.querySelector("hui-root"),t=t&&t.shadowRoot,t=t&&t.querySelector("ha-app-layout");return 0!=t.getElementsByTagName("HUI-SIDEBAR-VIEW").length}getCardSize(){return console.log("Get Card Size Called"),this._renderer,10}firstUpdated(){if(console.log("First updated start"),this._card=this.shadowRoot.getElementById(this._card_id),this._card){if(this._content||(this._content=document.createElement("div"),this._content.style.width="100%",this._content.style.height="100%",this._content.style.alignContent="center",this._card.appendChild(this._content)),!this._ispanel()){const t=this._config.header?this._config.header:"yes";this._card.header="yes"==t?this._config.name?this._config.name:"Floor 3d":""}this._content&&!this._renderer&&this.display3dmodel(),console.log("First updated end")}}_render(){this._torch&&(this._torch.position.copy(this._camera.position),this._torch.rotation.copy(this._camera.rotation),this._camera.getWorldDirection(this._torch.target.position)),this._renderer.render(this._scene,this._camera)}_getintersect(t){const e=new an;e.x=t.offsetX/this._content.clientWidth*2-1,e.y=-t.offsetY/this._content.clientHeight*2+1;const i=new dh;i.setFromCamera(e,this._camera);return i.intersectObjects(this._raycasting,!1)}_mousedownEvent(t){this._currentIntersections=this._getintersect(t),this._clickStart=Date.now(),this._longpressTimeout=setTimeout((()=>this._longPressEvent(t)),600)}_firEvent(t){const e=this._getintersect(t);if(e.length>0&&""!=e[0].object.name){if(this._selectionModeEnabled)return void this._defaultaction(e);this._config.entities.forEach(((t,i)=>{for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==e[0].object.name){if(this._config.entities[i].action){switch(this._config.entities[i].action){case"more-info":yt(this,"hass-more-info",{entityId:t.entity});break;case"overlay":this._overlay&&this._setoverlaycontent(t.entity);break;default:this._defaultaction(e)}return}return void this._defaultaction(e)}}))}}_longPressEvent(t){if(null==this._clickStart)return;this._clickStart=null;const e=this._currentIntersections;this._currentIntersections=null,e.length>0&&""!=e[0].object.name&&this._config.entities.forEach(((t,i)=>{for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==e[0].object.name&&this._config.entities[i].long_press_action){switch(this._config.entities[i].long_press_action){case"more-info":yt(this,"hass-more-info",{entityId:t.entity});break;case"overlay":this._overlay&&this._setoverlaycontent(t.entity);break;default:this._defaultaction(e)}return}}))}_setoverlaycontent(t){this._overlay_entity=t;const e=this._hass.states[t].attributes.friendly_name?this._hass.states[t].attributes.friendly_name:t;this._overlay.textContent=e+": "+this._hass.states[t].state,this._overlay_state=this._hass.states[t].state}_defaultaction(t){if(t.length>0&&t[0].object&&""!=t[0].object.name){const e=t[0].object.name;if(Mt().editMode&&"no"!=this._config.editModeNotifications&&window.prompt("Object:",e),console.log("Object:",e),this._selectionModeEnabled){const i=t[0].object;if(!this._selectedmaterial){const t=new Jc({color:7829503});this._selectedmaterial=t}return this._initialobjectmaterials[e]||(this._initialobjectmaterials[e]=i.material),this._selectedobjects.includes(e)?(this._selectedobjects=this._selectedobjects.filter((t=>t!==e)),i.material=this._initialobjectmaterials[e]):(this._selectedobjects.push(e),i.material=this._selectedmaterial),this._selectedobjects=this._selectedobjects.sort(),console.log("Selected object IDs:",this._selectedobjects),this._render(),void V(this._getSelectionBar(),this._selectionbar)}this._config.entities.forEach(((e,i)=>{if("light"==e.type3d||"gesture"==e.type3d||"camera"==e.type3d)for(let n=0;n<this._object_ids[i].objects.length;n++)if(this._object_ids[i].objects[n].object_id==t[0].object.name){"light"==e.type3d?this._hass.callService(e.entity.split(".")[0],"toggle",{entity_id:e.entity}):"gesture"==e.type3d?this._hass.callService(e.gesture.domain,e.gesture.service,{entity_id:e.entity}):"camera"==e.type3d&&yt(this,"hass-more-info",{entityId:e.entity});break}}))}else{const t="camera_position: { x: "+this._camera.position.x+", y: "+this._camera.position.y+", z: "+this._camera.position.z+" }\ncamera_rotate: { x: "+this._camera.rotation.x+", y: "+this._camera.rotation.y+", z: "+this._camera.rotation.z+" }\ncamera_target: { x: "+this._controls.target.x+", y: "+this._controls.target.y+", z: "+this._controls.target.z+" }";Mt().editMode&&"no"!=this._config.editModeNotifications&&window.prompt("YAML:",t),console.log("YAML:",t)}}_performAction(t){const e=this._getintersect(t);this._defaultaction(e)}_zIndexChecker(){let t=(this._card.getBoundingClientRect().left+this._card.getBoundingClientRect().right)/2,e=(this._card.getBoundingClientRect().top+this._card.getBoundingClientRect().bottom)/2,i=this._haShadowRoot.elementFromPoint(t,e);if(null!=i){let t=this._getZIndex(i.shadowRoot.firstElementChild);this._getZIndex(this._card)!=t?this._cardObscured||(this._cardObscured=!0,this._to_animate&&(console.log("Canvas Obscured; stopping animation"),this._clock=null,this._renderer.setAnimationLoop(null))):this._cardObscured&&(this._cardObscured=!1,this._to_animate&&(console.log("Canvas visible again; starting animation"),this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))))}}_getZIndex(t){let e;if(null==t&&(e="0"),null==t.parentNode)return"0";if(e=getComputedStyle(t).getPropertyValue("--dialog-z-index"),""==e&&(e=getComputedStyle(t).getPropertyValue("z-index")),""==e||"auto"==e){if(null!=t.parentNode.constructor)return"ShadowRoot"==t.parentNode.constructor.name?this._getZIndex(t.parentNode.host):"HTMLDocument"==t.parentNode.constructor.name?"0":this._getZIndex(t.parentNode);e="0"}return e}_resizeCanvasDebounce(){window.clearTimeout(this._resizeTimeout),this._resizeTimeout=window.setTimeout((()=>{this._resizeCanvas()}),50)}_resizeCanvas(){console.log("Resize canvas start"),this._renderer.domElement.parentElement.clientWidth===this._renderer.domElement.width&&this._renderer.domElement.parentElement.clientHeight===this._renderer.domElement.height||(this._camera.aspect=this._renderer.domElement.parentElement.clientWidth/this._renderer.domElement.parentElement.clientHeight,this._camera.updateProjectionMatrix(),this._renderer.setSize(this._renderer.domElement.parentElement.clientWidth,this._renderer.domElement.parentElement.clientHeight,!this._issidebar()),this._renderer.render(this._scene,this._camera)),console.log("Resize canvas end")}_statewithtemplate(t){if(this._hass.states[t.entity]){let e=this._hass.states[t.entity].state;if(t.entity_template){const i=t.entity_template.trim();if("[[["===i.substring(0,3)&&"]]]"===i.slice(-3)&&i.includes("$entity")){const t=i.slice(3,-3).replace(/\$entity/g,e);e=this._eval(t)}}return e}return""}set hass(t){try{if(this._hass=t,this._config.entities&&(this._states||(this._states=[],this._unit_of_measurement=[],this._color=[],this._brightness=[],this._lights=[],this._rooms=[],this._sprites=[],this._canvas=[],this._text=[],this._spritetext=[],this._position=[],this._config.entities.forEach((e=>{if(t.states[e.entity]){this._states.push(this._statewithtemplate(e)),this._canvas.push(null),t.states[e.entity].attributes.unit_of_measurement?this._unit_of_measurement.push(t.states[e.entity].attributes.unit_of_measurement):this._unit_of_measurement.push(""),"text"==e.type3d?e.text.attribute&&t.states[e.entity].attributes[e.text.attribute]?this._text.push(t.states[e.entity].attributes[e.text.attribute]):this._text.push(this._statewithtemplate(e)):this._text.push(""),"room"==e.type3d?(this._rooms.push(e.object_id+"_room"),this._sprites.push(e.object_id+"_sprites"),e.room.attribute?t.states[e.entity].attributes[e.room.attribute]?this._spritetext.push(t.states[e.entity].attributes[e.room.attribute]):this._spritetext.push(this._statewithtemplate(e)):e.room.label_text&&("template"==e.room.label_text?(this._spritetext.push(this._statewithtemplate(e)),this._unit_of_measurement.pop(),this._unit_of_measurement.push("")):this._spritetext.push(this._hass.states[e.entity].state))):(this._spritetext.push(""),this._rooms.push(""),this._sprites.push("")),"cover"==e.type3d&&(t.states[e.entity].attributes.current_position?this._position.push(t.states[e.entity].attributes.current_position):this._position.push(null)),"light"==e.type3d?this._lights.push(e.object_id+"_light"):this._lights.push("");let i=this._color.push([255,255,255])-1;t.states[e.entity].attributes.color_mode&&(t.states[e.entity].attributes.color_mode="color_temp")&&(this._color[i]=this._TemperatureToRGB(parseInt(t.states[e.entity].attributes.color_temp))),(t.states[e.entity].attributes.color_mode="rgb")&&t.states[e.entity].attributes.rgb_color!==this._color[i]&&(this._color[i]=t.states[e.entity].attributes.rgb_color);let n=this._brightness.push(-1)-1;t.states[e.entity].attributes.brightness&&(this._brightness[n]=t.states[e.entity].attributes.brightness)}else console.log("Entity <"+e.entity+"> not found")})),this._firstcall=!1),this._renderer&&this._modelready)){let e=!1;this._config.overlay&&"yes"==this._config.overlay&&this._overlay_entity&&this._overlay_state&&this._overlay_state!=t.states[this._overlay_entity].state&&this._setoverlaycontent(this._overlay_entity),this._config.entities.forEach(((i,n)=>{if(t.states[i.entity]){let r=this._statewithtemplate(i);if("cover"==i.type3d){let o=!1;t.states[i.entity].attributes.current_position?this._position[n]!=t.states[i.entity].attributes.current_position&&(this._position[n]=t.states[i.entity].attributes.current_position,o=!0):r!=this._states[n]&&(o=!0,this._states[n]=r),o&&(this._updatecover(i,this._states[n],n),e=!0)}if("light"==i.type3d){let o=!1;this._states[n]!==r&&(this._states[n]=r,o=!0),t.states[i.entity].attributes.color_mode&&((t.states[i.entity].attributes.color_mode="color_temp")&&this._TemperatureToRGB(parseInt(t.states[i.entity].attributes.color_temp))!==this._color[n]&&(o=!0,this._color[n]=this._TemperatureToRGB(parseInt(t.states[i.entity].attributes.color_temp))),(t.states[i.entity].attributes.color_mode="rgb")&&t.states[i.entity].attributes.rgb_color!==this._color[n]&&(o=!0,this._color[n]=t.states[i.entity].attributes.rgb_color)),t.states[i.entity].attributes.brightness&&t.states[i.entity].attributes.brightness!==this._brightness[n]&&(o=!0,this._brightness[n]=t.states[i.entity].attributes.brightness),o&&(this._updatelight(i,n),e=!0)}else if("text"==i.type3d){let r=!1;i.text.attribute?t.states[i.entity].attributes[i.text.attribute]?this._text[n]!=t.states[i.entity].attributes[i.text.attribute]&&(this._text[n]=t.states[i.entity].attributes[i.text.attribute],r=!0):(this._text[n]="",r=!0):this._text[n]!=this._statewithtemplate(i)&&(this._text[n]=this._statewithtemplate(i),r=!0),this._canvas[n]&&r&&(this._updatetext(i,this._text[n],this._canvas[n],this._unit_of_measurement[n]),e=!0)}else if("rotate"==i.type3d)this._states[n]=r,this._rotatecalc(i,n);else if(this._states[n]!==r)if(this._states[n]=r,"color"==i.type3d)this._updatecolor(i,n),e=!0;else if("hide"==i.type3d)this._updatehide(i,n),e=!0;else if("show"==i.type3d)this._updateshow(i,n),e=!0;else if("door"==i.type3d)this._updatedoor(i,n),e=!0;else if("room"==i.type3d){let r=!1;i.room.attribute?t.states[i.entity].attributes[i.room.attribute]?this._spritetext[n]!=t.states[i.entity].attributes[i.room.attribute]&&(this._spritetext[n]=t.states[i.entity].attributes[i.room.attribute],r=!0):(this._spritetext[n]="",r=!0):i.room.label_text&&("template"==i.room.label_text?this._spritetext[n]!=this._statewithtemplate(i)&&(this._spritetext[n]=this._statewithtemplate(i),r=!0):this._spritetext[n]!=this._states[n]&&(this._spritetext[n]=this._states[n],r=!0)),this._canvas[n]&&r&&(this._updateroom(i,this._spritetext[n],this._unit_of_measurement[n],n),this._updateroomcolor(i,n),e=!0)}}else console.log("Entity <"+i.entity+"> not found")})),e&&this._render()}}catch(t){throw console.log(t),new Error("Error in hass: "+t)}}_initSky(){const t={turbidity:10,rayleigh:3,mieCoefficient:.005,mieDirectionalG:.7,elevation:15,azimuth:0};console.log("Init Sky"),this._sky=new Pu,this._sky.scale.setScalar(1e5),this._scene.add(this._sky);const e=this._sky.material.uniforms;e.turbidity.value=t.turbidity,e.rayleigh.value=t.rayleigh,e.mieCoefficient.value=t.mieCoefficient,e.mieDirectionalG.value=t.mieDirectionalG,console.log("Init Ground");const i=new $o(1e4,1e4),n=new td({color:16777215});n.color.setHSL(.095,1,.75);const r=new bo(i,n);r.position.y=-5,r.rotation.x=-Math.PI/2,r.receiveShadow=!1,r.castShadow=!1,this._scene.add(r),console.log("Init Sun"),this._sun=new $d(16777215,2);const o=new vn;let s,a;this._scene.add(this._sun),this._hass.states["sun.sun"].attributes.azimuth&&(t.azimuth=Number(this._hass.states["sun.sun"].attributes.azimuth)),this._hass.states["sun.sun"].attributes.elevation&&(t.elevation=Number(this._hass.states["sun.sun"].attributes.elevation)),s=new vn,this._config.north?(s.x=-this._config.north.x,s.z=-this._config.north.z,s.y=0):(s.x=0,s.z=1,s.y=0),a=new ph,a.setFromVector3(s),a.phi=sn.degToRad(90-t.elevation),a.theta=sn.degToRad(sn.radToDeg(a.theta)-t.azimuth),o.setFromSphericalCoords(1,a.phi,a.theta),o.y<0&&(this._sun.intensity=0),e.sunPosition.value.copy(o),this._sun.position.copy(o.multiplyScalar(5e3));const l=1e3;this._sun.shadow.camera,this._sun.castShadow=!0,this._sun.shadow.mapSize.width=1024,this._sun.shadow.mapSize.height=1024,this._sun.shadow.camera.near=4e3,this._sun.shadow.camera.far=6e3,this._sun.shadow.camera.left=-l,this._sun.shadow.camera.right=l,this._sun.shadow.camera.top=l,this._sun.shadow.camera.bottom=-l,this._renderer.shadowMap.needsUpdate=!0}_initTorch(){this._torch=new $d(16777215,.2),this._torchTarget=new yr,this._torchTarget.name="Torch Target",this._torch.target=this._torchTarget,this._torch.matrixAutoUpdate=!0,this._scene.add(this._torch),this._scene.add(this._torchTarget),this._torch.castShadow=!1,this._torch.position.copy(this._camera.position),this._torch.rotation.copy(this._camera.rotation),this._camera.getWorldDirection(this._torch.target.position),this._hass.states[this._config.globalLightPower]?Number.isNaN(this._hass.states[this._config.globalLightPower].state)||(this._torch.intensity=Number(this._hass.states[this._config.globalLightPower].state)):this._config.globalLightPower&&(this._torch.intensity=Number(this._config.globalLightPower))}_initAmbient(){let t=.5;this._hass.states[this._config.globalLightPower]?Number.isNaN(this._hass.states[this._config.globalLightPower].state)||(t=Number(this._hass.states[this._config.globalLightPower].state)):this._config.globalLightPower&&(t=Number(this._config.globalLightPower)),"yes"==this._config.sky?(this._ambient_light=new Ld(16777215,0,.2),this._ambient_light.groundColor.setHSL(.095,1,.75),this._ambient_light.intensity=t):(this._ambient_light=new jd(16777215,.2),this._ambient_light.intensity=t),this._scene.add(this._ambient_light)}display3dmodel(){if(console.log("Start Build Renderer"),this._modelready=!1,this._scene=new el,this._camera=new Co(45,1,.1,1e4),this._renderer=new tl({antialias:!0,logarithmicDepthBuffer:!0,alpha:!0}),this._maxtextureimage=this._renderer.capabilities.maxTextures,console.log("Max Texture Image Units: "+this._maxtextureimage),console.log("Max Texture Image Units: number of lights casting shadow should be less than the above number"),Math.max(6,this._maxtextureimage-4),this._renderer.domElement.style.width="100%",this._renderer.domElement.style.height="100%",this._renderer.domElement.style.display="block",this._config.backgroundColor?"transparent"==this._config.backgroundColor?this._renderer.setClearColor(0,0):this._scene.background=new Hr(this._config.backgroundColor):this._scene.background=new Hr("#aaaaaa"),this._config.sky&&"yes"==this._config.sky&&(this._renderer.outputEncoding=3001),this._renderer.toneMapping=1,this._renderer.toneMappingExposure=.6,this._renderer.localClippingEnabled=!0,this._renderer.physicallyCorrectLights=!1,!this._config.path||""==this._config.path)throw new Error("Path is empty");{let t=this._config.path;const e=t.charAt(t.length-1);"."==e?t="":"/"!=e&&(t+="/"),console.log("Path: "+t);let i=this._config.objfile.split("?")[0].split(".").pop();if("obj"==i){if(this._config.mtlfile&&""!=this._config.mtlfile){const e=new zh;e.setPath(t),e.load(this._config.mtlfile,this._onLoaded3DMaterials.bind(this),this._onLoadMaterialProgress.bind(this),(function(t){throw new Error(t.error)}))}else{(new Dh).load(t+this._config.objfile,this._onLoaded3DModel.bind(this),this._onLoadObjectProgress.bind(this),(function(t){throw new Error(t.error)}))}this._modeltype=ku.OBJ}else if("glb"==i){(new Fh).setPath(t).load(this._config.objfile,this._onLoadedGLTF3DModel.bind(this),this._onloadedGLTF3DProgress.bind(this),(function(t){throw new Error(t.error)})),this._modeltype=ku.GLB}}console.log("End Build Renderer")}_onLoadError(t){this._showError(t.error)}_onloadedGLTF3DProgress(t){this._content.innerText="Loading: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadMaterialProgress(t){this._content.innerText="1/2: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadObjectProgress(t){this._content.innerText="2/2: "+Math.round(t.loaded/t.total*100)+"%"}_onLoadedGLTF3DModel(t){this._onLoaded3DModel(t.scene)}_onLoaded3DModel(t){if(console.log("Object loaded start"),this._initobjects(t),this._bboxmodel=new yr,this._levels.forEach((t=>{this._bboxmodel.add(t)})),this._scene.add(this._bboxmodel),this._bboxmodel.updateMatrixWorld(!0),this._content.innerText="Finished with errors: check the console log",this._config.show_axes&&"yes"==this._config.show_axes&&this._scene.add(new vh(300)),this._config.shadow&&"yes"==this._config.shadow?(console.log("Shadow On"),this._renderer.shadowMap.enabled=!0,this._renderer.shadowMap.type=2,this._renderer.shadowMap.autoUpdate=!1):(console.log("Shadow Off"),this._renderer.shadowMap.enabled=!1),this._add3dObjects(),console.log("Object loaded end"),this._content&&this._renderer){this._modelready=!0,console.log("Show canvas"),this._levelbar=document.createElement("div"),this._zoombar=document.createElement("div"),this._selectionbar=document.createElement("div"),this._content.innerText="",this._content.appendChild(this._levelbar),this._content.appendChild(this._zoombar),this._content.appendChild(this._selectionbar),this._content.appendChild(this._renderer.domElement),this._selectedlevel=-1,V(this._getSelectionBar(),this._selectionbar),this._content.addEventListener("mousedown",this._mousedownEventListener),this._content.addEventListener("mouseup",this._mouseupEventListener),this._content.addEventListener("dblclick",this._performActionListener),this._content.addEventListener("touchstart",this._performActionListener),this._content.addEventListener("keydown",this._performActionListener),this._setCamera(),this._controls=new Eh(this._camera,this._renderer.domElement),this._renderer.setPixelRatio(window.devicePixelRatio),this._controls.maxPolarAngle=.85*Math.PI/2,this._controls.addEventListener("change",this._changeListener),this._setLookAt(),this._controls.update(),"yes"==this._config.lock_camera&&(this._controls.enabled=!1),this._config.sky&&"yes"==this._config.sky&&this._initSky(),this._config.sky&&"no"!=this._config.sky||this._initTorch(),this._initAmbient(),this._getOverlay(),this._manageZoom();const t=void 0===this._config.initialLevel?-1:this._config.initialLevel;this._setVisibleLevel(t),this._resizeCanvas(),this._zIndexInterval=window.setInterval((()=>{this._zIndexChecker()}),250),(this._ispanel()||this._issidebar())&&this._resizeObserver.observe(this._card)}}_initobjects(t){console.log("Ïnit Objects, Levels and Raycasting");let e=0;this._levels=[],this._raycasting=[],this._raycastinglevels=[],console.log("Found level 0"),this._levels[0]=new yr,this._raycastinglevels[0]=[];const i=/lvl(?<level>\d{3})/;let n=[];t.traverse((t=>{n.push(t)})),n.forEach((t=>{var n,r,o,s,a,l,c;let d;if(d=t.name.match(i),d?(this._levels[Number(null===(n=d.groups)||void 0===n?void 0:n.level)]||(console.log("Found level "+(null===(r=d.groups)||void 0===r?void 0:r.level)),this._levels[Number(null===(o=d.groups)||void 0===o?void 0:o.level)]=new yr,this._raycastinglevels[Number(null===(s=d.groups)||void 0===s?void 0:s.level)]=[]),t.userData={level:Number(null===(a=d.groups)||void 0===a?void 0:a.level)},t.name=t.name.slice(6),this._levels[Number(null===(l=d.groups)||void 0===l?void 0:l.level)].add(t),e=Number(null===(c=d.groups)||void 0===c?void 0:c.level)):(t.userData={level:0},this._levels[0].add(t),e=0),t.receiveShadow=!0,t.name.includes("transparent_slab"))return t.castShadow=!0,void(t.material instanceof Qc||t.material instanceof Ur?t.material.depthWrite=!1:t.material instanceof Jc&&(t.material.transparent=!0,t.material.opacity=0,t.material.depthWrite=!1));if(this._modeltype==ku.GLB&&t.name.includes("_hole_"))return t.castShadow=!1,void(t.material instanceof Jc&&(t.material.transparent=!0,t.material.opacity=0));if(this._raycastinglevels[e].push(t),t instanceof bo&&!Array.isArray(t.material)&&1!=t.material.opacity)return(t.material instanceof Qc||t.material instanceof Ur||t.material instanceof Jc)&&(t.material.depthWrite=!1),void(t.castShadow=!1);const h=this._config.shadow?this._config.shadow:"no";t.castShadow="no"!=h})),this._displaylevels=[],this._levels.forEach(((t,e)=>{t&&(this._displaylevels.push(!0),this._raycasting=this._raycasting.concat(this._raycastinglevels[e]))})),console.log("End Init Objects. Number of levels found: "+this._levels.length)}_setVisibleLevel(t){this._levels.forEach(((e,i)=>{this._displaylevels[i]=-1==t||i==t,e.visible=this._displaylevels[i]})),this._updateRaycasting(),V(this._getLevelBar(),this._levelbar)}_toggleVisibleLevel(t){this._levels.forEach(((e,i)=>{-1==t?this._displaylevels[i]=!0:t==i&&(this._displaylevels[i]=!this._displaylevels[i]),e.visible=this._displaylevels[i]})),this._updateRaycasting()}_updateRaycasting(){this._raycasting=[],this._displaylevels.forEach(((t,e)=>{t&&(this._raycasting=this._raycasting.concat(this._raycastinglevels[e]))}))}_getZoomBar(){return this._levels&&this._zoom.length>0?H`
+          <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; left: 0px">
+            ${this._getZoomButtons()}
+          </div>
+        `:H``}_getZoomButtons(){const t=[];return t.push(H`
       <div class="row" style="background-color:black;">
         <font color="white">
-        <floor3d-button
-          style="opacity: 100%;"
-          label="reset"
-          .index=${-1}
-          @click=${this._handleZoomClick.bind(this)}
-        >
-        </floor3d-button>
+          <floor3d-button style="opacity: 100%;" label="reset" .index=${-1} @click=${this._handleZoomClick.bind(this)}>
+          </floor3d-button>
         </font>
       </div>
     `),this._zoom.forEach(((e,i)=>{e&&t.push(H`
           <div class="row" style="background-color:black;">
-          <font color="white">
-            <floor3d-button
-              label=${e.name}
-              .index=${i}
-              @click=${this._handleZoomClick.bind(this)}
-            >
-            </floor3d-button>
+            <font color="white">
+              <floor3d-button label=${e.name} .index=${i} @click=${this._handleZoomClick.bind(this)}>
+              </floor3d-button>
             </font>
           </div>
         `)})),t}_getLevelBar(){return this._levels&&this._levels.length>1&&(null==this._config.hideLevelsMenu||"no"==this._config.hideLevelsMenu)?H` <div class="category" style="opacity: 0.5; position: absolute">${this._getLevelIcons()}</div> `:H``}_getLevelIcons(){const t=[];return t.push(H`
       <div class="row" style="background-color:black;">
         <font color="white">
-        <ha-icon
-          .icon=${"mdi:format-list-numbered"}
-          style="opacity: 100%;"
-          class="ha-icon-large"
-          .index=${-1}
-          @click=${this._handleLevelClick.bind(this)}
-        >
-        </ha-icon>
+          <ha-icon
+            .icon=${"mdi:format-list-numbered"}
+            style="opacity: 100%;"
+            class="ha-icon-large"
+            .index=${-1}
+            @click=${this._handleLevelClick.bind(this)}
+          >
+          </ha-icon>
         </font>
       </div>
     `),this._levels.forEach(((e,i)=>{e&&t.push(H`
           <div class="row" style="background-color:black;">
-          <font color="white">
-            <ha-icon
-              .icon=${`mdi:numeric-${i}-box-multiple`}
-              style=${this._displaylevels[i]?"opacity: 100%;":"opacity: 60%;"}
-              class="ha-icon-large"
-              .index=${i}
-              @click=${this._handleLevelClick.bind(this)}
-            >
-            </ha-icon>
+            <font color="white">
+              <ha-icon
+                .icon=${`mdi:numeric-${i}-box-multiple`}
+                style=${this._displaylevels[i]?"opacity: 100%;":"opacity: 60%;"}
+                class="ha-icon-large"
+                .index=${i}
+                @click=${this._handleLevelClick.bind(this)}
+              >
+              </ha-icon>
             </font>
           </div>
         `)})),t}_getSelectionBar(){if("yes"==this._config.selectionMode){const t=[];return t.push(H`
         <div class="row" style="background-color:black;">
           <font color="white">
-          <floor3d-button
-            style="opacity: 100%;"
-            label="clear selections (${this._selectedobjects.length})"
-            @click=${this._handleClearSelectionsClick.bind(this)}
-          >
-          </floor3d-button>
+            <floor3d-button
+              style="opacity: 100%;"
+              label="clear selections (${this._selectedobjects.length})"
+              @click=${this._handleClearSelectionsClick.bind(this)}
+            >
+            </floor3d-button>
           </font>
         </div>
       `),t.push(H`
         <div class="row" style="background-color:black;">
           <font color="white">
-          <floor3d-button
-            style="opacity: 100%;"
-            label="${this._selectionModeEnabled?"Disable Selection":"Enable Selection"}"
-            @click=${this._handleToggleSelectionMode.bind(this)}
-          >
-          </floor3d-button>
+            <floor3d-button
+              style="opacity: 100%;"
+              label="${this._selectionModeEnabled?"Disable Selection":"Enable Selection"}"
+              @click=${this._handleToggleSelectionMode.bind(this)}
+            >
+            </floor3d-button>
           </font>
         </div>
-      `),H` <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; right: 0px">${t}</div> `}return H``}_setSelectionMaterials(t){this._selectedobjects.forEach((e=>{let i=this._scene.getObjectByName(e);i&&(i.material=t?this._selectedmaterial:this._initialobjectmaterials[e])})),this._render()}_handleClearSelectionsClick(t){t.stopPropagation(),this._setSelectionMaterials(!1),this._selectedobjects=[],console.log("Cleared selected objects"),V(this._getSelectionBar(),this._selectionbar)}_handleToggleSelectionMode(t){t.stopPropagation(),this._selectionModeEnabled=!this._selectionModeEnabled,this._setSelectionMaterials(this._selectionModeEnabled),V(this._getSelectionBar(),this._selectionbar)}_handleZoomClick(t){if(t.stopPropagation(),-1==t.target.index)return this._setCamera(),this._setLookAt(),this._controls.update(),void this._render();const e=this._zoom[t.target.index];null!=e.level&&this._setVisibleLevel(e.level),this._camera.position.set(this._zoom[t.target.index].position.x,this._zoom[t.target.index].position.y,this._zoom[t.target.index].position.z),this._camera.rotation.set(this._zoom[t.target.index].rotation.x,this._zoom[t.target.index].rotation.y,this._zoom[t.target.index].rotation.z),this._controls.target.set(this._zoom[t.target.index].target.x,this._zoom[t.target.index].target.y,this._zoom[t.target.index].target.z),this._camera.updateProjectionMatrix(),this._controls.update(),this._render()}_handleLevelClick(t){t.stopPropagation(),this._toggleVisibleLevel(t.target.index),V(this._getLevelBar(),this._levelbar),this._render()}_getOverlay(){if("yes"==this._config.overlay){console.log("Start config Overlay");const t=document.createElement("div");if(t.id="overlay",t.className="overlay",t.style.setProperty("position","absolute"),this._config.overlay_alignment)switch(this._config.overlay_alignment){case"top-left":default:t.style.setProperty("top","0px"),t.style.setProperty("left","0px");break;case"top-right":t.style.setProperty("top","0px"),t.style.setProperty("right","0px");break;case"bottom-left":t.style.setProperty("bottom","0px"),t.style.setProperty("left","0px");break;case"bottom-right":t.style.setProperty("bottom","0px"),t.style.setProperty("right","0px")}this._config.overlay_width?t.style.setProperty("width",this._config.overlay_width+"%"):t.style.setProperty("width","33%"),this._config.overlay_height?t.style.setProperty("height",this._config.overlay_height+"%"):t.style.setProperty("height","20%"),this._config.overlay_bgcolor?t.style.setProperty("background-color",this._config.overlay_bgcolor):t.style.setProperty("background-color","transparent"),this._config.overlay_fgcolor?t.style.setProperty("color",this._config.overlay_fgcolor):t.style.setProperty("color","black"),this._config.overlay_font&&(t.style.fontFamily=this._config.overlay_font),this._config.overlay_fontsize&&(t.style.fontSize=this._config.overlay_fontsize),t.style.setProperty("overflow","hidden"),t.style.setProperty("white-space","nowrap");let e="";try{e=this._getZIndex(this._renderer.domElement.parentNode)}catch(t){console.log(t)}e?t.style.setProperty("z-index",(Number(e)+1).toString(10)):t.style.setProperty("z-index","999"),this._renderer.domElement.parentNode.style.setProperty("position","relative"),this._renderer.domElement.parentNode.appendChild(t),this._overlay=t,console.log("End config Overlay")}}_setCamera(){const t=(new bn).setFromObject(this._bboxmodel);this._modelX=this._bboxmodel.position.x=-(t.max.x-t.min.x)/2,this._modelY=this._bboxmodel.position.y=-t.min.y,this._modelZ=this._bboxmodel.position.z=-(t.max.z-t.min.z)/2,this._config.camera_position?this._camera.position.set(this._config.camera_position.x,this._config.camera_position.y,this._config.camera_position.z):this._camera.position.set(1.3*t.max.x,5*t.max.y,1.3*t.max.z),this._config.camera_rotate?this._camera.rotation.set(this._config.camera_rotate.x,this._config.camera_rotate.y,this._config.camera_rotate.z):this._camera.rotation.set(0,0,0),this._camera.updateProjectionMatrix()}_setLookAt(){const t=(new bn).setFromObject(this._bboxmodel);this._config.camera_target?this._controls.target.set(this._config.camera_target.x,this._config.camera_target.y,this._config.camera_target.z):this._camera.lookAt(t.max.multiplyScalar(.5)),this._camera.updateProjectionMatrix()}_setNoShadowLight(t){t.receiveShadow=!0,t.castShadow=!1}_onLoaded3DMaterials(t){console.log("Material loaded start"),t.preload();let e=this._config.path;"/"!=e.substr(-1)&&(e+="/");const i=new Dh;i.setMaterials(t),i.load(e+this._config.objfile,this._onLoaded3DModel.bind(this),this._onLoadObjectProgress.bind(this),(function(t){throw new Error(t.error)})),console.log("Material loaded end")}_add3dObjects(){try{console.log("Add Objects Start"),this._states&&this._config.entities&&(this._round_per_seconds=[],this._axis_to_rotate=[],this._rotation_state=[],this._rotation_index=[],this._animated_transitions=[],this._pivot=[],this._axis_for_door=[],this._degrees=[],this._slidingdoor=[],this._objposition=[],this._slidingdoorposition=[],this._to_animate=!1,this._zoom=[],this._config.entities.forEach(((t,e)=>{try{if(this._objposition.push([0,0,0]),this._pivot.push(null),this._axis_for_door.push(null),this._degrees.push(0),this._slidingdoor.push(null),this._slidingdoorposition.push([]),this._hass.states[t.entity]){if("rotate"==t.type3d){let i,n;this._round_per_seconds.push(t.rotate.round_per_second),this._axis_to_rotate.push(t.rotate.axis),this._rotation_state.push(0),this._rotation_index.push(e),n=t.rotate.hinge?this._scene.getObjectByName(t.rotate.hinge):this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),i=(new bn).setFromObject(n),this._pivot[e]=new vn,this._pivot[e].subVectors(i.max,i.min).multiplyScalar(.5),this._pivot[e].add(i.min),this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id);this._centerobjecttopivot(i,this._pivot[e]),i.geometry.applyMatrix4((new Yn).makeTranslation(-this._pivot[e].x,-this._pivot[e].y,-this._pivot[e].z))}))}if("door"==t.type3d){if("swing"!=t.door.doortype&&"slide"!=t.door.doortype)throw new Error("Invalid door type: "+t.door.doortype+". Valid types are: swing, slide");if("swing"==t.door.doortype){let i=new vn;if(t.door.hinge){let n=this._scene.getObjectByName(t.door.hinge);n.geometry.computeBoundingBox();let r=n.geometry.boundingBox;switch(i.subVectors(r.max,r.min),Math.max(i.x,i.y,i.z)){case i.x:this._axis_for_door[e]=new vn(1,0,0);break;case i.z:this._axis_for_door[e]=new vn(0,0,1);break;case i.y:default:this._axis_for_door[e]=new vn(0,1,0)}i.multiplyScalar(.5),i.add(r.min),i.applyMatrix4(n.matrixWorld)}else{let n;n=t.door.pane?this._scene.getObjectByName(t.door.pane):this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),n.geometry.computeBoundingBox();let r=n.geometry.boundingBox;i.subVectors(r.max,r.min);const o=t.door.swing_side||t.door.side;if(o)switch(o){case"up":i.x=i.x/2,i.z=i.z/2,i.y=i.y,i.x>i.z?this._axis_for_door[e]=new vn(1,0,0):this._axis_for_door[e]=new vn(0,0,1);break;case"down":i.x=i.x/2,i.z=i.z/2,i.y=0,i.x>i.z?this._axis_for_door[e]=new vn(1,0,0):this._axis_for_door[e]=new vn(0,0,1);break;case"left":i.x>i.z?(i.x=0,i.z=i.z/2):(i.z=0,i.x=i.x/2),this._axis_for_door[e]=new vn(0,1,0),i.y=0;break;case"right":i.x>i.z?i.z=i.z/2:i.x=i.x/2,this._axis_for_door[e]=new vn(0,1,0),i.y=0;break;default:throw new Error("Invalid side: "+o+". Valid sides are: up, down, left, right")}i.add(r.min),i.applyMatrix4(n.matrixWorld)}this._pivot[e]=i,void 0!==t.door.swing_degrees?this._degrees[e]=t.door.swing_degrees:void 0!==t.door.degrees?this._degrees[e]=t.door.degrees:this._degrees[e]=90,this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id);this._centerobjecttopivot(i,this._pivot[e]),i.geometry.applyMatrix4((new Yn).makeTranslation(-this._pivot[e].x,-this._pivot[e].y,-this._pivot[e].z))}))}"slide"==t.door.doortype&&this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id),n=(new bn).setFromObject(i);this._slidingdoorposition[e].push(n.min),this._centerobjecttopivot(i,n.min),i.geometry.applyMatrix4((new Yn).makeTranslation(-n.min.x,-n.min.y,-n.min.z))}))}if("cover"==t.type3d){const i=this._scene.getObjectByName(t.cover.pane);if(i){this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id),n=(new bn).setFromObject(i);this._slidingdoorposition[e].push(n.min),this._centerobjecttopivot(i,n.min),i.geometry.applyMatrix4((new Yn).makeTranslation(-n.min.x,-n.min.y,-n.min.z))}));let n=(new bn).setFromObject(i),r=[];switch(t.cover.side){case"up":r=[new vn(n.min.x,n.max.y,n.min.z),new vn(n.min.x,n.max.y,n.max.z),new vn(n.max.x,n.max.y,n.min.z),new vn(n.max.x,n.max.y,n.max.z)];break;case"down":r=[new vn(n.min.x,n.min.y,n.min.z),new vn(n.min.x,n.min.y,n.max.z),new vn(n.max.x,n.min.y,n.min.z),new vn(n.max.x,n.min.y,n.max.z)]}r.sort(((t,e)=>t.x<e.x?-1:t.x>e.x?1:0));const o=new zo;o.setFromCoplanarPoints(r[2],r[1],r[0]);const s=[o];this._object_ids[e].objects.forEach((t=>{this._scene.getObjectByName(t.object_id).material.clippingPlanes=s})),this._config.shadow&&("yes"==this._config.shadow?i.material.clipShadows=!0:i.material.clipShadows=!1),this._updatecover(t,this._states[e],e)}}if("light"==t.type3d&&this._object_ids[e].objects.forEach((e=>{const i=this._scene.getObjectByName(e.object_id);if(i){const n=new bn;n.setFromObject(i);let r,o,s,a,l,c=new Ad;if(r=(n.max.x-n.min.x)/2+n.min.x,s=(n.max.z-n.min.z)/2+n.min.z,o=(n.max.y-n.min.y)/2+n.min.y,t.light.vertical_alignment)switch(t.light.vertical_alignment){case"top":o=n.max.y;break;case"middle":o=(n.max.y-n.min.y)/2+n.min.y;break;case"bottom":o=n.min.y}if(a=t.light.decay?Number(t.light.decay):2,l=t.light.distance?Number(t.light.distance):600,t.light.light_target||t.light.light_direction){const e=t.light.angle?sn.degToRad(t.light.angle):Math.PI/10,n=new Nd(new Hr("#ffffff"),0,l,e,.5,a);this._levels[i.userData.level].add(n);let d=new yr;if(this._levels[i.userData.level].add(d),n.position.set(r,o,s),t.light.light_direction)d.position.set(r+t.light.light_direction.x,o+t.light.light_direction.y,s+t.light.light_direction.z);else{const e=this._scene.getObjectByName(t.light.light_target);if(e){const t=new bn;let i,n,r;t.setFromObject(e),i=(t.max.x-t.min.x)/2+t.min.x,r=(t.max.z-t.min.z)/2+t.min.z,n=(t.max.y-t.min.y)/2+t.min.y,d.position.set(i,n,r)}}d&&(n.target=d),c=n}else{const t=new Bd(new Hr("#ffffff"),0,l,a);this._levels[i.userData.level].add(t),t.position.set(r,o,s),c=t}this._setNoShadowLight(i),i.traverseAncestors(this._setNoShadowLight.bind(this)),"no"==t.light.shadow?c.castShadow=!1:(c.castShadow=!0,c.shadow.bias=-1e-4),c.name=e.object_id+"_light"}})),"color"==t.type3d){let t=0;this._object_ids[e].objects.forEach((i=>{let n=this._scene.getObjectByName(i.object_id);this._initialmaterial[e][t]=n.material,Array.isArray(n.material)||(this._clonedmaterial[e][t]=n.material.clone()),t+=1}))}"text"==t.type3d&&this._object_ids[e].objects.forEach((t=>{let e=this._scene.getObjectByName(t.object_id);(new bn).setFromObject(e);let i=e.clone();i.name="f3dobj_"+e.name,this._levels[e.userData.level].add(i)}))}}catch(e){throw console.log(e),new Error("Object issue for Entity: <"+t.entity+"> "+e)}})),this._config.entities.forEach(((t,e)=>{""!==t.entity&&("light"==t.type3d?this._updatelight(t,e):"color"==t.type3d?this._updatecolor(t,e):"hide"==t.type3d?this._updatehide(t,e):"show"==t.type3d?this._updateshow(t,e):"door"==t.type3d?this._updatedoor(t,e):"text"==t.type3d?(this._canvas[e]=this._createTextCanvas(t.text,this._text[e],this._unit_of_measurement[e]),this._updatetext(t,this._text[e],this._canvas[e],this._unit_of_measurement[e])):"rotate"==t.type3d?this._rotatecalc(t,e):"room"==t.type3d&&(this._createroom(t,e),this._updateroom(t,this._spritetext[e],this._unit_of_measurement[e],e)))}))),console.log("Add 3D Object End")}catch(t){throw console.log(t),new Error("Error adding 3D Object: "+t)}}_manageZoom(){this._config.zoom_areas&&(this._config.zoom_areas.forEach((t=>{if(t.object_id&&""!=t.object_id){let e=this._scene.getObjectByName(t.object_id);if(e&&e instanceof bo){const i=e;let n,r,o=(new bn).setFromObject(i),s=new vn;s.addVectors(o.min,o.max.sub(o.min).multiplyScalar(.5)),n=t.direction?new vn(t.direction.x,t.direction.y,t.direction.z):new vn(0,1,0),n.normalize(),n.multiplyScalar(t.distance?t.distance:500),n.add(s),r=t.rotation?new vn(t.rotation.x,t.rotation.y,t.rotation.z):new vn(0,0,0),this._zoom.push({name:t.zoom,target:s,position:n,rotation:r,level:t.level})}}})),V(this._getZoomBar(),this._zoombar))}_createroom(t,e){console.log("Create Room");const i=t.room.elevation?t.room.elevation:250,n=t.room.transparency?t.room.transparency:50,r=t.room.color?t.room.color:"#ffffff",o=this._scene.getObjectByName(t.object_id);if(o&&o.name.includes("room")&&o instanceof bo){const s=o;if(s.geometry instanceof io){let o=(new bn).setFromObject(s);this._centerobjecttopivot(s,o.min),s.geometry.applyMatrix4((new Yn).makeTranslation(-o.min.x,-o.min.y,-o.min.z));let a=(new bn).setFromObject(s);const l=new vn(0,i/2,0);a.expandByVector(l);const c=(new vn).subVectors(a.max,a.min),d=new Mo(c.x-4,c.y-4,c.z-4),h=o.min.clone();h.y+=2,h.x+=2,h.z+=2;const u=new Qc({color:16711680,opacity:0,transparent:!0});u.depthWrite=!1,u.color.set(new Hr(r)),u.emissive.set(new Hr(r)),u.opacity=(100-n)/100,u.needsUpdate=!0;const p=new bo(d,u);p.name=this._rooms[e];const m=new xl;m.name=this._sprites[e],this._canvas[e]=this._createTextCanvas(t.room,this._spritetext[e],this._unit_of_measurement[e]);const f=t.room.width?t.room.width:150,g=t.room.height?t.room.height:75;m.scale.set(f,g,5);const _=new vn(h.x+c.x/2,a.max.y+i/2+g/2,h.z+c.z/2);m.visible=!1,t.room.label&&"yes"==t.room.label&&(m.visible=!0),this._levels[s.userData.level].add(m),this._levels[s.userData.level].add(p),a=(new bn).setFromObject(p),this._centerobjecttopivot(p,a.min),p.geometry.applyMatrix4((new Yn).makeTranslation(-a.min.x,-a.min.y,-a.min.z)),p.position.set(h.x,h.y,h.z),m.position.set(_.x,_.y,_.z),this._updateroomcolor(t,e)}}}_updateroom(t,e,i,n){const r=this._scene.getObjectByName(this._rooms[n]),o=this._scene.getObjectByName(this._sprites[n]),s=this._canvas[n];if(r&&t){let n=o;this._updateTextCanvas(t.room,s,e+i),this._applyTextCanvasSprite(s,n)}}_updatecover(t,e,i){let n=this._scene.getObjectByName(t.cover.pane);null==this._position[i]&&("open"==e&&(this._position[i]=100),"closed"==e&&(this._position[i]=0)),n||(n=this._scene.getObjectByName(this._object_ids[i].objects[0].object_id)),this._translatedoor(n,this._position[i],t.cover.side,i,e),this._renderer.shadowMap.needsUpdate=!0}_createTextCanvas(t,e,i){const n=document.createElement("canvas");return this._updateTextCanvas(t,n,e+i),n}_updateTextCanvas(t,e,i){const n=e.getContext("2d");n.font=`56px ${t.font?t.font:"monospace"}`;let r=n.measureText(i).width,o=56,s=1;t.span&&(s=parseFloat(t.span)/100),r/=s,o/=s,e.width=r,e.height=o,e.style.width=r+"px",e.style.height=o+"px",n.font=`56px ${t.font?t.font:"monospace"}`,n.textAlign="center",n.textBaseline="middle",n.fillStyle=t.textbgcolor?t.textbgcolor:"transparent",n.fillRect(0,0,n.canvas.width,n.canvas.height),n.fillStyle=t.textfgcolor?t.textfgcolor:"white",n.fillText(i,r/2,o/2)}_applyTextCanvas(t,e){const i=e;let n=this._config.objfile.split("?")[0].split(".").pop();if(i instanceof bo){const e=new tc(t);if(e.repeat.set(1,1),"glb"==n&&(e.flipY=!1),i.material.name.startsWith("f3dmat"))i.material.map=e;else{const t=new Ur({map:e,transparent:!0});t.name="f3dmat"+i.name,i.material=t}}}_applyTextCanvasSprite(t,e){const i=new tc(t);if(i.repeat.set(1,1),e.material.name.startsWith("f3dmat"))e.material.map=i;else{const t=new ol({map:i,transparent:!0});t.name="f3dmat"+e.name,e.material=t}}_TemperatureToRGB(t){let e,i,n,r=1e4/t,o=[0,0,0];return r<=66?(e=255,i=r,i=99.470802*Math.log(i)-161.119568,r<=19?n=0:(n=r-10,n=138.517731*Math.log(n)-305.044793)):(e=r-60,e=329.698727*Math.pow(e,-.13320476),i=r-60,i=288.12217*Math.pow(i,-.07551485),n=255),o=[Math.floor(e),Math.floor(i),Math.floor(n)],o}_RGBToHex(t,e,i){let n=t.toString(16),r=e.toString(16),o=i.toString(16);return 1==n.length&&(n="0"+n),1==r.length&&(r="0"+r),1==o.length&&(o="0"+o),"#"+n+r+o}_updatetext(t,e,i,n){const r=this._scene.getObjectByName(t.object_id);r&&(this._updateTextCanvas(t.text,i,e+n),this._applyTextCanvas(i,r))}_updatelight(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id+"_light");if(!n)return;let r;r=t.light.lumens?t.light.lumens:800,"on"==this._states[e]?(-1!=this._brightness[e]?n.intensity=.003*r*(this._brightness[e]/255):n.intensity=.003*r,this._color[e]?n.color=new Hr(this._RGBToHex(this._color[e][0],this._color[e][1],this._color[e][2])):t.light.color?n.color=new Hr(t.light.color):n.color=new Hr("#ffffff")):n.intensity=0,this._config.extralightmode&&"yes"==this._config.extralightmode&&this._manage_light_shadows(t,n),this._renderer.shadowMap.needsUpdate=!0}))}_manage_light_shadows(t,e){"yes"==this._config.shadow&&"yes"==t.light.shadow&&(e.intensity>0?e.castShadow=!0:e.castShadow=!1)}_updatedoor(t,e){let i;if(i=this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),i&&t.door.doortype){if("swing"!=t.door.doortype&&"slide"!=t.door.doortype)throw new Error("Invalid door type: "+t.door.doortype+". Valid types are: swing, slide");if("swing"==t.door.doortype&&this._rotatedoorpivot(t,e),"slide"==t.door.doortype){let i,n=this._scene.getObjectByName(t.door.pane);n||(n=this._scene.getObjectByName(this._object_ids[e].objects[0].object_id)),i=void 0!==t.door.slide_percentage?t.door.slide_percentage:t.door.percentage,this._translatedoor(n,null!=i?i:100,t.door.slide_side||t.door.side,e,this._states[e])}}this._renderer.shadowMap.needsUpdate=!0}_centerobjecttopivot(t,e){t.applyMatrix4((new Yn).makeTranslation(-e.x,-e.y,-e.z)),t.position.copy(e)}_rotatedoorpivot(t,e){this._object_ids[e].objects.forEach((i=>{let n=this._scene.getObjectByName(i.object_id);const r=new vn(0,0,0),o=t.door.swing_direction||t.door.direction;if("on"==this._states[e])if("inner"==o)1==this._axis_for_door[e].y?r.y=-Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].x?r.x=-Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].z&&(r.z=-Math.PI*this._degrees[e]/180);else{if("outer"!=o)throw new Error("Invalid swing direction: "+o+". Valid directions are: inner, outer");1==this._axis_for_door[e].y?r.y=Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].x?r.x=Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].z&&(r.z=Math.PI*this._degrees[e]/180)}r.equals(n.rotation)||(new zi(n.rotation).to(r,1200).easing(Ri.Cubic.InOut).onComplete((()=>{this._startOrStopAnimationLoop()})).start(),this._startOrStopAnimationLoop())}))}_translatedoor(t,e,i,n,r){let o=new vn(0,0,0),s=new vn;new vn;let a=(new bn).setFromObject(t);if(s.subVectors(a.max,a.min),"on"==r||"open"==r)if("left"==i)s.x>s.z?(o.z+=0,o.x+=-s.x*e/100,o.y=0):(o.z+=-s.z*e/100,o.x+=0,o.y+=0);else if("right"==i)s.x>s.z?(o.z+=0,o.x+=+s.x*e/100,o.y+=0):(o.z+=+s.z*e/100,o.x+=0,o.y+=0);else if("down"==i)o.y+=-s.y*e/100,o.x+=0,o.z+=0;else{if("up"!=i)throw new Error("Invalid side: "+i+". Valid sides are: up, down, left, right");o.y+=+s.y*e/100,o.x+=0,o.z+=0}this._object_ids[n].objects.forEach(((t,e)=>{let i=this._scene.getObjectByName(t.object_id);const r=this._slidingdoorposition[n][e];let s=new vn(r.x+o.x,r.y+o.y,r.z+o.z);s.equals(i.position)||new zi(i.position).to(s,1200).easing(Ri.Cubic.InOut).onComplete((()=>{this._startOrStopAnimationLoop()})).start()})),this._startOrStopAnimationLoop()}_updateroomcolor(t,e){let i=this._scene.getObjectByName(this._rooms[e]);const n=t.room.color?t.room.color:"#ffffff";if(i&&i instanceof bo){let r,o=!0;const s=i;for(r in t.colorcondition)if(this._states[e]==t.colorcondition[r].state){const e=new Hr(t.colorcondition[r].color);s.material.color.set(e),s.material.emissive.set(e),o=!1;break}o&&(s.material.color.set(n),s.material.emissive.set(n))}}_updatecolor(t,e){let i=0;this._object_ids[e].objects.forEach((n=>{let r=this._scene.getObjectByName(n.object_id);if(r){let n,o=!0;for(n in t.colorcondition)if(this._states[e]==t.colorcondition[n].state){const s=t.colorcondition[n].color.split(",");let a="";a=3==s.length?this._RGBToHex(Number(s[0]),Number(s[1]),Number(s[2])):t.colorcondition[n].color,Array.isArray(r.material)||(r.material=this._clonedmaterial[e][i],r.material.color.set(a)),o=!1;break}o&&this._initialmaterial[e][i]&&(r.material=this._initialmaterial[e][i])}i+=1}))}_updatehide(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id);n&&(this._states[e]==t.hide.state?n.visible=!1:n.visible=!0)})),this._renderer.shadowMap.needsUpdate=!0}_updateshow(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id);n&&(this._states[e]==t.show.state?n.visible=!0:n.visible=!1)})),this._renderer.shadowMap.needsUpdate=!0}shouldUpdate(t){return!0}_rotatecalc(t,e){let i=this._rotation_index.indexOf(e);this._rotation_state[i]="on"==this._states[e]?1:0,0!=this._rotation_state[i]&&this._hass.states[t.entity].attributes.percentage&&(this._rotation_state[i]=this._hass.states[t.entity].attributes.percentage/100),0!=this._rotation_state[i]&&this._hass.states[t.entity].attributes.direction&&"reverse"==this._hass.states[t.entity].attributes.direction&&(this._rotation_state[i]=0-this._rotation_state[i]),this._startOrStopAnimationLoop()}_needsAnimationLoop(){return this._rotation_state.some((t=>0!==t))||Fi().length>0}_startOrStopAnimationLoop(){if(this._needsAnimationLoop()){if(this._to_animate)return;this._to_animate=!0,this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))}else this._to_animate=!1,this._clock=null,this._renderer.setAnimationLoop(null)}_animationLoop(){let t=this._clock.getDelta()*Math.PI*2;this._rotation_state.forEach(((e,i)=>{0!=e&&this._object_ids[this._rotation_index[i]].objects.forEach((e=>{let n=this._scene.getObjectByName(e.object_id);if(n)switch(this._axis_to_rotate[i]){case"x":n.rotation.x+=this._round_per_seconds[i]*this._rotation_state[i]*t;break;case"y":n.rotation.y+=this._round_per_seconds[i]*this._rotation_state[i]*t;break;case"z":n.rotation.z+=this._round_per_seconds[i]*this._rotation_state[i]*t}}))})),Bi(),this._renderer.shadowMap.needsUpdate=!0,this._renderer.render(this._scene,this._camera)}render(){if(this._config.show_error)return this._showError(Ci("common.show_error"));let t;return t=this._ispanel()?"calc(100vh - var(--header-height))":"auto",H`
+      `),H`
+        <div class="category" style="opacity: 0.5; position: absolute; bottom: 0px; right: 0px">${t}</div>
+      `}return H``}_setSelectionMaterials(t){this._selectedobjects.forEach((e=>{let i=this._scene.getObjectByName(e);i&&(i.material=t?this._selectedmaterial:this._initialobjectmaterials[e])})),this._render()}_handleClearSelectionsClick(t){t.stopPropagation(),this._setSelectionMaterials(!1),this._selectedobjects=[],console.log("Cleared selected objects"),V(this._getSelectionBar(),this._selectionbar)}_handleToggleSelectionMode(t){t.stopPropagation(),this._selectionModeEnabled=!this._selectionModeEnabled,this._setSelectionMaterials(this._selectionModeEnabled),V(this._getSelectionBar(),this._selectionbar)}_handleZoomClick(t){if(t.stopPropagation(),-1==t.target.index)return this._setCamera(),this._setLookAt(),this._controls.update(),void this._render();const e=this._zoom[t.target.index];null!=e.level&&this._setVisibleLevel(e.level),this._camera.position.set(this._zoom[t.target.index].position.x,this._zoom[t.target.index].position.y,this._zoom[t.target.index].position.z),this._camera.rotation.set(this._zoom[t.target.index].rotation.x,this._zoom[t.target.index].rotation.y,this._zoom[t.target.index].rotation.z),this._controls.target.set(this._zoom[t.target.index].target.x,this._zoom[t.target.index].target.y,this._zoom[t.target.index].target.z),this._camera.updateProjectionMatrix(),this._controls.update(),this._render()}_handleLevelClick(t){t.stopPropagation(),this._toggleVisibleLevel(t.target.index),V(this._getLevelBar(),this._levelbar),this._render()}_getOverlay(){if("yes"==this._config.overlay){console.log("Start config Overlay");const t=document.createElement("div");if(t.id="overlay",t.className="overlay",t.style.setProperty("position","absolute"),this._config.overlay_alignment)switch(this._config.overlay_alignment){case"top-left":default:t.style.setProperty("top","0px"),t.style.setProperty("left","0px");break;case"top-right":t.style.setProperty("top","0px"),t.style.setProperty("right","0px");break;case"bottom-left":t.style.setProperty("bottom","0px"),t.style.setProperty("left","0px");break;case"bottom-right":t.style.setProperty("bottom","0px"),t.style.setProperty("right","0px")}this._config.overlay_width?t.style.setProperty("width",this._config.overlay_width+"%"):t.style.setProperty("width","33%"),this._config.overlay_height?t.style.setProperty("height",this._config.overlay_height+"%"):t.style.setProperty("height","20%"),this._config.overlay_bgcolor?t.style.setProperty("background-color",this._config.overlay_bgcolor):t.style.setProperty("background-color","transparent"),this._config.overlay_fgcolor?t.style.setProperty("color",this._config.overlay_fgcolor):t.style.setProperty("color","black"),this._config.overlay_font&&(t.style.fontFamily=this._config.overlay_font),this._config.overlay_fontsize&&(t.style.fontSize=this._config.overlay_fontsize),t.style.setProperty("overflow","hidden"),t.style.setProperty("white-space","nowrap");let e="";try{e=this._getZIndex(this._renderer.domElement.parentNode)}catch(t){console.log(t)}e?t.style.setProperty("z-index",(Number(e)+1).toString(10)):t.style.setProperty("z-index","999"),this._renderer.domElement.parentNode.style.setProperty("position","relative"),this._renderer.domElement.parentNode.appendChild(t),this._overlay=t,console.log("End config Overlay")}}_setCamera(){const t=(new bn).setFromObject(this._bboxmodel);this._modelX=this._bboxmodel.position.x=-(t.max.x-t.min.x)/2,this._modelY=this._bboxmodel.position.y=-t.min.y,this._modelZ=this._bboxmodel.position.z=-(t.max.z-t.min.z)/2,this._config.camera_position?this._camera.position.set(this._config.camera_position.x,this._config.camera_position.y,this._config.camera_position.z):this._camera.position.set(1.3*t.max.x,5*t.max.y,1.3*t.max.z),this._config.camera_rotate?this._camera.rotation.set(this._config.camera_rotate.x,this._config.camera_rotate.y,this._config.camera_rotate.z):this._camera.rotation.set(0,0,0),this._camera.updateProjectionMatrix()}_setLookAt(){const t=(new bn).setFromObject(this._bboxmodel);this._config.camera_target?this._controls.target.set(this._config.camera_target.x,this._config.camera_target.y,this._config.camera_target.z):this._camera.lookAt(t.max.multiplyScalar(.5)),this._camera.updateProjectionMatrix()}_setNoShadowLight(t){t.receiveShadow=!0,t.castShadow=!1}_onLoaded3DMaterials(t){console.log("Material loaded start"),t.preload();let e=this._config.path;"/"!=e.substr(-1)&&(e+="/");const i=new Dh;i.setMaterials(t),i.load(e+this._config.objfile,this._onLoaded3DModel.bind(this),this._onLoadObjectProgress.bind(this),(function(t){throw new Error(t.error)})),console.log("Material loaded end")}_add3dObjects(){try{console.log("Add Objects Start"),this._states&&this._config.entities&&(this._round_per_seconds=[],this._axis_to_rotate=[],this._rotation_state=[],this._rotation_index=[],this._animated_transitions=[],this._pivot=[],this._axis_for_door=[],this._degrees=[],this._slidingdoor=[],this._objposition=[],this._slidingdoorposition=[],this._to_animate=!1,this._zoom=[],this._config.entities.forEach(((t,e)=>{try{if(this._objposition.push([0,0,0]),this._pivot.push(null),this._axis_for_door.push(null),this._degrees.push(0),this._slidingdoor.push(null),this._slidingdoorposition.push([]),this._hass.states[t.entity]){if("rotate"==t.type3d){let i,n;this._round_per_seconds.push(t.rotate.round_per_second),this._axis_to_rotate.push(t.rotate.axis),this._rotation_state.push(0),this._rotation_index.push(e),n=t.rotate.hinge?this._scene.getObjectByName(t.rotate.hinge):this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),i=(new bn).setFromObject(n),this._pivot[e]=new vn,this._pivot[e].subVectors(i.max,i.min).multiplyScalar(.5),this._pivot[e].add(i.min),this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id);this._centerobjecttopivot(i,this._pivot[e]),i.geometry.applyMatrix4((new Yn).makeTranslation(-this._pivot[e].x,-this._pivot[e].y,-this._pivot[e].z))}))}if("door"==t.type3d){if("swing"!=t.door.doortype&&"slide"!=t.door.doortype)throw new Error("Invalid door type: "+t.door.doortype+". Valid types are: swing, slide");if("swing"==t.door.doortype){let i=new vn;if(t.door.hinge){let n=this._scene.getObjectByName(t.door.hinge);n.geometry.computeBoundingBox();let r=n.geometry.boundingBox;switch(i.subVectors(r.max,r.min),Math.max(i.x,i.y,i.z)){case i.x:this._axis_for_door[e]=new vn(1,0,0);break;case i.z:this._axis_for_door[e]=new vn(0,0,1);break;case i.y:default:this._axis_for_door[e]=new vn(0,1,0)}i.multiplyScalar(.5),i.add(r.min),i.applyMatrix4(n.matrixWorld)}else{let n;n=t.door.pane?this._scene.getObjectByName(t.door.pane):this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),n.geometry.computeBoundingBox();let r=n.geometry.boundingBox;i.subVectors(r.max,r.min);const o=t.door.swing_side||t.door.side;if(o)switch(o){case"up":i.x=i.x/2,i.z=i.z/2,i.y=i.y,i.x>i.z?this._axis_for_door[e]=new vn(1,0,0):this._axis_for_door[e]=new vn(0,0,1);break;case"down":i.x=i.x/2,i.z=i.z/2,i.y=0,i.x>i.z?this._axis_for_door[e]=new vn(1,0,0):this._axis_for_door[e]=new vn(0,0,1);break;case"left":i.x>i.z?(i.x=0,i.z=i.z/2):(i.z=0,i.x=i.x/2),this._axis_for_door[e]=new vn(0,1,0),i.y=0;break;case"right":i.x>i.z?i.z=i.z/2:i.x=i.x/2,this._axis_for_door[e]=new vn(0,1,0),i.y=0;break;default:throw new Error("Invalid side: "+o+". Valid sides are: up, down, left, right")}i.add(r.min),i.applyMatrix4(n.matrixWorld)}this._pivot[e]=i,void 0!==t.door.swing_degrees?this._degrees[e]=t.door.swing_degrees:void 0!==t.door.degrees?this._degrees[e]=t.door.degrees:this._degrees[e]=90,this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id);this._centerobjecttopivot(i,this._pivot[e]),i.geometry.applyMatrix4((new Yn).makeTranslation(-this._pivot[e].x,-this._pivot[e].y,-this._pivot[e].z))}))}"slide"==t.door.doortype&&this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id),n=(new bn).setFromObject(i);this._slidingdoorposition[e].push(n.min),this._centerobjecttopivot(i,n.min),i.geometry.applyMatrix4((new Yn).makeTranslation(-n.min.x,-n.min.y,-n.min.z))}))}if("cover"==t.type3d){const i=this._scene.getObjectByName(t.cover.pane);if(i){this._object_ids[e].objects.forEach((t=>{let i=this._scene.getObjectByName(t.object_id),n=(new bn).setFromObject(i);this._slidingdoorposition[e].push(n.min),this._centerobjecttopivot(i,n.min),i.geometry.applyMatrix4((new Yn).makeTranslation(-n.min.x,-n.min.y,-n.min.z))}));let n=(new bn).setFromObject(i),r=[];switch(t.cover.side){case"up":r=[new vn(n.min.x,n.max.y,n.min.z),new vn(n.min.x,n.max.y,n.max.z),new vn(n.max.x,n.max.y,n.min.z),new vn(n.max.x,n.max.y,n.max.z)];break;case"down":r=[new vn(n.min.x,n.min.y,n.min.z),new vn(n.min.x,n.min.y,n.max.z),new vn(n.max.x,n.min.y,n.min.z),new vn(n.max.x,n.min.y,n.max.z)]}r.sort(((t,e)=>t.x<e.x?-1:t.x>e.x?1:0));const o=new zo;o.setFromCoplanarPoints(r[2],r[1],r[0]);const s=[o];this._object_ids[e].objects.forEach((t=>{this._scene.getObjectByName(t.object_id).material.clippingPlanes=s})),this._config.shadow&&("yes"==this._config.shadow?i.material.clipShadows=!0:i.material.clipShadows=!1),this._updatecover(t,this._states[e],e)}}if("light"==t.type3d&&this._object_ids[e].objects.forEach((e=>{const i=this._scene.getObjectByName(e.object_id);if(i){const n=new bn;n.setFromObject(i);let r,o,s,a,l,c=new Ad;if(r=(n.max.x-n.min.x)/2+n.min.x,s=(n.max.z-n.min.z)/2+n.min.z,o=(n.max.y-n.min.y)/2+n.min.y,t.light.vertical_alignment)switch(t.light.vertical_alignment){case"top":o=n.max.y;break;case"middle":o=(n.max.y-n.min.y)/2+n.min.y;break;case"bottom":o=n.min.y}if(a=t.light.decay?Number(t.light.decay):2,l=t.light.distance?Number(t.light.distance):600,t.light.light_target||t.light.light_direction){const e=t.light.angle?sn.degToRad(t.light.angle):Math.PI/10,n=new Nd(new Hr("#ffffff"),0,l,e,.5,a);this._levels[i.userData.level].add(n);let d=new yr;if(this._levels[i.userData.level].add(d),n.position.set(r,o,s),t.light.light_direction)d.position.set(r+t.light.light_direction.x,o+t.light.light_direction.y,s+t.light.light_direction.z);else{const e=this._scene.getObjectByName(t.light.light_target);if(e){const t=new bn;let i,n,r;t.setFromObject(e),i=(t.max.x-t.min.x)/2+t.min.x,r=(t.max.z-t.min.z)/2+t.min.z,n=(t.max.y-t.min.y)/2+t.min.y,d.position.set(i,n,r)}}d&&(n.target=d),c=n}else{const t=new Bd(new Hr("#ffffff"),0,l,a);this._levels[i.userData.level].add(t),t.position.set(r,o,s),c=t}this._setNoShadowLight(i),i.traverseAncestors(this._setNoShadowLight.bind(this)),"no"==t.light.shadow?c.castShadow=!1:(c.castShadow=!0,c.shadow.bias=-1e-4),c.name=e.object_id+"_light"}})),"color"==t.type3d){let t=0;this._object_ids[e].objects.forEach((i=>{let n=this._scene.getObjectByName(i.object_id);this._initialmaterial[e][t]=n.material,Array.isArray(n.material)||(this._clonedmaterial[e][t]=n.material.clone()),t+=1}))}"text"==t.type3d&&this._object_ids[e].objects.forEach((t=>{let e=this._scene.getObjectByName(t.object_id);(new bn).setFromObject(e);let i=e.clone();i.name="f3dobj_"+e.name,this._levels[e.userData.level].add(i)}))}}catch(e){throw console.log(e),new Error("Object issue for Entity: <"+t.entity+"> "+e)}})),this._config.entities.forEach(((t,e)=>{""!==t.entity&&("light"==t.type3d?this._updatelight(t,e):"color"==t.type3d?this._updatecolor(t,e):"hide"==t.type3d?this._updatehide(t,e):"show"==t.type3d?this._updateshow(t,e):"door"==t.type3d?this._updatedoor(t,e):"text"==t.type3d?(this._canvas[e]=this._createTextCanvas(t.text,this._text[e],this._unit_of_measurement[e]),this._updatetext(t,this._text[e],this._canvas[e],this._unit_of_measurement[e])):"rotate"==t.type3d?this._rotatecalc(t,e):"room"==t.type3d&&(this._createroom(t,e),this._updateroom(t,this._spritetext[e],this._unit_of_measurement[e],e)))}))),console.log("Add 3D Object End")}catch(t){throw console.log(t),new Error("Error adding 3D Object: "+t)}}_manageZoom(){this._config.zoom_areas&&(this._config.zoom_areas.forEach((t=>{if(t.object_id&&""!=t.object_id){let e=this._scene.getObjectByName(t.object_id);if(e&&e instanceof bo){const i=e;let n,r,o=(new bn).setFromObject(i),s=new vn;s.addVectors(o.min,o.max.sub(o.min).multiplyScalar(.5)),n=t.direction?new vn(t.direction.x,t.direction.y,t.direction.z):new vn(0,1,0),n.normalize(),n.multiplyScalar(t.distance?t.distance:500),n.add(s),r=t.rotation?new vn(t.rotation.x,t.rotation.y,t.rotation.z):new vn(0,0,0),this._zoom.push({name:t.zoom,target:s,position:n,rotation:r,level:t.level})}}})),V(this._getZoomBar(),this._zoombar))}_createroom(t,e){console.log("Create Room");const i=t.room.elevation?t.room.elevation:250,n=t.room.transparency?t.room.transparency:50,r=t.room.color?t.room.color:"#ffffff",o=this._scene.getObjectByName(t.object_id);if(o&&o.name.includes("room")&&o instanceof bo){const s=o;if(s.geometry instanceof io){let o=(new bn).setFromObject(s);this._centerobjecttopivot(s,o.min),s.geometry.applyMatrix4((new Yn).makeTranslation(-o.min.x,-o.min.y,-o.min.z));let a=(new bn).setFromObject(s);const l=new vn(0,i/2,0);a.expandByVector(l);const c=(new vn).subVectors(a.max,a.min),d=new Mo(c.x-4,c.y-4,c.z-4),h=o.min.clone();h.y+=2,h.x+=2,h.z+=2;const u=new Qc({color:16711680,opacity:0,transparent:!0});u.depthWrite=!1,u.color.set(new Hr(r)),u.emissive.set(new Hr(r)),u.opacity=(100-n)/100,u.needsUpdate=!0;const p=new bo(d,u);p.name=this._rooms[e];const m=new xl;m.name=this._sprites[e],this._canvas[e]=this._createTextCanvas(t.room,this._spritetext[e],this._unit_of_measurement[e]);const f=t.room.width?t.room.width:150,g=t.room.height?t.room.height:75;m.scale.set(f,g,5);const _=new vn(h.x+c.x/2,a.max.y+i/2+g/2,h.z+c.z/2);m.visible=!1,t.room.label&&"yes"==t.room.label&&(m.visible=!0),this._levels[s.userData.level].add(m),this._levels[s.userData.level].add(p),a=(new bn).setFromObject(p),this._centerobjecttopivot(p,a.min),p.geometry.applyMatrix4((new Yn).makeTranslation(-a.min.x,-a.min.y,-a.min.z)),p.position.set(h.x,h.y,h.z),m.position.set(_.x,_.y,_.z),this._updateroomcolor(t,e)}}}_updateroom(t,e,i,n){const r=this._scene.getObjectByName(this._rooms[n]),o=this._scene.getObjectByName(this._sprites[n]),s=this._canvas[n];if(r&&t){let n=o;this._updateTextCanvas(t.room,s,e+i),this._applyTextCanvasSprite(s,n)}}_updatecover(t,e,i){let n=this._scene.getObjectByName(t.cover.pane);null==this._position[i]&&("open"==e&&(this._position[i]=100),"closed"==e&&(this._position[i]=0)),n||(n=this._scene.getObjectByName(this._object_ids[i].objects[0].object_id)),this._translatedoor(n,this._position[i],t.cover.side,i,e),this._renderer.shadowMap.needsUpdate=!0}_createTextCanvas(t,e,i){const n=document.createElement("canvas");return this._updateTextCanvas(t,n,e+i),n}_updateTextCanvas(t,e,i){const n=e.getContext("2d");n.font=`56px ${t.font?t.font:"monospace"}`;let r=n.measureText(i).width,o=56,s=1;t.span&&(s=parseFloat(t.span)/100),r/=s,o/=s,e.width=r,e.height=o,e.style.width=r+"px",e.style.height=o+"px",n.font=`56px ${t.font?t.font:"monospace"}`,n.textAlign="center",n.textBaseline="middle",n.fillStyle=t.textbgcolor?t.textbgcolor:"transparent",n.fillRect(0,0,n.canvas.width,n.canvas.height),n.fillStyle=t.textfgcolor?t.textfgcolor:"white",n.fillText(i,r/2,o/2)}_applyTextCanvas(t,e){const i=e;let n=this._config.objfile.split("?")[0].split(".").pop();if(i instanceof bo){const e=new tc(t);if(e.repeat.set(1,1),"glb"==n&&(e.flipY=!1),i.material.name.startsWith("f3dmat"))i.material.map=e;else{const t=new Ur({map:e,transparent:!0});t.name="f3dmat"+i.name,i.material=t}}}_applyTextCanvasSprite(t,e){const i=new tc(t);if(i.repeat.set(1,1),e.material.name.startsWith("f3dmat"))e.material.map=i;else{const t=new ol({map:i,transparent:!0});t.name="f3dmat"+e.name,e.material=t}}_TemperatureToRGB(t){let e,i,n,r=1e4/t,o=[0,0,0];return r<=66?(e=255,i=r,i=99.470802*Math.log(i)-161.119568,r<=19?n=0:(n=r-10,n=138.517731*Math.log(n)-305.044793)):(e=r-60,e=329.698727*Math.pow(e,-.13320476),i=r-60,i=288.12217*Math.pow(i,-.07551485),n=255),o=[Math.floor(e),Math.floor(i),Math.floor(n)],o}_RGBToHex(t,e,i){let n=t.toString(16),r=e.toString(16),o=i.toString(16);return 1==n.length&&(n="0"+n),1==r.length&&(r="0"+r),1==o.length&&(o="0"+o),"#"+n+r+o}_updatetext(t,e,i,n){const r=this._scene.getObjectByName(t.object_id);r&&(this._updateTextCanvas(t.text,i,e+n),this._applyTextCanvas(i,r))}_updatelight(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id+"_light");if(!n)return;let r;r=t.light.lumens?t.light.lumens:800,"on"==this._states[e]?(-1!=this._brightness[e]?n.intensity=.003*r*(this._brightness[e]/255):n.intensity=.003*r,this._color[e]?n.color=new Hr(this._RGBToHex(this._color[e][0],this._color[e][1],this._color[e][2])):t.light.color?n.color=new Hr(t.light.color):n.color=new Hr("#ffffff")):n.intensity=0,this._config.extralightmode&&"yes"==this._config.extralightmode&&this._manage_light_shadows(t,n),this._renderer.shadowMap.needsUpdate=!0}))}_manage_light_shadows(t,e){"yes"==this._config.shadow&&"yes"==t.light.shadow&&(e.intensity>0?e.castShadow=!0:e.castShadow=!1)}_updatedoor(t,e){let i;if(i=this._scene.getObjectByName(this._object_ids[e].objects[0].object_id),i&&t.door.doortype){if("swing"!=t.door.doortype&&"slide"!=t.door.doortype)throw new Error("Invalid door type: "+t.door.doortype+". Valid types are: swing, slide");if("swing"==t.door.doortype&&this._rotatedoorpivot(t,e),"slide"==t.door.doortype){let i,n=this._scene.getObjectByName(t.door.pane);n||(n=this._scene.getObjectByName(this._object_ids[e].objects[0].object_id)),i=void 0!==t.door.slide_percentage?t.door.slide_percentage:t.door.percentage,this._translatedoor(n,null!=i?i:100,t.door.slide_side||t.door.side,e,this._states[e])}}this._renderer.shadowMap.needsUpdate=!0}_centerobjecttopivot(t,e){t.applyMatrix4((new Yn).makeTranslation(-e.x,-e.y,-e.z)),t.position.copy(e)}_rotatedoorpivot(t,e){this._object_ids[e].objects.forEach((i=>{let n=this._scene.getObjectByName(i.object_id);const r=new vn(0,0,0),o=t.door.swing_direction||t.door.direction;if("on"==this._states[e])if("inner"==o)1==this._axis_for_door[e].y?r.y=-Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].x?r.x=-Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].z&&(r.z=-Math.PI*this._degrees[e]/180);else{if("outer"!=o)throw new Error("Invalid swing direction: "+o+". Valid directions are: inner, outer");1==this._axis_for_door[e].y?r.y=Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].x?r.x=Math.PI*this._degrees[e]/180:1==this._axis_for_door[e].z&&(r.z=Math.PI*this._degrees[e]/180)}r.equals(n.rotation)||(new zi(n.rotation).to(r,1200).easing(Ri.Cubic.InOut).onComplete((()=>{this._startOrStopAnimationLoop()})).start(),this._startOrStopAnimationLoop())}))}_translatedoor(t,e,i,n,r){let o=new vn(0,0,0),s=new vn;new vn;let a=(new bn).setFromObject(t);if(s.subVectors(a.max,a.min),"on"==r||"open"==r)if("left"==i)s.x>s.z?(o.z+=0,o.x+=-s.x*e/100,o.y=0):(o.z+=-s.z*e/100,o.x+=0,o.y+=0);else if("right"==i)s.x>s.z?(o.z+=0,o.x+=+s.x*e/100,o.y+=0):(o.z+=+s.z*e/100,o.x+=0,o.y+=0);else if("down"==i)o.y+=-s.y*e/100,o.x+=0,o.z+=0;else{if("up"!=i)throw new Error("Invalid side: "+i+". Valid sides are: up, down, left, right");o.y+=+s.y*e/100,o.x+=0,o.z+=0}this._object_ids[n].objects.forEach(((t,e)=>{let i=this._scene.getObjectByName(t.object_id);const r=this._slidingdoorposition[n][e];let s=new vn(r.x+o.x,r.y+o.y,r.z+o.z);s.equals(i.position)||new zi(i.position).to(s,1200).easing(Ri.Cubic.InOut).onComplete((()=>{this._startOrStopAnimationLoop()})).start()})),this._startOrStopAnimationLoop()}_updateroomcolor(t,e){let i=this._scene.getObjectByName(this._rooms[e]);const n=t.room.color?t.room.color:"#ffffff";if(i&&i instanceof bo){let r,o=!0;const s=i;for(r in t.colorcondition)if(this._states[e]==t.colorcondition[r].state){const e=new Hr(t.colorcondition[r].color);s.material.color.set(e),s.material.emissive.set(e),o=!1;break}o&&(s.material.color.set(n),s.material.emissive.set(n))}}_updatecolor(t,e){let i=0;this._object_ids[e].objects.forEach((n=>{let r=this._scene.getObjectByName(n.object_id);if(r){let n,o=!0;for(n in t.colorcondition)if(this._states[e]==t.colorcondition[n].state){const s=t.colorcondition[n].color.split(",");let a="";a=3==s.length?this._RGBToHex(Number(s[0]),Number(s[1]),Number(s[2])):t.colorcondition[n].color,Array.isArray(r.material)||(r.material=this._clonedmaterial[e][i],r.material.color.set(a)),o=!1;break}o&&this._initialmaterial[e][i]&&(r.material=this._initialmaterial[e][i])}i+=1}))}_updatehide(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id);n&&(this._states[e]==t.hide.state?n.visible=!1:n.visible=!0)})),this._renderer.shadowMap.needsUpdate=!0}_updateshow(t,e){this._object_ids[e].objects.forEach((i=>{const n=this._scene.getObjectByName(i.object_id);n&&(this._states[e]==t.show.state?n.visible=!0:n.visible=!1)})),this._renderer.shadowMap.needsUpdate=!0}shouldUpdate(t){return!0}_rotatecalc(t,e){let i=this._rotation_index.indexOf(e);this._rotation_state[i]="on"==this._states[e]?1:0,0!=this._rotation_state[i]&&this._hass.states[t.entity].attributes.percentage&&(this._rotation_state[i]=this._hass.states[t.entity].attributes.percentage/100),0!=this._rotation_state[i]&&this._hass.states[t.entity].attributes.direction&&"reverse"==this._hass.states[t.entity].attributes.direction&&(this._rotation_state[i]=0-this._rotation_state[i]),this._startOrStopAnimationLoop()}_needsAnimationLoop(){return this._rotation_state.some((t=>0!==t))||Fi().length>0}_startOrStopAnimationLoop(){if(this._needsAnimationLoop()){if(this._to_animate)return;this._to_animate=!0,this._clock=new Jd,this._renderer.setAnimationLoop((()=>this._animationLoop()))}else this._to_animate=!1,this._clock=null,this._renderer.setAnimationLoop(null)}_animationLoop(){let t=this._clock.getDelta()*Math.PI*2;this._rotation_state.forEach(((e,i)=>{0!=e&&this._object_ids[this._rotation_index[i]].objects.forEach((e=>{let n=this._scene.getObjectByName(e.object_id);if(n)switch(this._axis_to_rotate[i]){case"x":n.rotation.x+=this._round_per_seconds[i]*this._rotation_state[i]*t;break;case"y":n.rotation.y+=this._round_per_seconds[i]*this._rotation_state[i]*t;break;case"z":n.rotation.z+=this._round_per_seconds[i]*this._rotation_state[i]*t}}))})),Bi(),this._renderer.shadowMap.needsUpdate=!0,this._renderer.render(this._scene,this._camera)}render(){if(this._config.show_error)return this._showError(Ci("common.show_error"));let t;return t=this._ispanel()?"calc(100vh - var(--header-height))":"auto",H`
       <ha-card
         tabindex="0"
         .style=${`${this._config.style||"overflow: hidden; width: auto; height: "+t+"; position: relative;"}`}
