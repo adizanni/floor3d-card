@@ -453,46 +453,57 @@ export class Floor3dCard extends LitElement {
   }
 
   private _ispanel(): boolean {
+
     let root: any = document.querySelector('home-assistant');
     root = root && root.shadowRoot;
     root = root && root.querySelector('home-assistant-main');
     root = root && root.shadowRoot;
-    root = root && root.querySelector('app-drawer-layout partial-panel-resolver');
+    root = root && root.querySelector('app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver');
     root = (root && root.shadowRoot) || root;
     root = root && root.querySelector('ha-panel-lovelace');
-    root = root && root.shadowRoot;
+    root = (root && root.shadowRoot) || root;
     root = root && root.querySelector('hui-root');
-    root = root && root.shadowRoot;
-    root = root && root.querySelector('ha-app-layout');
+    root = (root && root.shadowRoot) || root;
+    root = root && root.querySelector('hui-view');
 
     const panel: [] = root.getElementsByTagName('HUI-PANEL-VIEW');
 
-    if (panel.length == 0) {
-      return false;
+    if (panel) {
+      if (panel.length == 0) {
+        return false;
+      } else {
+        return true;
+      }
     } else {
-      return true;
+      return false;
     }
+
   }
 
   private _issidebar(): boolean {
+
     let root: any = document.querySelector('home-assistant');
     root = root && root.shadowRoot;
     root = root && root.querySelector('home-assistant-main');
     root = root && root.shadowRoot;
-    root = root && root.querySelector('app-drawer-layout partial-panel-resolver');
+    root = root && root.querySelector('app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver');
     root = (root && root.shadowRoot) || root;
     root = root && root.querySelector('ha-panel-lovelace');
-    root = root && root.shadowRoot;
+    root = (root && root.shadowRoot) || root;
     root = root && root.querySelector('hui-root');
-    root = root && root.shadowRoot;
-    root = root && root.querySelector('ha-app-layout');
+    root = (root && root.shadowRoot) || root;
+    root = root && root.querySelector('hui-view');
 
     const sidebar: [] = root.getElementsByTagName('HUI-SIDEBAR-VIEW');
 
-    if (sidebar.length == 0) {
-      return false;
+    if (sidebar) {
+      if (sidebar.length == 0) {
+        return false;
+      } else {
+        return true;
+      }
     } else {
-      return true;
+      return false;
     }
   }
 
