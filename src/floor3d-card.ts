@@ -6,12 +6,11 @@ import {
   ActionHandlerEvent,
   handleAction,
   LovelaceCardEditor,
-  getLovelace,
   fireEvent,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
 import './editor';
 import { HassEntity } from 'home-assistant-js-websocket';
-import { createConfigArray, createObjectGroupConfigArray } from './helpers';
+import { createConfigArray, createObjectGroupConfigArray, getLovelace } from './helpers';
 import type { Floor3dCardConfig } from './types';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';

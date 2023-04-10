@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { PropertyValues } from 'lit';
-import { HomeAssistant } from 'custom-card-helpers';
+import { HomeAssistant, LovelaceConfig } from 'custom-card-helpers';
 import { Floor3dCardConfig } from './types';
 
 /**
@@ -57,6 +57,25 @@ export function hasConfigOrEntitiesChanged(element: any, changedProps: PropertyV
     }
   }
   return false;
+}
+
+export const getLovelace = () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let root: any = document.querySelector('home-assistant');
+  root = root && root.shadowRoot;
+  root = root && root.querySelector('home-assistant-main');
+  root = root && root.shadowRoot;
+  root = root && root.querySelector('app-drawer-layout partial-panel-resolver, ha-drawer partial-panel-resolver');
+  root = (root && root.shadowRoot) || root;
+  root = root && root.querySelector('ha-panel-lovelace');
+  root = root && root.shadowRoot;
+  root = root && root.querySelector('hui-root');
+  if (root) {
+    const ll = root.lovelace;
+    ll.current_view = root.___curView;
+    return ll;
+  }
+  return null;
 }
 
 export function createConfigArray(config): Floor3dCardConfig[] {
