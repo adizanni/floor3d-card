@@ -3068,6 +3068,7 @@ export class Floor3dCard extends LitElement {
           const colorcond: THREE.Color = new THREE.Color(item.colorcondition[i].color);
           _object.material.color.set(colorcond);
           _object.material.emissive.set(colorcond);
+          _room.material.opacity = (100 - item.colorcondition[i].transparency ? item.colorcondition[i].transparency : item.room.transparency) / 100;
           defaultcolor = false;
           break;
         }
@@ -3075,6 +3076,7 @@ export class Floor3dCard extends LitElement {
       if (defaultcolor) {
         _object.material.color.set(color);
         _object.material.emissive.set(color);
+        _room.material.opacity = (100 - item.room.transparency) / 100
       }
     }
   }
