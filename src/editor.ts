@@ -1092,7 +1092,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     <mwc-list-item value="yes">yes</mwc-list-item>
                     <mwc-list-item value="no">no</mwc-list-item>
                 </floor3d-select>
-                ></floor3d-textfield>
+                </floor3d-textfield>
                 <floor3d-formfield alignEnd label="Global Scene Light (0..1)" >
                   <floor3d-textfield
                     type="number"

@@ -1,9 +1,11 @@
 // See https://aka.ms/vscode-remote/devcontainer.json for format details.
 {
   "name": "Floor3d Card Development",
-  "image": "ludeeus/container:monster",
-  "context": "..",
-  "appPort": ["5000:5000", "9123:8123"],
+  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  "appPort": [
+    "5000:5000",
+    "9123:8123"
+  ],
   "postCreateCommand": "npm install",
   "runArgs": [
     "-v",
@@ -11,24 +13,26 @@
     "--name",
     "floor3d-card"
   ],
-  "extensions": [
-    "github.vscode-pull-request-github",
-    "eamodio.gitlens",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "bierner.lit-html",
-    "runem.lit-plugin",
-    "auchenberg.vscode-browser-preview",
-    "davidanson.vscode-markdownlint",
-    "redhat.vscode-yaml"
-  ],
-  "settings": {
-    "files.eol": "\n",
-    "editor.tabSize": 4,
-    "terminal.integrated.shell.linux": "/bin/bash",
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": true,
-    "editor.formatOnType": true,
-    "files.trimTrailingWhitespace": true
+  "customizations": {
+    "extensions": [
+      "github.vscode-pull-request-github",
+      "eamodio.gitlens",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "bierner.lit-html",
+      "runem.lit-plugin",
+      "ms-vscode.live-server",
+      "davidanson.vscode-markdownlint",
+      "redhat.vscode-yaml"
+    ],
+    "settings": {
+      "files.eol": "\n",
+      "editor.tabSize": 4,
+      "terminal.integrated.shell.linux": "/bin/bash",
+      "editor.formatOnPaste": false,
+      "editor.formatOnSave": true,
+      "editor.formatOnType": true,
+      "files.trimTrailingWhitespace": true
+    }
   }
 }
