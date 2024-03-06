@@ -426,7 +426,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             </floor3d-textfield>
           </div>
           ${index !== 0
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-up"
@@ -438,9 +438,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           ${index !== this._configObjectArray.length - 1
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-down"
@@ -452,7 +452,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           <ha-icon
             class="ha-icon-large"
             icon="mdi:close"
@@ -526,7 +526,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
             </floor3d-textfield>
           </div>
           ${index !== 0
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-up"
@@ -538,9 +538,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           ${index !== this._configZoomArray.length - 1
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-down"
@@ -552,7 +552,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           <ha-icon
             class="ha-icon-large"
             icon="mdi:close"
@@ -606,7 +606,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           </div>
           <div class="values" style="flex-grow: 1;">
             ${this._entity_ids.length * this._configArray.length < 5000
-          ? html` <floor3d-select
+              ? html` <floor3d-select
                   label="Entity (Required)"
                   .value=${config.entity}
                   @selected=${this._valueChanged}
@@ -620,10 +620,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   id="entity"
                 >
                   ${this._entity_ids.map((entity) => {
-            return html` <mwc-list-item .value=${entity}>${entity}</mwc-list-item> `;
-          })}
+                    return html` <mwc-list-item .value=${entity}>${entity}</mwc-list-item> `;
+                  })}
                 </floor3d-select>`
-          : html`
+              : html`
                   <floor3d-textfield
                     label="Entity"
                     @input=${this._valueChanged}
@@ -635,7 +635,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 `}
           </div>
           ${index !== 0
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-up"
@@ -647,9 +647,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           ${index !== this._configArray.length - 1
-          ? html`
+            ? html`
                 <ha-icon
                   class="ha-icon-large"
                   icon="mdi:arrow-down"
@@ -661,7 +661,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   .index=${index}
                 ></ha-icon>
               `
-          : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+            : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
           <ha-icon
             class="ha-icon-large"
             icon="mdi:close"
@@ -703,7 +703,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-background" style="max-height: 400px; overflow: auto;">
                 ${this._createZoomAreasValues()}
                 <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -718,7 +718,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 </div>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -740,7 +740,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-background" style="max-height: 400px; overflow: auto;">
                 ${this._createObjectGroupsValues()}
                 <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -755,7 +755,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 </div>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -777,7 +777,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-background" style="max-height: 400px; overflow: auto;">
                 ${this._createEntitiesValues()}
                 <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -792,7 +792,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 </div>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -815,7 +815,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 <floor3d-textfield
                   label="Name"
@@ -859,7 +859,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></floor3d-textfield>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -882,7 +882,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 <floor3d-textfield
                   label="Overlay Background color"
@@ -961,7 +961,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></floor3d-textfield>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -984,7 +984,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
              <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 <floor3d-textfield
                   label="Style"
@@ -1192,7 +1192,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 ></paper-input>
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -1375,7 +1375,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 <floor3d-textfield
                   label="Entity template"
@@ -1427,7 +1427,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                   <mwc-list-item value="camera">camera</mwc-list-item>
                 </floor3d-select>
                 ${!this._objects
-            ? html`
+                  ? html`
                       <floor3d-textfield
                         label="Object"
                         .value=${config.object_id ? config.object_id : ''}
@@ -1437,7 +1437,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                         required
                       ></floor3d-textfield>
                     `
-            : html`
+                  : html`
                       <floor3d-select
                         label="Object id"
                         @selected=${this._valueChanged}
@@ -1449,20 +1449,20 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                         @closed=${(ev) => ev.stopPropagation()}
                       >
                         ${this._objects.map((object_id) => {
-              return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
-            })}
+                          return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
+                        })}
                         ${this._configObjectArray.map((object_group) => {
-              return html`
+                          return html`
                             <mwc-list-item value="${'<' + object_group.object_group + '>'}"
                               >${'<' + object_group.object_group + '>'}</mwc-list-item
                             >
                           `;
-            })}
+                        })}
                       </floor3d-select>
                     `}
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -1493,7 +1493,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-background" style="overflow: auto; max-height: 420px;">
                       ${arrayLength > 0 ? html` ${this._createObjectValues(index)} ` : ''}
                       <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -1506,7 +1506,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       </div>
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -1539,7 +1539,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-background" style="overflow: auto; max-height: 420px;">
                       ${arrayLength > 0 ? html` ${this._createColorConditionValues(index)} ` : ''}
                       <div class="sub-category" style="display: flex; flex-direction: column; align-items: flex-end;">
@@ -1552,7 +1552,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                       </div>
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -1581,7 +1581,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           </div>
           <div style="display: flex;">
             ${objectIndex !== 0
-          ? html`
+              ? html`
                   <ha-icon
                     class="ha-icon-large"
                     icon="mdi:arrow-up"
@@ -1591,9 +1591,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .objectIndex=${objectIndex}
                   ></ha-icon>
                 `
-          : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+              : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             ${objectIndex !== config.objects.length - 1
-          ? html`
+              ? html`
                   <ha-icon
                     class="ha-icon-large"
                     icon="mdi:arrow-down"
@@ -1603,7 +1603,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .objectIndex=${objectIndex}
                   ></ha-icon>
                 `
-          : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+              : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             <ha-icon
               class="ha-icon-large"
               icon="mdi:close"
@@ -1648,7 +1648,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           </div>
           <div style="display: flex;">
             ${colorconditionIndex !== 0
-          ? html`
+              ? html`
                   <ha-icon
                     class="ha-icon-large"
                     icon="mdi:arrow-up"
@@ -1658,9 +1658,9 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .colorconditionIndex=${colorconditionIndex}
                   ></ha-icon>
                 `
-          : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+              : html` <ha-icon icon="mdi:arrow-up" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             ${colorconditionIndex !== config.colorcondition.length - 1
-          ? html`
+              ? html`
                   <ha-icon
                     class="ha-icon-large"
                     icon="mdi:arrow-down"
@@ -1670,7 +1670,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                     .colorconditionIndex=${colorconditionIndex}
                   ></ha-icon>
                 `
-          : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
+              : html` <ha-icon icon="mdi:arrow-down" style="opacity: 25%;" class="ha-icon-large"></ha-icon> `}
             <ha-icon
               class="ha-icon-large"
               icon="mdi:close"
@@ -1903,10 +1903,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-formfield alignEnd label="Lumens (0-5000) <800>">
                               <floor3d-textfield
                                 type="number"
@@ -2004,10 +2004,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               <mwc-list-item value="top">top</mwc-list-item>
                             </floor3d-select>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2042,10 +2042,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html` <floor3d-formfield alignEnd label="Transparency %">
+                        ? html` <floor3d-formfield alignEnd label="Transparency %">
                               <floor3d-textfield
                                 type="number"
                                 min="0"
@@ -2119,10 +2119,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               ></floor3d-textfield>
                             </floor3d-formfield>
                             ${this._createTextSubElement(config.room)}`
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2148,12 +2148,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
           <div class="secondary">${options.secondary}</div>
         </div>
         ${options.show
-        ? html`
+          ? html`
               <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                 ${index !== null
-            ? html`
+                  ? html`
                       ${!this._objects
-                ? html`
+                        ? html`
                             <floor3d-textfield
                               label="Object"
                               .value=${config.object_id ? config.object_id : ''}
@@ -2163,7 +2163,7 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               required
                             ></floor3d-textfield>
                           `
-                : html`
+                        : html`
                             <floor3d-select
                               label="Object id"
                               @selected=${this._valueChanged}
@@ -2175,15 +2175,15 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @closed=${(ev) => ev.stopPropagation()}
                             >
                               ${this._objects.map((object_id) => {
-                  return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
-                })}
+                                return html` <mwc-list-item value="${object_id}">${object_id}</mwc-list-item> `;
+                              })}
                               ${this._configObjectArray.map((object_group) => {
-                  return html`
+                                return html`
                                   <mwc-list-item value="${'<' + object_group.object_group + '>'}"
                                     >${'<' + object_group.object_group + '>'}</mwc-list-item
                                   >
                                 `;
-                })}
+                              })}
                             </floor3d-select>
                           `}
                       <paper-input
@@ -2214,10 +2214,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                         ></floor3d-textfield>
                       </floor3d-formfield>
                     `
-            : ''}
+                  : ''}
               </div>
             `
-        : ''}
+          : ''}
       </div>
     `;
   }
@@ -2298,12 +2298,12 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null ? html` ${this._createTextSubElement(config.text)} ` : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2338,10 +2338,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-select
                               label="Door Type"
                               @selected=${this._valueChanged}
@@ -2423,10 +2423,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @input=${this._valueChanged}
                             ></floor3d-textfield>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2461,10 +2461,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-textfield
                               label="Pane object"
                               .value=${config.cover.pane ? config.cover.pane : ''}
@@ -2486,10 +2486,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               <mwc-list-item value="down">down</mwc-list-item>
                             </floor3d-select>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2524,10 +2524,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-textfield
                               label="domain"
                               fullwidth
@@ -2545,10 +2545,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @input=${this._valueChanged}
                             ></floor3d-textfield>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2583,10 +2583,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-select
                               label="Axis"
                               @selected=${this._valueChanged}
@@ -2616,10 +2616,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @input=${this._valueChanged}
                             ></floor3d-textfield>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2656,10 +2656,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-textfield
                               label="state"
                               .value=${config.hide.state ? config.hide.state : ''}
@@ -2668,10 +2668,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @input=${this._valueChanged}
                             ></floor3d-textfield>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
@@ -2708,10 +2708,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                 <div class="secondary">${options.secondary}</div>
               </div>
               ${options.show
-            ? html`
+                ? html`
                     <div class="card-options" style="display: flex; flex-direction: column; align-items: left;">
                       ${index !== null
-                ? html`
+                        ? html`
                             <floor3d-textfield
                               label="state"
                               .value=${config.show.state ? config.show.state : ''}
@@ -2720,10 +2720,10 @@ export class Floor3dCardEditor extends LitElement implements LovelaceCardEditor 
                               @input=${this._valueChanged}
                             ></floor3d-textfield>
                           `
-                : ''}
+                        : ''}
                     </div>
                   `
-            : ''}
+                : ''}
             </div>
           `
         : ''}
